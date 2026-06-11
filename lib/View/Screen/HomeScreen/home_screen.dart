@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../Utils/AppColors/app_colors.dart';
+import '../../../Utils/StaticString/static_string.dart';
 import '../../../View/Widgegt/CustomAppBar/custom_app_bar.dart';
 import '../../../helper/network_img/network_img.dart';
 import 'Controller/home_controller.dart';
@@ -14,7 +15,7 @@ class HomeScreen extends GetView<HomeController> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: CustomAppBar(
-        title: 'Feed',
+        title: StaticString.feed.tr,
         showBackButton: false,
         backgroundColor: Colors.white,
         titleColor: AppColors.textLight,
@@ -110,7 +111,7 @@ class HomeScreen extends GetView<HomeController> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              post.badgeText,
+                              post.badgeText.tr,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 10,
@@ -250,9 +251,9 @@ class HomeScreen extends GetView<HomeController> {
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Add Comment',
-              style: TextStyle(
+            Text(
+              StaticString.addComment.tr,
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
                 color: AppColors.textLight,
@@ -263,7 +264,7 @@ class HomeScreen extends GetView<HomeController> {
               controller: textController,
               autofocus: true,
               decoration: InputDecoration(
-                hintText: 'Write a comment...',
+                hintText: StaticString.writeComment.tr,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                 ),
@@ -284,7 +285,7 @@ class HomeScreen extends GetView<HomeController> {
                 ),
                 minimumSize: const Size(double.infinity, 44),
               ),
-              child: const Text('Post'),
+              child: Text(StaticString.post.tr),
             ),
             const SizedBox(height: 16),
           ],

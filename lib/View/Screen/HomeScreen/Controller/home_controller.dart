@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../Model/post_model.dart';
+import '../../../../Utils/StaticString/static_string.dart';
 import '../../../../Utils/ToastMessage/toast_message.dart';
 
 class HomeController extends GetxController {
@@ -19,7 +20,7 @@ class HomeController extends GetxController {
         userName: 'Owolabi Ridwan',
         userAvatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
         timeAgo: '6h',
-        badgeText: 'Problem',
+        badgeText: StaticString.problem,
         contentText: 'Insecurity',
         likesCount: 1,
         commentsCount: 1,
@@ -31,7 +32,7 @@ class HomeController extends GetxController {
         userName: 'Africa',
         userAvatarUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150',
         timeAgo: '10h',
-        badgeText: 'Problem',
+        badgeText: StaticString.problem,
         contentText: 'Le Nigeria en tête, la RD Congo juste derrière. Les origines Africaines seront largement représentées parmi les mondialistes non Africains lors du mondial 2026. Source: @sportnewsafrica',
         contentImageUrl: 'https://images.unsplash.com/photo-1518005020951-eccb494ad742?w=800',
         likesCount: 5,
@@ -65,7 +66,7 @@ class HomeController extends GetxController {
     posts[index] = post;
     posts.refresh();
     
-    ToastMessage.showToast(message: "Comment added!");
+    ToastMessage.showToast(message: StaticString.commentAdded.tr);
   }
 
   void sharePost(int index) {
@@ -77,8 +78,8 @@ class HomeController extends GetxController {
     posts.refresh();
     
     ToastMessage.showSnackBar(
-      title: "Shared!",
-      message: "Post shared successfully to your feed.",
+      title: StaticString.shared.tr,
+      message: StaticString.sharedMsg.tr,
     );
   }
 

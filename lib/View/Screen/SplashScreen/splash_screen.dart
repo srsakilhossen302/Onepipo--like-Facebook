@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../Utils/AppColors/app_colors.dart';
+import '../../../Utils/StaticString/static_string.dart';
 import 'Controller/splash_screen_controller.dart';
 
 class SplashScreen extends GetView<SplashScreenController> {
@@ -10,56 +11,28 @@ class SplashScreen extends GetView<SplashScreenController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
+      backgroundColor: Colors.white,
+      body: SizedBox(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.backgroundDark,
-              Color(0xFF1F1F35),
-              AppColors.primaryDark,
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Decorative background glowing blur circle
-            Positioned(
-              top: -100,
-              right: -100,
-              child: Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primary.withOpacity(0.15),
-                ),
-              ),
-            ),
-            
             // Branding Content
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Glowing circular wrapper for logo
+                // Clean circular wrapper for logo
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.05),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.1),
-                      width: 1.5,
-                    ),
+                    color: Colors.white,
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
-                        blurRadius: 40,
-                        spreadRadius: 5,
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
                       ),
                     ],
                   ),
@@ -67,34 +40,28 @@ class SplashScreen extends GetView<SplashScreenController> {
                     'assets/icons/App-Logo.svg',
                     width: 80,
                     height: 80,
+                    colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn),
                   ),
                 ),
                 const SizedBox(height: 30),
                 
                 Text(
-                  'app_name'.tr,
+                  StaticString.appName.tr,
                   style: const TextStyle(
                     fontSize: 36,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.textLight,
                     letterSpacing: 2,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black38,
-                        offset: Offset(2, 4),
-                        blurRadius: 8,
-                      ),
-                    ],
                   ),
                 ),
                 const SizedBox(height: 12),
                 
                 Text(
-                  'splash_subtitle'.tr,
+                  StaticString.splashSubtitle.tr,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 14,
-                    color: Colors.white60,
+                    color: AppColors.textMutedLight,
                     fontWeight: FontWeight.w400,
                     letterSpacing: 0.5,
                   ),
@@ -110,7 +77,7 @@ class SplashScreen extends GetView<SplashScreenController> {
                 height: 40,
                 child: CircularProgressIndicator(
                   strokeWidth: 3,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                 ),
               ),
             ),

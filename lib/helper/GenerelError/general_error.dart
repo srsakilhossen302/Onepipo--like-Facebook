@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../Utils/AppColors/app_colors.dart';
+import '../../../Utils/StaticString/static_string.dart';
 
 class GeneralError extends StatelessWidget {
   final String? title;
@@ -29,7 +30,7 @@ class GeneralError extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              title ?? 'no_internet'.tr,
+              title ?? StaticString.noInternet.tr,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 20,
@@ -39,7 +40,7 @@ class GeneralError extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              message ?? 'check_connection'.tr,
+              message ?? StaticString.checkConnection.tr,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 14,
@@ -60,7 +61,7 @@ class GeneralError extends StatelessWidget {
                   elevation: 2,
                 ),
                 child: Text(
-                  'retry'.tr,
+                  StaticString.retry.tr,
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 15,

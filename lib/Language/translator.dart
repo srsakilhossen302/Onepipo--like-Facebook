@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'english.dart';
+import 'french.dart';
 
 class AppTranslator extends Translations {
   @override
   Map<String, Map<String, String>> get keys => {
         'en_US': EnglishTranslations.english,
+        'fr_FR': FrenchTranslations.french,
       };
 
   static const Locale defaultLocale = Locale('en', 'US');

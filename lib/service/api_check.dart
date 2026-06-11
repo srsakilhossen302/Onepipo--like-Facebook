@@ -2,6 +2,7 @@ import 'package:dio/dio.dart' as dio;
 import 'package:get/get.dart';
 import '../helper/shared_prefe/shared_prefe.dart';
 import '../Utils/AppConst/app_const.dart';
+import '../Utils/StaticString/static_string.dart';
 import '../Utils/ToastMessage/toast_message.dart';
 
 class ApiCheck {
@@ -11,7 +12,7 @@ class ApiCheck {
       sharedPrefHelper.removeKey(AppConst.token);
       
       ToastMessage.showSnackBar(
-        title: 'unauthorized'.tr,
+        title: StaticString.unauthorized.tr,
         message: 'Please login again to continue.',
         isError: true,
       );
@@ -20,7 +21,7 @@ class ApiCheck {
       // Get.offAllNamed(AppRoute.splashScreen);
     } else if (response.statusCode != 200 && response.statusCode != 201) {
       ToastMessage.showSnackBar(
-        title: 'error'.tr,
+        title: StaticString.error.tr,
         message: response.statusMessage ?? 'Something went wrong.',
         isError: true,
       );
