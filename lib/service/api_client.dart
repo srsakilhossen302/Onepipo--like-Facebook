@@ -1,134 +1,102 @@
-import 'package:dio/dio.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:get/get.dart' as get_x;
 import '../helper/shared_prefe/shared_prefe.dart';
 import '../Utils/AppConst/app_const.dart';
 import 'api_url.dart';
 
 class ApiClient {
-  late final Dio _dio;
   final _sharedPrefHelper = get_x.Get.find<SharedPreferenceHelper>();
 
-  ApiClient() {
-    _dio = Dio(
-      BaseOptions(
-        baseUrl: ApiUrl.baseUrl,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
-        headers: {
-          AppConst.accept: AppConst.applicationJson,
-          AppConst.contentType: AppConst.applicationJson,
-        },
-      ),
-    );
+  // Base Headers builder
+  Map<String, String> _getHeaders(Map<String, String>? customHeaders) {
+    final Map<String, String> headers = {
+      AppConst.accept: AppConst.applicationJson,
+      AppConst.contentType: AppConst.applicationJson,
+    };
 
-    _dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) {
-          final token = _sharedPrefHelper.getString(AppConst.token);
-          if (token.isNotEmpty) {
-            options.headers[AppConst.authorization] = 'Bearer $token';
-          }
-          return handler.next(options);
-        },
-        onError: (DioException e, handler) {
-          return handler.next(e);
-        },
-      ),
-    );
+    final token = _sharedPrefHelper.getString(AppConst.token);
+    if (token.isNotEmpty) {
+      headers[AppConst.authorization] = 'Bearer $token';
+    }
+
+    if (customHeaders != null) {
+      headers.addAll(customHeaders);
+    }
+    return headers;
   }
 
   // GET request
-  Future<Response> get(
+  Future<http.Response> get(
     String uri, {
-    Map<String, dynamic>? queryParameters,
-    Options? options,
+    Map<String, String>? headers,
   }) async {
     try {
-      final response = await _dio.get(
-        uri,
-        queryParameters: queryParameters,
-        options: options,
-      );
+      final url = Uri.parse('${ApiUrl.baseUrl}$uri');
+      final response = await http.get(
+        url,
+        headers: _getHeaders(headers),
+      ).timeout(const Duration(seconds: 30));
       return response;
-    } on DioException catch (e) {
-      throw _handleError(e);
+    } catch (e) {
+      throw Exception('Connection error: $e');
     }
   }
 
   // POST request
-  Future<Response> post(
+  Future<http.Response> post(
     String uri, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-    Options? options,
+    dynamic body,
+    Map<String, String>? headers,
   }) async {
     try {
-      final response = await _dio.post(
-        uri,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
+      final url = Uri.parse('${ApiUrl.baseUrl}$uri');
+      final response = await http.post(
+        url,
+        body: body is Map ? jsonEncode(body) : body,
+        headers: _getHeaders(headers),
+      ).timeout(const Duration(seconds: 30));
       return response;
-    } on DioException catch (e) {
-      throw _handleError(e);
+    } catch (e) {
+      throw Exception('Connection error: $e');
     }
   }
 
   // PUT request
-  Future<Response> put(
+  Future<http.Response> put(
     String uri, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-    Options? options,
+    dynamic body,
+    Map<String, String>? headers,
   }) async {
     try {
-      final response = await _dio.put(
-        uri,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
+      final url = Uri.parse('${ApiUrl.baseUrl}$uri');
+      final response = await http.put(
+        url,
+        body: body is Map ? jsonEncode(body) : body,
+        headers: _getHeaders(headers),
+      ).timeout(const Duration(seconds: 30));
       return response;
-    } on DioException catch (e) {
-      throw _handleError(e);
+    } catch (e) {
+      throw Exception('Connection error: $e');
     }
   }
 
   // DELETE request
-  Future<Response> delete(
+  Future<http.Response> delete(
     String uri, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-    Options? options,
+    dynamic body,
+    Map<String, String>? headers,
   }) async {
     try {
-      final response = await _dio.delete(
-        uri,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
+      final url = Uri.parse('${ApiUrl.baseUrl}$uri');
+      final response = await http.delete(
+        url,
+        body: body is Map ? jsonEncode(body) : body,
+        headers: _getHeaders(headers),
+      ).timeout(const Duration(seconds: 30));
       return response;
-    } on DioException catch (e) {
-      throw _handleError(e);
+    } catch (e) {
+      throw Exception('Connection error: $e');
     }
-  }
-
-  Exception _handleError(DioException error) {
-    String message = "Something went wrong";
-    if (error.type == DioExceptionType.connectionTimeout) {
-      message = "Connection timeout";
-    } else if (error.type == DioExceptionType.receiveTimeout) {
-      message = "Receive timeout";
-    } else if (error.type == DioExceptionType.badResponse) {
-      final respData = error.response?.data;
-      if (respData is Map && respData.containsKey('message')) {
-        message = respData['message'];
-      } else {
-        message = "Bad response status: ${error.response?.statusCode}";
-      }
-    }
-    return Exception(message);
   }
 }
