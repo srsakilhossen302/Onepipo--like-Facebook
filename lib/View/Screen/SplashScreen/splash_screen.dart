@@ -40,7 +40,6 @@ class SplashScreen extends GetView<SplashScreenController> {
                     'assets/icons/App-Logo.svg',
                     width: 80,
                     height: 80,
-                    colorFilter: const ColorFilter.mode(AppColors.primary, BlendMode.srcIn),
                   ),
                 ),
                 const SizedBox(height: 30),
