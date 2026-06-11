@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../../../../helper/shared_prefe/shared_prefe.dart';
 import '../../../../Utils/AppConst/app_const.dart';
+import '../../../../Core/AppRoute/app_route.dart';
 
 class SplashScreenController extends GetxController {
   final _sharedPrefHelper = Get.find<SharedPreferenceHelper>();
@@ -15,15 +16,9 @@ class SplashScreenController extends GetxController {
     Future.delayed(const Duration(seconds: 3), () {
       final token = _sharedPrefHelper.getString(AppConst.token);
       
-      // Boilerplate setup logic:
-      // if (token.isNotEmpty) {
-      //   Get.offAllNamed(AppRoute.homeScreen);
-      // } else {
-      //   Get.offAllNamed(AppRoute.loginScreen);
-      // }
+      // Navigate to the newly implemented Feed Home Page
+      Get.offAllNamed(AppRoute.homeScreen);
       
-      // Since we don't have other screens in the initial structure, 
-      // we print the state. Developers can wire up the actual landing page here.
       print("Splash navigation completed. Auth token present: ${token.isNotEmpty}");
     });
   }
