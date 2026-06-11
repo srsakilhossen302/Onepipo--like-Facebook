@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../Utils/AppColors/app_colors.dart';
 import 'Controller/splash_screen_controller.dart';
 
@@ -62,10 +63,10 @@ class SplashScreen extends GetView<SplashScreenController> {
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.bubble_chart_rounded,
-                    size: 80,
-                    color: Colors.white,
+                  child: SvgPicture.asset(
+                    'assets/icons/App-Logo.svg',
+                    width: 80,
+                    height: 80,
                   ),
                 ),
                 const SizedBox(height: 30),
