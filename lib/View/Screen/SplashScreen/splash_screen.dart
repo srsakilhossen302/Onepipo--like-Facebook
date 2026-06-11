@@ -53,18 +53,18 @@ class SplashScreen extends GetView<SplashScreenController> {
                     letterSpacing: 2,
                   ),
                 ),
-                const SizedBox(height: 12),
+                // const SizedBox(height: 12),
                 
-                Text(
-                  StaticString.splashSubtitle.tr,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textMutedLight,
-                    fontWeight: FontWeight.w400,
-                    letterSpacing: 0.5,
-                  ),
-                ),
+                // Text(
+                //   StaticString.splashSubtitle.tr,
+                //   textAlign: TextAlign.center,
+                //   style: const TextStyle(
+                //     fontSize: 14,
+                //     color: AppColors.textMutedLight,
+                //     fontWeight: FontWeight.w400,
+                //     letterSpacing: 0.5,
+                //   ),
+                // ),
               ],
             ),
             
