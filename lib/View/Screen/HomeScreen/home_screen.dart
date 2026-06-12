@@ -238,6 +238,8 @@ class HomeScreen extends GetView<HomeController> {
 
   void _showCommentDialog(BuildContext context, int index) {
     final textController = TextEditingController();
+    final selectedReplyComment = Rxn<CommentModel>();
+    
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -306,97 +308,201 @@ class HomeScreen extends GetView<HomeController> {
                     final comment = post.comments[cIndex];
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                      child: Row(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          NetworkImg(
-                            imageUrl: comment.userAvatarUrl,
-                            width: 36,
-                            height: 36,
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              NetworkImg(
+                                imageUrl: comment.userAvatarUrl,
+                                width: 36,
+                                height: 36,
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          comment.userName,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                            color: Color(0xFF04070D),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          comment.timeAgo,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[500],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
                                     Text(
-                                      comment.userName,
+                                      comment.text,
                                       style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
                                         fontSize: 14,
                                         color: Color(0xFF04070D),
                                       ),
                                     ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      comment.timeAgo,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[500],
-                                      ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            selectedReplyComment.value = comment;
+                                          },
+                                          child: Text(
+                                            "Reply",
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        GestureDetector(
+                                          onTap: () => controller.toggleLikeComment(index, cIndex),
+                                          child: Icon(
+                                            comment.isLiked
+                                                ? Icons.thumb_up_alt_rounded
+                                                : Icons.thumb_up_off_alt_rounded,
+                                            size: 16,
+                                            color: comment.isLiked ? Colors.blueAccent : Colors.grey[600],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '${comment.likesCount}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        GestureDetector(
+                                          onTap: () => controller.toggleDislikeComment(index, cIndex),
+                                          child: Icon(
+                                            comment.isDisliked
+                                                ? Icons.thumb_down_alt_rounded
+                                                : Icons.thumb_down_off_alt_rounded,
+                                            size: 16,
+                                            color: comment.isDisliked ? Colors.redAccent : Colors.grey[600],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  comment.text,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Color(0xFF04070D),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () {},
-                                      child: Text(
-                                        "Reply",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.grey[600],
+                              ),
+                            ],
+                          ),
+                          // Replies list under this comment
+                          if (comment.replies.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: comment.replies.length,
+                              itemBuilder: (context, rIndex) {
+                                final reply = comment.replies[rIndex];
+                                return Padding(
+                                  padding: const EdgeInsets.only(left: 48, top: 6, bottom: 6),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      NetworkImg(
+                                        imageUrl: reply.userAvatarUrl,
+                                        width: 28,
+                                        height: 28,
+                                        borderRadius: BorderRadius.circular(14),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  reply.userName,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 13,
+                                                    color: Color(0xFF04070D),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 6),
+                                                Text(
+                                                  reply.timeAgo,
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: Colors.grey[500],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              reply.text,
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                                color: Color(0xFF04070D),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Row(
+                                              children: [
+                                                const Spacer(),
+                                                GestureDetector(
+                                                  onTap: () => controller.toggleLikeCommentReply(index, comment.id, reply.id),
+                                                  child: Icon(
+                                                    reply.isLiked
+                                                        ? Icons.thumb_up_alt_rounded
+                                                        : Icons.thumb_up_off_alt_rounded,
+                                                    size: 14,
+                                                    color: reply.isLiked ? Colors.blueAccent : Colors.grey[600],
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  '${reply.likesCount}',
+                                                  style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: Colors.grey[600],
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                GestureDetector(
+                                                  onTap: () => controller.toggleDislikeCommentReply(index, comment.id, reply.id),
+                                                  child: Icon(
+                                                    reply.isDisliked
+                                                        ? Icons.thumb_down_alt_rounded
+                                                        : Icons.thumb_down_off_alt_rounded,
+                                                    size: 14,
+                                                    color: reply.isDisliked ? Colors.redAccent : Colors.grey[600],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ),
-                                    const Spacer(),
-                                    GestureDetector(
-                                      onTap: () => controller.toggleLikeComment(index, cIndex),
-                                      child: Icon(
-                                        comment.isLiked
-                                            ? Icons.thumb_up_alt_rounded
-                                            : Icons.thumb_up_off_alt_rounded,
-                                        size: 16,
-                                        color: comment.isLiked ? Colors.blueAccent : Colors.grey[600],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      '${comment.likesCount}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    GestureDetector(
-                                      onTap: () => controller.toggleDislikeComment(index, cIndex),
-                                      child: Icon(
-                                        comment.isDisliked
-                                            ? Icons.thumb_down_alt_rounded
-                                            : Icons.thumb_down_off_alt_rounded,
-                                        size: 16,
-                                        color: comment.isDisliked ? Colors.redAccent : Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                    ],
+                                  ),
+                                );
+                              },
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     );
@@ -405,60 +511,105 @@ class HomeScreen extends GetView<HomeController> {
               }),
             ),
             
+            // Reply Target Indicator Bar
+            Obx(() {
+              if (selectedReplyComment.value == null) return const SizedBox.shrink();
+              return Container(
+                color: const Color(0xFFF9FAFB),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Replying to @${selectedReplyComment.value!.userName}",
+                      style: const TextStyle(
+                        color: Colors.blueAccent,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => selectedReplyComment.value = null,
+                      child: const Icon(
+                        Icons.cancel_rounded,
+                        color: Colors.grey,
+                        size: 18,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+            
             const Divider(height: 1, thickness: 0.5),
             
             // Bottom Input Bar
-            Padding(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 8,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF2F4F7),
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: TextField(
-                        controller: textController,
-                        decoration: const InputDecoration(
-                          hintText: "Commenting as shahriar",
-                          hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                          border: InputBorder.none,
+            Obx(() {
+              final isReplying = selectedReplyComment.value != null;
+              final replyUser = selectedReplyComment.value?.userName ?? "";
+              return Padding(
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 8,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF2F4F7),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: TextField(
+                          controller: textController,
+                          decoration: InputDecoration(
+                            hintText: isReplying
+                                ? "Reply to @$replyUser..."
+                                : "Commenting as shahriar",
+                            hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                            border: InputBorder.none,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: () {
-                      if (textController.text.trim().isNotEmpty) {
-                        controller.addComment(index, textController.text);
-                        textController.clear();
-                      }
-                    },
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: const BoxDecoration(
-                        color: Colors.blueAccent,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.arrow_upward,
-                        color: Colors.white,
-                        size: 20,
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: () {
+                        if (textController.text.trim().isNotEmpty) {
+                          if (isReplying) {
+                            controller.addReply(
+                              index,
+                              selectedReplyComment.value!.id,
+                              textController.text,
+                            );
+                            selectedReplyComment.value = null;
+                          } else {
+                            controller.addComment(index, textController.text);
+                          }
+                          textController.clear();
+                        }
+                      },
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: const BoxDecoration(
+                          color: Colors.blueAccent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.arrow_upward,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
+                  ],
+                ),
+              );
+            }),
           ],
         ),
       ),

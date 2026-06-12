@@ -7,6 +7,7 @@ class CommentModel {
   int likesCount;
   bool isLiked;
   bool isDisliked;
+  final List<CommentModel> replies;
 
   CommentModel({
     required this.id,
@@ -17,7 +18,8 @@ class CommentModel {
     this.likesCount = 0,
     this.isLiked = false,
     this.isDisliked = false,
-  });
+    List<CommentModel>? replies,
+  }) : replies = replies ?? [];
 }
 
 class PostModel {

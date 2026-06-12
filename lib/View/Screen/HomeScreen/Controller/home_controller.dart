@@ -167,6 +167,75 @@ class HomeController extends GetxController {
     posts.refresh();
   }
 
+  void addReply(int postIndex, String parentCommentId, String replyText) {
+    if (postIndex < 0 || postIndex >= posts.length || replyText.trim().isEmpty) return;
+    
+    final post = posts[postIndex];
+    final parentComment = post.comments.firstWhereOrNull((c) => c.id == parentCommentId);
+    if (parentComment == null) return;
+
+    final newReply = CommentModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      userName: 'shahriar',
+      userAvatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+      timeAgo: 'Just now',
+      text: replyText,
+      likesCount: 0,
+      isLiked: false,
+      isDisliked: false,
+    );
+
+    parentComment.replies.add(newReply);
+    post.commentsCount++;
+    posts[postIndex] = post;
+    posts.refresh();
+    
+    ToastMessage.showToast(message: StaticString.commentAdded.tr);
+  }
+
+  void toggleLikeCommentReply(int postIndex, String parentCommentId, String replyId) {
+    if (postIndex < 0 || postIndex >= posts.length) return;
+    final post = posts[postIndex];
+    final parentComment = post.comments.firstWhereOrNull((c) => c.id == parentCommentId);
+    if (parentComment == null) return;
+    final reply = parentComment.replies.firstWhereOrNull((r) => r.id == replyId);
+    if (reply == null) return;
+    
+    if (reply.isLiked) {
+      reply.isLiked = false;
+      reply.likesCount--;
+    } else {
+      reply.isLiked = true;
+      reply.likesCount++;
+      if (reply.isDisliked) {
+        reply.isDisliked = false;
+      }
+    }
+    posts[postIndex] = post;
+    posts.refresh();
+  }
+
+  void toggleDislikeCommentReply(int postIndex, String parentCommentId, String replyId) {
+    if (postIndex < 0 || postIndex >= posts.length) return;
+    final post = posts[postIndex];
+    final parentComment = post.comments.firstWhereOrNull((c) => c.id == parentCommentId);
+    if (parentComment == null) return;
+    final reply = parentComment.replies.firstWhereOrNull((r) => r.id == replyId);
+    if (reply == null) return;
+    
+    if (reply.isDisliked) {
+      reply.isDisliked = false;
+    } else {
+      reply.isDisliked = true;
+      if (reply.isLiked) {
+        reply.isLiked = false;
+        reply.likesCount--;
+      }
+    }
+    posts[postIndex] = post;
+    posts.refresh();
+  }
+
   void sharePost(int index) {
     if (index < 0 || index >= posts.length) return;
     
