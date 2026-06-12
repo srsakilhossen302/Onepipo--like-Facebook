@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../Utils/AppColors/app_colors.dart';
@@ -34,16 +35,38 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
               Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  // Cover Image
-                  const NetworkImg(
-                    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800", // ocean abstract cover
+                  // Bounding Box to ensure the entire avatar and plus button are clickable
+                  const SizedBox(
+                    height: 224,
                     width: double.infinity,
+                  ),
+                  // Cover Image
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
                     height: 180,
-                    fit: BoxFit.cover,
+                    child: controller.coverPhotoPath.value.isEmpty
+                        ? const NetworkImg(
+                            imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800", // ocean abstract cover
+                            width: double.infinity,
+                            height: 180,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.file(
+                            File(controller.coverPhotoPath.value),
+                            width: double.infinity,
+                            height: 180,
+                            fit: BoxFit.cover,
+                          ),
                   ),
                   
                   // Black Overlay
-                  Positioned.fill(
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: 180,
                     child: Container(
                       color: Colors.black.withOpacity(0.15),
                     ),
@@ -51,11 +74,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 
                   // Cover Photo Camera Button
                   Positioned(
-                    bottom: 12,
+                    bottom: 56, // 12px from the bottom of the 180px cover photo (224 - 180 + 12 = 56)
                     right: 12,
                     child: GestureDetector(
                       onTap: () {
-                        controller.showPermissionDialog(context, "cover photo");
+                        controller.openGallery("cover photo");
                       },
                       child: Container(
                         padding: const EdgeInsets.all(8),
@@ -110,7 +133,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 
                   // Placeholder avatar with blue + sign overlay
                   Positioned(
-                    bottom: -44,
+                    bottom: 0,
                     left: 16,
                     child: Stack(
                       clipBehavior: Clip.none,
@@ -130,18 +153,26 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.person,
-                            color: Colors.grey,
-                            size: 50,
-                          ),
+                          child: controller.profilePhotoPath.value.isEmpty
+                              ? const Icon(
+                                  Icons.person,
+                                  color: Colors.grey,
+                                  size: 50,
+                                )
+                              : ClipRRect(
+                                  borderRadius: BorderRadius.circular(44),
+                                  child: Image.file(
+                                    File(controller.profilePhotoPath.value),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
                         ),
                         Positioned(
                           bottom: 0,
                           right: 0,
                           child: GestureDetector(
                             onTap: () {
-                              controller.showPermissionDialog(context, "profile picture");
+                              controller.openGallery("profile picture");
                             },
                             child: Container(
                               padding: const EdgeInsets.all(2),
@@ -170,7 +201,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 ],
               ),
               
-              const SizedBox(height: 52), // Space for overlapping avatar
+              const SizedBox(height: 8), // Padding below Stack to preserve layout spacing
 
               // Profile Details
               Padding(

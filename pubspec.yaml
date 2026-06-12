@@ -42,6 +42,7 @@ dependencies:
   fluttertoast: ^8.2.4
   socket_io_client: ^3.0.2
   flutter_svg: ^2.0.10
+  image_picker: ^1.2.2
 
 dev_dependencies:
   flutter_test:
