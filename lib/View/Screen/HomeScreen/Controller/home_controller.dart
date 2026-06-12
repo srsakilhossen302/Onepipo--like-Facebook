@@ -352,6 +352,30 @@ class HomeController extends GetxController {
     return sharedFollowers[postId]?.contains(followerId) ?? false;
   }
 
+  void addNewPost(String contentText, String badgeText) {
+    if (contentText.trim().isEmpty) return;
+
+    final newPost = PostModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      userName: 'Shahriar',
+      userAvatarUrl:
+          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+      timeAgo: 'Just now',
+      badgeText: badgeText,
+      contentText: contentText,
+      likesCount: 0,
+      commentsCount: 0,
+      sharesCount: 0,
+      isLiked: false,
+      comments: [],
+    );
+
+    posts.insert(0, newPost);
+    posts.refresh();
+
+    ToastMessage.showToast(message: "Post created successfully");
+  }
+
   Future<void> refreshFeed() async {
     isLoading.value = true;
     await Future.delayed(const Duration(seconds: 1));

@@ -5,7 +5,7 @@ import '../NotificationScreen/notification_screen.dart';
 import '../SearchScreen/search_screen.dart';
 import '../SettingsScreen/settings_screen.dart';
 import '../../Widgegt/CustomBottomNavBar/custom_bottom_nav_bar.dart';
-import '../../../Utils/ToastMessage/toast_message.dart';
+import '../../../Core/AppRoute/app_route.dart';
 import 'Controller/home_controller.dart';
 
 class HomeScreen extends GetView<HomeController> {
@@ -26,7 +26,7 @@ class HomeScreen extends GetView<HomeController> {
         currentIndex: controller.selectedIndex.value,
         onTap: (index) => controller.changeIndex(index),
         onAddTap: () {
-          ToastMessage.showToast(message: "Add Post Tapped");
+          Get.toNamed(AppRoute.createPost);
         },
       )),
     );
