@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../Utils/AppColors/app_colors.dart';
+import '../../../Utils/StaticString/static_string.dart';
 import '../../../Utils/ToastMessage/toast_message.dart';
 import '../HomeScreen/Controller/home_controller.dart';
 
@@ -46,7 +47,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   void _handlePostSubmit() {
     if (_textController.text.trim().isEmpty) return;
     if (_wordCount > 350) {
-      ToastMessage.showToast(message: "Word limit exceeded (Max 350 words)");
+      ToastMessage.showToast(message: StaticString.wordLimitExceeded.tr);
       return;
     }
 
@@ -150,9 +151,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           onPressed: () => Get.back(),
         ),
         centerTitle: true,
-        title: const Text(
-          "Create Post",
-          style: TextStyle(
+        title: Text(
+          StaticString.createPost.tr,
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: AppColors.textLight,
@@ -162,7 +163,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           TextButton(
             onPressed: isPostEnabled ? _handlePostSubmit : null,
             child: Text(
-              "Post",
+              StaticString.post.tr,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -239,9 +240,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                                 color: Color(0xFF65676B),
                               ),
                               const SizedBox(width: 4),
-                              const Text(
-                                "Public",
-                                style: TextStyle(
+                              Text(
+                                StaticString.public.tr,
+                                style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                   color: Color(0xFF65676B),
@@ -270,9 +271,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         height: 1.4,
                         color: AppColors.textLight,
                       ),
-                      decoration: const InputDecoration(
-                        hintText: "Share your thoughts about the situation in your country",
-                        hintStyle: TextStyle(
+                      decoration: InputDecoration(
+                        hintText: StaticString.shareThoughtsHint.tr,
+                        hintStyle: const TextStyle(
                           color: Colors.grey,
                           fontSize: 16.5,
                           fontWeight: FontWeight.w400,
@@ -284,7 +285,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
                     // Max words hint
                     Text(
-                      "*Max 350 words${_wordCount > 0 ? ' ($_wordCount/350)' : ''}",
+                      "${StaticString.maxWordsHint.tr}${_wordCount > 0 ? ' ($_wordCount/350)' : ''}",
                       style: TextStyle(
                         color: _wordCount > 350 ? Colors.red : Colors.grey[500],
                         fontSize: 13,
@@ -316,7 +317,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     child: Row(
                       children: [
                         Text(
-                          "Post type:",
+                          StaticString.postTypeLabel.tr,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -324,9 +325,9 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           ),
                         ),
                         const Spacer(),
-                        _buildPostTypeRadio("Problem", "problem"),
+                        _buildPostTypeRadio(StaticString.problem.tr, "problem"),
                         const SizedBox(width: 24),
-                        _buildPostTypeRadio("Solution", "solution"),
+                        _buildPostTypeRadio(StaticString.solution.tr, "solution"),
                       ],
                     ),
                   ),
@@ -342,7 +343,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           color: const Color(0xFF04070D),
                           backgroundColor: const Color(0xFFE4F0EC),
                           onTap: () {
-                            ToastMessage.showToast(message: "Gallery selected");
+                            ToastMessage.showToast(message: StaticString.gallerySelected.tr);
                           },
                         ),
                         const SizedBox(width: 12),
@@ -351,7 +352,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           color: const Color(0xFF04070D),
                           backgroundColor: const Color(0xFFE1F0FC),
                           onTap: () {
-                            ToastMessage.showToast(message: "Groups selected");
+                            ToastMessage.showToast(message: StaticString.groupsSelected.tr);
                           },
                         ),
                         const SizedBox(width: 12),
@@ -360,7 +361,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           color: const Color(0xFF04070D),
                           backgroundColor: const Color(0xFFE1F5EC),
                           onTap: () {
-                            ToastMessage.showToast(message: "Tag selected");
+                            ToastMessage.showToast(message: StaticString.tagSelected.tr);
                           },
                         ),
                       ],

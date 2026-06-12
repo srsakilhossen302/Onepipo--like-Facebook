@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import '../../../Utils/AppColors/app_colors.dart';
+import '../../../Utils/StaticString/static_string.dart';
 import '../../../Utils/ToastMessage/toast_message.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -37,7 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               duration: const Duration(milliseconds: 200),
               alignment: value ? const Alignment(-0.45, 0.0) : const Alignment(0.45, 0.0),
               child: Text(
-                value ? "ON" : "OFF",
+                value ? StaticString.switchOn.tr : StaticString.switchOff.tr,
                 style: TextStyle(
                   color: value ? Colors.white : const Color(0xFF65676B),
                   fontSize: 11,
@@ -169,9 +171,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           },
         ),
         centerTitle: true,
-        title: const Text(
-          "Settings",
-          style: TextStyle(
+        title: Text(
+          StaticString.settings.tr,
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: AppColors.textLight,
@@ -238,60 +240,60 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE)),
 
             // Account Section
-            _buildSectionHeader("Account"),
+            _buildSectionHeader(StaticString.account.tr),
             _buildSettingsTile(
               iconAsset: 'assets/icons/Password.svg',
-              title: "Password",
-              subtitle: "Change your password",
+              title: StaticString.password.tr,
+              subtitle: StaticString.changePassword.tr,
               onTap: () {},
             ),
             _buildSettingsTile(
               iconAsset: 'assets/icons/Email.svg',
-              title: "Email",
+              title: StaticString.email.tr,
               subtitle: "krabbi505@gmail.com",
               trailing: const SizedBox.shrink(),
               onTap: () {},
             ),
             _buildSettingsTile(
               iconAsset: 'assets/icons/Phone.svg',
-              title: "Phone",
+              title: StaticString.phone.tr,
               subtitle: "N/A",
               trailing: const SizedBox.shrink(),
               onTap: () {},
             ),
             _buildSettingsTile(
               icon: Icons.translate_rounded,
-              title: "Change Language",
+              title: StaticString.changeLanguage.tr,
               onTap: () {},
             ),
             _buildSettingsTile(
               icon: Icons.info_outline_rounded,
-              title: "About your account",
+              title: StaticString.aboutAccount.tr,
               onTap: () {},
             ),
             _buildSettingsTile(
               icon: Icons.bookmark_outline_rounded,
-              title: "Save posts",
+              title: StaticString.savePosts.tr,
               onTap: () {},
             ),
             _buildSettingsTile(
               icon: Icons.archive_outlined,
-              title: "Archived posts",
+              title: StaticString.archivedPosts.tr,
               onTap: () {},
             ),
 
             // Privacy Section
-            _buildSectionHeader("Privacy"),
+            _buildSectionHeader(StaticString.privacy.tr),
             _buildSettingsTile(
               iconAsset: 'assets/icons/Blocked users.svg',
-              title: "Blocked users",
-              subtitle: "Users you have blocked...",
+              title: StaticString.blockedUsers.tr,
+              subtitle: StaticString.usersBlockedDesc.tr,
               onTap: () {},
             ),
             _buildSettingsTile(
               iconAsset: 'assets/icons/Anonymous mode.svg',
-              title: "Anonymous mode",
-              subtitle: "Hide your identity",
+              title: StaticString.anonymousMode.tr,
+              subtitle: StaticString.hideIdentity.tr,
               trailing: _buildCustomSwitch(
                 value: _anonymousMode,
                 onChanged: (val) {
@@ -299,7 +301,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _anonymousMode = val;
                   });
                   ToastMessage.showToast(
-                    message: "Anonymous mode ${val ? 'enabled' : 'disabled'}",
+                    message: val ? StaticString.anonymousModeEnabled.tr : StaticString.anonymousModeDisabled.tr,
                   );
                 },
               ),
@@ -307,24 +309,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
 
             // Legal Section
-            _buildSectionHeader("Legal"),
+            _buildSectionHeader(StaticString.legal.tr),
             _buildSettingsTile(
               icon: Icons.shield_outlined,
-              title: "Privacy Policy",
+              title: StaticString.privacyPolicy.tr,
               onTap: () {},
             ),
             _buildSettingsTile(
               icon: Icons.description_outlined,
-              title: "Terms of use",
+              title: StaticString.termsOfUse.tr,
               onTap: () {},
             ),
 
             // Notifications Section
-            _buildSectionHeader("Notifications"),
+            _buildSectionHeader(StaticString.notifications.tr),
             _buildSettingsTile(
               icon: Icons.notifications_none_rounded,
-              title: "Push notifications",
-              subtitle: "Receive app notifications",
+              title: StaticString.pushNotifications.tr,
+              subtitle: StaticString.receiveAppNotifications.tr,
               trailing: _buildCustomSwitch(
                 value: _pushNotifications,
                 onChanged: (val) {
@@ -332,7 +334,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _pushNotifications = val;
                   });
                   ToastMessage.showToast(
-                    message: "Push notifications ${val ? 'enabled' : 'disabled'}",
+                    message: val ? StaticString.pushNotificationsEnabled.tr : StaticString.pushNotificationsDisabled.tr,
                   );
                 },
               ),
@@ -340,8 +342,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             _buildSettingsTile(
               iconAsset: 'assets/icons/Email notifications.svg',
-              title: "Email notifications",
-              subtitle: "Receive important updates via email",
+              title: StaticString.emailNotifications.tr,
+              subtitle: StaticString.receiveEmailUpdates.tr,
               trailing: _buildCustomSwitch(
                 value: _emailNotifications,
                 onChanged: (val) {
@@ -349,7 +351,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _emailNotifications = val;
                   });
                   ToastMessage.showToast(
-                    message: "Email notifications ${val ? 'enabled' : 'disabled'}",
+                    message: val ? StaticString.emailNotificationsEnabled.tr : StaticString.emailNotificationsDisabled.tr,
                   );
                 },
               ),
@@ -357,8 +359,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             _buildSettingsTile(
               iconAsset: 'assets/icons/SMS notifications.svg',
-              title: "SMS notifications",
-              subtitle: "Receive security alerts via SMS",
+              title: StaticString.smsNotifications.tr,
+              subtitle: StaticString.receiveSmsAlerts.tr,
               trailing: _buildCustomSwitch(
                 value: _smsNotifications,
                 onChanged: (val) {
@@ -366,7 +368,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _smsNotifications = val;
                   });
                   ToastMessage.showToast(
-                    message: "SMS notifications ${val ? 'enabled' : 'disabled'}",
+                    message: val ? StaticString.smsNotificationsEnabled.tr : StaticString.smsNotificationsDisabled.tr,
                   );
                 },
               ),
@@ -374,11 +376,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
 
             // Security Section
-            _buildSectionHeader("Security"),
+            _buildSectionHeader(StaticString.security.tr),
             _buildSettingsTile(
               iconAsset: 'assets/icons/Two-factor authentication.svg',
-              title: "Two-factor authentication",
-              subtitle: "Extra layer of security.",
+              title: StaticString.twoFactorAuth.tr,
+              subtitle: StaticString.extraSecurityDesc.tr,
               trailing: _buildCustomSwitch(
                 value: _twoFactorAuth,
                 onChanged: (val) {
@@ -386,7 +388,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _twoFactorAuth = val;
                   });
                   ToastMessage.showToast(
-                    message: "Two-factor auth ${val ? 'enabled' : 'disabled'}",
+                    message: val ? StaticString.twoFactorAuthEnabled.tr : StaticString.twoFactorAuthDisabled.tr,
                   );
                 },
               ),
@@ -394,8 +396,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             _buildSettingsTile(
               iconAsset: 'assets/icons/Login history.svg',
-              title: "Login histories",
-              subtitle: "View recent login activities",
+              title: StaticString.loginHistories.tr,
+              subtitle: StaticString.viewLoginActivities.tr,
               onTap: () {},
             ),
             const SizedBox(height: 24),
@@ -404,7 +406,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Center(
               child: InkWell(
                 onTap: () {
-                  ToastMessage.showToast(message: "Logged out");
+                  ToastMessage.showToast(message: StaticString.loggedOut.tr);
                 },
                 borderRadius: BorderRadius.circular(30),
                 child: Padding(
@@ -426,9 +428,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      const Text(
-                        "Logout",
-                        style: TextStyle(
+                      Text(
+                        StaticString.logout.tr,
+                        style: const TextStyle(
                           color: Colors.red,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

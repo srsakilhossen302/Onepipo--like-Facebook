@@ -3,8 +3,9 @@ import 'package:get/get.dart';
 import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/ToastMessage/toast_message.dart';
 import '../../../helper/network_img/network_img.dart';
+import '../../../Utils/StaticString/static_string.dart';
 import '../../Widgegt/PostCard/post_card.dart';
-import '../HomeScreen/Controller/home_controller.dart';
+import 'Controller/my_profile_controller.dart';
 
 class MyProfileScreen extends StatefulWidget {
   const MyProfileScreen({super.key});
@@ -14,8 +15,8 @@ class MyProfileScreen extends StatefulWidget {
 }
 
 class _MyProfileScreenState extends State<MyProfileScreen> {
-  final HomeController controller = Get.find<HomeController>();
-  final String userName = 'Shahriar';
+  final MyProfileController controller = Get.put(MyProfileController());
+  late final String userName = controller.userName;
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +24,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       backgroundColor: Colors.white,
       body: Obx(() {
         // Find posts authored by the current user
-        final userPosts = controller.posts.where((p) => p.userName == userName).toList();
+        final userPosts = controller.myPosts;
 
         return SingleChildScrollView(
           child: Column(
@@ -48,6 +49,36 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     ),
                   ),
 
+                  // Cover Photo Camera Button
+                  Positioned(
+                    bottom: 12,
+                    right: 12,
+                    child: GestureDetector(
+                      onTap: () {
+                        controller.showPermissionDialog(context, "cover photo");
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.camera_alt_rounded,
+                          color: Colors.grey[800],
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ),
+
                   // Header Controls (Back and centered Title)
                   Positioned(
                     top: MediaQuery.of(context).padding.top + 8,
@@ -64,9 +95,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                           ),
                           onPressed: () => Get.back(),
                         ),
-                        const Text(
-                          "Profile",
-                          style: TextStyle(
+                        Text(
+                          StaticString.profile.tr,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -108,22 +139,27 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         Positioned(
                           bottom: 0,
                           right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
+                          child: GestureDetector(
+                            onTap: () {
+                              controller.showPermissionDialog(context, "profile picture");
+                            },
                             child: Container(
-                              padding: const EdgeInsets.all(4),
+                              padding: const EdgeInsets.all(2),
                               decoration: const BoxDecoration(
-                                color: Colors.blueAccent,
+                                color: Colors.white,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(
-                                Icons.add,
-                                color: Colors.white,
-                                size: 14,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.blueAccent,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.add,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
                               ),
                             ),
                           ),
@@ -169,7 +205,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         Icon(Icons.rss_feed_rounded, size: 16, color: Colors.grey[600]),
                         const SizedBox(width: 4),
                         Text(
-                          "${userPosts.length} posts",
+                          "${userPosts.length} ${StaticString.posts.tr}",
                           style: TextStyle(
                             color: Colors.grey[600],
                             fontSize: 13,
@@ -186,14 +222,27 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Icon(Icons.group_outlined, size: 16, color: Colors.grey[600]),
-                        const SizedBox(width: 4),
-                        Text(
-                          "0 followers",
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                        GestureDetector(
+                          onTap: () {
+                            Get.toNamed('/follow_list', arguments: {
+                              'userName': userName,
+                              'initialIndex': 0,
+                            });
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.group_outlined, size: 16, color: Colors.grey[600]),
+                              const SizedBox(width: 4),
+                              Text(
+                                "${(controller.homeController.userFollowers[userName] ?? []).length} ${StaticString.followers.tr}",
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -206,14 +255,27 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Icon(Icons.person_add_alt_1_outlined, size: 16, color: Colors.grey[600]),
-                        const SizedBox(width: 4),
-                        Text(
-                          "0 following",
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                        GestureDetector(
+                          onTap: () {
+                            Get.toNamed('/follow_list', arguments: {
+                              'userName': userName,
+                              'initialIndex': 1,
+                            });
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.person_add_alt_1_outlined, size: 16, color: Colors.grey[600]),
+                              const SizedBox(width: 4),
+                              Text(
+                                "${(controller.homeController.userFollowing[userName] ?? []).length} ${StaticString.following.tr}",
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -226,7 +288,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                       height: 44,
                       child: OutlinedButton(
                         onPressed: () {
-                          ToastMessage.showToast(message: "Edit profile clicked");
+                          ToastMessage.showToast(message: StaticString.editProfile.tr);
                         },
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Color(0xFFD0D5DD)),
@@ -234,9 +296,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        child: const Text(
-                          "Edit profile",
-                          style: TextStyle(
+                        child: Text(
+                          StaticString.editProfile.tr,
+                          style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                             color: Colors.black87,
@@ -248,9 +310,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     const SizedBox(height: 24),
                     
                     // My Posts Title Label
-                    const Text(
-                      "My posts",
-                      style: TextStyle(
+                    Text(
+                      StaticString.myPosts.tr,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.blueAccent,
@@ -276,7 +338,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          "No posts found.",
+                          StaticString.noPostsYet.tr,
                           style: TextStyle(
                             color: Colors.grey[500],
                             fontSize: 15,
@@ -294,7 +356,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                   itemCount: userPosts.length,
                   itemBuilder: (context, index) {
                     final post = userPosts[index];
-                    final actualIndex = controller.posts.indexOf(post);
+                    final actualIndex = controller.homeController.posts.indexOf(post);
                     return PostCard(postIndex: actualIndex);
                   },
                 ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../Utils/AppColors/app_colors.dart';
+import '../../../Utils/StaticString/static_string.dart';
 import '../../../Utils/ToastMessage/toast_message.dart';
 import '../../../helper/network_img/network_img.dart';
 
@@ -84,9 +86,9 @@ class _SearchScreenState extends State<SearchScreen> {
       user.isFollowing = !user.isFollowing;
     });
     if (user.isFollowing) {
-      ToastMessage.showToast(message: "Started following ${user.name}");
+      ToastMessage.showToast(message: StaticString.startedFollowingUser.trParams({'name': user.name}));
     } else {
-      ToastMessage.showToast(message: "Unfollowed ${user.name}");
+      ToastMessage.showToast(message: StaticString.unfollowedUser.trParams({'name': user.name}));
     }
   }
 
@@ -109,9 +111,9 @@ class _SearchScreenState extends State<SearchScreen> {
           },
         ),
         centerTitle: true,
-        title: const Text(
-          "Search",
-          style: TextStyle(
+        title: Text(
+          StaticString.search.tr,
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: AppColors.textLight,
@@ -132,7 +134,7 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Search for people',
+                  hintText: StaticString.searchForPeople.tr,
                   hintStyle: TextStyle(
                     color: Colors.grey[500],
                     fontSize: 14.5,
@@ -163,11 +165,11 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           
           // Header "Suggested people"
-          const Padding(
-            padding: EdgeInsets.only(left: 16.0, top: 12.0, bottom: 8.0),
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0, top: 12.0, bottom: 8.0),
             child: Text(
-              "Suggested people",
-              style: TextStyle(
+              StaticString.suggestedPeople.tr,
+              style: const TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textLight,
@@ -241,7 +243,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             ),
                           ),
                           child: Text(
-                            user.isFollowing ? "Following" : "Follow",
+                            user.isFollowing ? StaticString.following.tr : StaticString.follow.tr,
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,

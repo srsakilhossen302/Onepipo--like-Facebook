@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../Utils/AppColors/app_colors.dart';
+import '../../../Utils/StaticString/static_string.dart';
 import '../../../helper/network_img/network_img.dart';
 import '../../../Core/AppRoute/app_route.dart';
 import '../../Widgegt/PostCard/post_card.dart';
@@ -100,9 +101,9 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
           ),
           onPressed: () => Get.back(),
         ),
-        title: const Text(
-          "Post Details",
-          style: TextStyle(
+        title: Text(
+          StaticString.postDetails.tr,
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: AppColors.textLight,
@@ -116,8 +117,8 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
             Expanded(
               child: Obx(() {
                 if (postIndex < 0 || postIndex >= controller.posts.length) {
-                  return const Center(
-                    child: Text("Post not found"),
+                  return Center(
+                    child: Text(StaticString.postNotFound.tr),
                   );
                 }
                 final post = controller.posts[postIndex];
@@ -138,7 +139,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                       Padding(
                         padding: const EdgeInsets.all(16.0),
                         child: Text(
-                          "Comments (${post.comments.length})",
+                          StaticString.commentsCount.trParams({'count': post.comments.length.toString()}),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -149,12 +150,12 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                       
                       // Comments & Replies List
                       if (post.comments.isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 40.0),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 40.0),
                           child: Center(
                             child: Text(
-                              "No comments yet",
-                              style: TextStyle(color: Colors.grey),
+                              StaticString.noCommentsYet.tr,
+                              style: const TextStyle(color: Colors.grey),
                             ),
                           ),
                         )
@@ -232,7 +233,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                                                     _commentFocusNode.requestFocus();
                                                   },
                                                   child: Text(
-                                                    "Reply",
+                                                    StaticString.reply.tr,
                                                     style: TextStyle(
                                                       fontSize: 12,
                                                       fontWeight: FontWeight.w600,
@@ -303,8 +304,8 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                                             const SizedBox(width: 4),
                                             Text(
                                               isExpanded
-                                                  ? "Hide replies"
-                                                  : "View ${comment.replies.length} replies",
+                                                  ? StaticString.hideReplies.tr
+                                                  : StaticString.viewRepliesCount.trParams({'count': comment.replies.length.toString()}),
                                               style: TextStyle(
                                                 fontSize: 12.5,
                                                 fontWeight: FontWeight.w600,
@@ -439,7 +440,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Replying to @${selectedReplyComment.value!.userName}",
+                      StaticString.replyingToUser.trParams({'name': selectedReplyComment.value!.userName}),
                       style: const TextStyle(
                         color: Colors.blueAccent,
                         fontSize: 13,
@@ -486,8 +487,8 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                           focusNode: _commentFocusNode,
                           decoration: InputDecoration(
                             hintText: isReplying
-                                ? "Reply to @$replyUser..."
-                                : "Commenting as shahriar",
+                                ? StaticString.replyToUserHint.trParams({'name': replyUser})
+                                : StaticString.commentingAsUser.trParams({'name': 'shahriar'}),
                             hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
                             border: InputBorder.none,
                           ),

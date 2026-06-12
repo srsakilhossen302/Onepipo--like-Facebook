@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../../Utils/AppColors/app_colors.dart';
+import '../../../Utils/StaticString/static_string.dart';
 import '../../../Utils/ToastMessage/toast_message.dart';
 import '../../../helper/network_img/network_img.dart';
 
@@ -94,7 +96,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       item.actionStatus = 'accepted';
       item.isUnread = false;
     });
-    ToastMessage.showToast(message: "Request accepted");
+    ToastMessage.showToast(message: StaticString.requestAccepted.tr);
   }
 
   void _handleDecline(NotificationItem item) {
@@ -102,7 +104,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       item.actionStatus = 'declined';
       item.isUnread = false;
     });
-    ToastMessage.showToast(message: "Request declined");
+    ToastMessage.showToast(message: StaticString.requestDeclined.tr);
   }
 
   @override
@@ -126,9 +128,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
             },
           ),
           centerTitle: true,
-          title: const Text(
-            "Notifications",
-            style: TextStyle(
+          title: Text(
+            StaticString.notifications.tr,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColors.textLight,
@@ -143,18 +145,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
               onPressed: () {},
             ),
           ],
-          bottom: const TabBar(
-            indicatorColor: Color(0xFF1877F2),
-            labelColor: Color(0xFF1877F2),
-            unselectedLabelColor: Color(0xFF65676B),
-            labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+          bottom: TabBar(
+            indicatorColor: const Color(0xFF1877F2),
+            labelColor: const Color(0xFF1877F2),
+            unselectedLabelColor: const Color(0xFF65676B),
+            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
             indicatorSize: TabBarIndicatorSize.tab,
-            dividerColor: Color(0xFFEEEEEE),
+            dividerColor: const Color(0xFFEEEEEE),
             tabs: [
-              Tab(text: "All"),
-              Tab(text: "Follows"),
-              Tab(text: "Mentions"),
+              Tab(text: StaticString.all.tr),
+              Tab(text: StaticString.follows.tr),
+              Tab(text: StaticString.mentions.tr),
             ],
           ),
         ),
@@ -186,7 +188,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              "No notifications found",
+              StaticString.noNotificationsFound.tr,
               style: TextStyle(
                 fontSize: 15,
                 color: Colors.grey[500],
@@ -210,6 +212,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
         return _buildNotificationTile(item);
       },
     );
+  }
+
+  String _getLocalizedMessage(String msg) {
+    if (msg == 'liked your comment') return StaticString.likedYourComment.tr;
+    if (msg == 'sent request to follow') return StaticString.sentRequestToFollow.tr;
+    if (msg == 'replied to your comment') return StaticString.repliedToYourComment.tr;
+    return msg;
   }
 
   Widget _buildNotificationTile(NotificationItem item) {
@@ -257,7 +266,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const TextSpan(text: ' '),
-                      TextSpan(text: item.message),
+                      TextSpan(text: _getLocalizedMessage(item.message)),
                     ],
                   ),
                 ),
@@ -279,9 +288,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                         ),
-                        child: const Text(
-                          "Accept",
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                        child: Text(
+                          StaticString.accept.tr,
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -296,9 +305,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                         ),
-                        child: const Text(
-                          "Decline",
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                        child: Text(
+                          StaticString.decline.tr,
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
@@ -306,7 +315,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 ] else if (item.actionStatus != null) ...[
                   const SizedBox(height: 6),
                   Text(
-                    item.actionStatus == 'accepted' ? "Request Accepted" : "Request Declined",
+                    item.actionStatus == 'accepted' 
+                        ? StaticString.requestAcceptedStatus.tr 
+                        : StaticString.requestDeclinedStatus.tr,
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,

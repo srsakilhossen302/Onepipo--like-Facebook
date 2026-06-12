@@ -7,6 +7,7 @@ import '../../View/Screen/CreatePostScreen/create_post_screen.dart';
 import '../../View/Screen/HomeScreen/post_details_screen.dart';
 import '../../View/Screen/ProfileScreen/profile_screen.dart';
 import '../../View/Screen/ProfileScreen/my_profile_screen.dart';
+import '../../View/Screen/ProfileScreen/follow_list_screen.dart';
 
 class AppRoute {
   static const String splashScreen = '/splash_screen';
@@ -15,6 +16,7 @@ class AppRoute {
   static const String postDetails = '/post_details';
   static const String profile = '/profile';
   static const String myProfile = '/my_profile';
+  static const String followList = '/follow_list';
 
   static String getSplashScreen() => splashScreen;
   static String getHomeScreen() => homeScreen;
@@ -22,6 +24,7 @@ class AppRoute {
   static String getPostDetails() => postDetails;
   static String getProfile() => profile;
   static String getMyProfile() => myProfile;
+  static String getFollowList() => followList;
 
   static List<GetPage> routes = [
     GetPage(
@@ -53,6 +56,10 @@ class AppRoute {
     GetPage(
       name: myProfile,
       page: () => const MyProfileScreen(),
+    ),
+    GetPage(
+      name: followList,
+      page: () => const FollowListScreen(),
     ),
   ];
 }

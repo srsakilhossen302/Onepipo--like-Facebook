@@ -18,6 +18,8 @@ class FollowerModel {
 class HomeController extends GetxController {
   var posts = <PostModel>[].obs;
   var followers = <FollowerModel>[].obs;
+  var userFollowers = <String, List<FollowerModel>>{}.obs;
+  var userFollowing = <String, List<FollowerModel>>{}.obs;
   var sharedFollowers = <String, Set<String>>{}.obs;
   var isLoading = false.obs;
   var selectedIndex = 0.obs;
@@ -34,32 +36,45 @@ class HomeController extends GetxController {
   }
 
   void loadMockFollowers() {
-    followers.assignAll([
-      FollowerModel(
-        id: '1',
-        name: 'Owolabi Ridwan',
-        avatarUrl:
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-      ),
-      FollowerModel(
-        id: '2',
-        name: 'Elena Gonzalez',
-        avatarUrl:
-            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-      ),
-      FollowerModel(
-        id: '3',
-        name: 'Africa Friend',
-        avatarUrl:
-            'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150',
-      ),
-      FollowerModel(
-        id: '4',
-        name: 'Shahriar Kabir',
-        avatarUrl:
-            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-      ),
-    ]);
+    final owolabi = FollowerModel(
+      id: '1',
+      name: 'Owolabi Ridwan',
+      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+    );
+    final elena = FollowerModel(
+      id: '2',
+      name: 'Elena Gonzalez',
+      avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+    );
+    final africa = FollowerModel(
+      id: '3',
+      name: 'Africa',
+      avatarUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150',
+    );
+    final ahmed = FollowerModel(
+      id: '4',
+      name: 'Ahmed Wahid',
+      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+    );
+    final shahriarModel = FollowerModel(
+      id: '5',
+      name: 'Shahriar',
+      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+    );
+
+    // Set initial followers
+    userFollowers['Shahriar'] = [owolabi, elena, africa].obs;
+    userFollowers['Ahmed Wahid'] = [elena, shahriarModel].obs;
+    userFollowers['Elena Gonzalez'] = [owolabi, africa, shahriarModel].obs;
+    userFollowers['Africa'] = [elena, ahmed, shahriarModel].obs;
+
+    // Set initial following
+    userFollowing['Shahriar'] = [elena, ahmed].obs;
+    userFollowing['Ahmed Wahid'] = [elena, africa].obs;
+    userFollowing['Elena Gonzalez'] = [owolabi, africa, ahmed, shahriarModel].obs;
+    userFollowing['Africa'] = [elena, ahmed].obs;
+
+    followers.assignAll([owolabi, elena, africa, ahmed]);
   }
 
   void loadMockPosts() {
@@ -146,6 +161,21 @@ class HomeController extends GetxController {
             isDisliked: false,
           ),
         ],
+      ),
+      PostModel(
+        id: '4',
+        userName: 'Shahriar',
+        userAvatarUrl:
+            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+        timeAgo: '2h ago',
+        badgeText: StaticString.solution,
+        contentText:
+            'Excited to join Onepipo! Building the future of social networking with a clean and premium design system. Let\'s connect and build together! 🚀💻',
+        likesCount: 15,
+        commentsCount: 0,
+        sharesCount: 3,
+        isLiked: false,
+        comments: [],
       ),
     ]);
   }
@@ -373,7 +403,7 @@ class HomeController extends GetxController {
     posts.insert(0, newPost);
     posts.refresh();
 
-    ToastMessage.showToast(message: "Post created successfully");
+    ToastMessage.showToast(message: StaticString.postCreatedSuccess.tr);
   }
 
   Future<void> refreshFeed() async {
@@ -381,5 +411,71 @@ class HomeController extends GetxController {
     await Future.delayed(const Duration(seconds: 1));
     loadMockPosts();
     isLoading.value = false;
+  }
+
+  void toggleFollowUser(String targetUserName) {
+    final currentUserName = 'Shahriar';
+    if (targetUserName.toLowerCase() == currentUserName.toLowerCase()) return;
+
+    final targetUserAvatar = _getUserAvatar(targetUserName);
+    final followingList = userFollowing[currentUserName] ?? <FollowerModel>[];
+    final isAlreadyFollowing = followingList.any((u) => u.name.toLowerCase() == targetUserName.toLowerCase());
+
+    if (isAlreadyFollowing) {
+      // Unfollow
+      userFollowing[currentUserName]?.removeWhere((u) => u.name.toLowerCase() == targetUserName.toLowerCase());
+      userFollowers[targetUserName]?.removeWhere((u) => u.name.toLowerCase() == currentUserName.toLowerCase());
+      ToastMessage.showToast(message: StaticString.unfollowedUser.trParams({'name': targetUserName}));
+    } else {
+      // Follow
+      final currentModel = FollowerModel(
+        id: '5',
+        name: currentUserName,
+        avatarUrl: _getUserAvatar(currentUserName),
+      );
+      final targetModel = FollowerModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: targetUserName,
+        avatarUrl: targetUserAvatar,
+      );
+
+      if (userFollowing[currentUserName] == null) {
+        userFollowing[currentUserName] = <FollowerModel>[].obs;
+      }
+      userFollowing[currentUserName]!.add(targetModel);
+
+      if (userFollowers[targetUserName] == null) {
+        userFollowers[targetUserName] = <FollowerModel>[].obs;
+      }
+      userFollowers[targetUserName]!.add(currentModel);
+
+      ToastMessage.showToast(message: StaticString.followingUser.trParams({'name': targetUserName}));
+    }
+
+    userFollowing.refresh();
+    userFollowers.refresh();
+  }
+
+  void removeFollower(String followerName) {
+    final currentUserName = 'Shahriar';
+    userFollowers[currentUserName]?.removeWhere((u) => u.name.toLowerCase() == followerName.toLowerCase());
+    userFollowing[followerName]?.removeWhere((u) => u.name.toLowerCase() == currentUserName.toLowerCase());
+
+    userFollowers.refresh();
+    userFollowing.refresh();
+    ToastMessage.showToast(message: StaticString.removedFromFollowers.trParams({'name': followerName}));
+  }
+
+  String _getUserAvatar(String name) {
+    if (name.toLowerCase() == 'shahriar') {
+      return 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150';
+    } else if (name.toLowerCase() == 'elena gonzalez') {
+      return 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150';
+    } else if (name.toLowerCase() == 'africa') {
+      return 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150';
+    } else if (name.toLowerCase() == 'ahmed wahid') {
+      return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150';
+    }
+    return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150';
   }
 }
