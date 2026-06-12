@@ -188,4 +188,71 @@ void main() {
     expect(find.text('Changer de langue'), findsOneWidget);
     expect(find.text('Paramètres'), findsOneWidget); // Settings header also translated
   });
+
+  testWidgets('SettingsScreen logout test', (WidgetTester tester) async {
+    // Set a larger test viewport size to prevent scrolling hit-test warnings
+    tester.view.physicalSize = const Size(800, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    // Mock the fluttertoast channel to capture the toast messages.
+    final List<MethodCall> methodCalls = [];
+    const channel = MethodChannel('PonnamKarthik/fluttertoast');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+      methodCalls.add(methodCall);
+      return true;
+    });
+
+    // Mock SharedPreferences with initial auth token
+    SharedPreferences.setMockInitialValues({'auth_token': 'mock_user_token_12345'});
+    final sharedPreferences = await SharedPreferences.getInstance();
+    Get.put<SharedPreferences>(sharedPreferences, permanent: true);
+    final prefHelper = SharedPreferenceHelper(sharedPreferences: sharedPreferences);
+    Get.put<SharedPreferenceHelper>(prefHelper, permanent: true);
+
+    // Verify token exists initially
+    expect(prefHelper.getString('auth_token'), 'mock_user_token_12345');
+
+    // Render SettingsScreen inside a GetMaterialApp
+    await tester.pumpWidget(
+      GetMaterialApp(
+        translations: AppTranslator(),
+        locale: const Locale('en', 'US'),
+        getPages: AppRoute.routes,
+        home: const SettingsScreen(),
+      ),
+    );
+
+    await tester.pump();
+
+    // Verify "Logout" button is present
+    expect(find.text('Logout'), findsOneWidget);
+
+    // Tap on Logout button to open confirmation dialog
+    await tester.tap(find.text('Logout'));
+    await tester.pumpAndSettle();
+
+    // Verify confirmation dialog is visible
+    expect(find.text('Are you sure you want to log out?'), findsOneWidget);
+    expect(find.text('Yes'), findsOneWidget);
+    expect(find.text('No'), findsOneWidget);
+
+    // Tap Yes to confirm logout
+    await tester.tap(find.text('Yes'));
+    await tester.pump(); // Start logout async logic
+
+    // Advance clock by 1100ms to resolve mock verification delay
+    await tester.pump(const Duration(milliseconds: 1100));
+    await tester.pumpAndSettle();
+
+    // Verify logout success toast is shown
+    expect(methodCalls.last.arguments['msg'], 'Logged out');
+
+    // Verify auth token is deleted from SharedPreferences
+    expect(prefHelper.getString('auth_token'), '');
+  });
 }

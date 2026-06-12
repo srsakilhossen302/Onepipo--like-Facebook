@@ -142,6 +142,7 @@ class FrenchTranslations {
     StaticString.viewLoginActivities: 'Voir les activités de connexion récentes',
     StaticString.logout: 'Se déconnecter',
     StaticString.loggedOut: 'Déconnecté',
+    StaticString.logoutConfirmation: 'Êtes-vous sûr de vouloir vous déconnecter ?',
 
     // Search Screen
     StaticString.search: 'Recherche',

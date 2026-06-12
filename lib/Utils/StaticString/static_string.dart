@@ -142,6 +142,7 @@ class StaticString {
   static const String viewLoginActivities = 'view_login_activities';
   static const String logout = 'logout';
   static const String loggedOut = 'logged_out';
+  static const String logoutConfirmation = 'logout_confirmation';
 
   // Search Screen
   static const String search = 'search';

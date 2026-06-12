@@ -142,6 +142,7 @@ class EnglishTranslations {
     StaticString.viewLoginActivities: 'View recent login activities',
     StaticString.logout: 'Logout',
     StaticString.loggedOut: 'Logged out',
+    StaticString.logoutConfirmation: 'Are you sure you want to log out?',
 
     // Search Screen
     StaticString.search: 'Search',

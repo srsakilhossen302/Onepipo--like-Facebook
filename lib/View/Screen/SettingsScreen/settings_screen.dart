@@ -6,6 +6,8 @@ import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../../Utils/ToastMessage/toast_message.dart';
 import '../../../Language/translator.dart';
+import '../../../Utils/AppConst/app_const.dart';
+import '../../../helper/shared_prefe/shared_prefe.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -21,6 +23,98 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _smsNotifications = false;
   bool _twoFactorAuth = false;
   bool _anonymousMode = false;
+
+  void _showLogoutConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            StaticString.logout.tr,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppColors.textLight,
+            ),
+          ),
+          content: Text(
+            StaticString.logoutConfirmation.tr,
+            style: const TextStyle(
+              color: AppColors.textLight,
+              fontSize: 15,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                StaticString.no.tr,
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context); // Dismiss dialog
+                
+                // Show a loading dialog during logout processing
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      backgroundColor: Colors.white,
+                      surfaceTintColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      content: const SizedBox(
+                        height: 100,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.blueAccent,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                );
+
+                // Simulate logout processing (e.g. 1s delay)
+                await Future.delayed(const Duration(milliseconds: 1000));
+                
+                if (Get.isRegistered<SharedPreferenceHelper>()) {
+                  final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
+                  await sharedPrefHelper.removeKey(AppConst.token);
+                }
+
+                if (context.mounted) {
+                  Navigator.pop(context); // Dismiss loading dialog
+                }
+
+                ToastMessage.showToast(message: StaticString.loggedOut.tr);
+                Get.offAllNamed(AppRoute.loginScreen);
+              },
+              child: Text(
+                StaticString.yes.tr,
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Widget _buildCustomSwitch({required bool value, required ValueChanged<bool> onChanged}) {
     return GestureDetector(
@@ -496,7 +590,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Center(
               child: InkWell(
                 onTap: () {
-                  ToastMessage.showToast(message: StaticString.loggedOut.tr);
+                  _showLogoutConfirmationDialog(context);
                 },
                 borderRadius: BorderRadius.circular(30),
                 child: Padding(
