@@ -6,6 +6,7 @@ import '../../View/Screen/HomeScreen/Controller/home_controller.dart';
 import '../../View/Screen/CreatePostScreen/create_post_screen.dart';
 import '../../View/Screen/HomeScreen/post_details_screen.dart';
 import '../../View/Screen/ProfileScreen/profile_screen.dart';
+import '../../View/Screen/ProfileScreen/my_profile_screen.dart';
 
 class AppRoute {
   static const String splashScreen = '/splash_screen';
@@ -13,12 +14,14 @@ class AppRoute {
   static const String createPost = '/create_post';
   static const String postDetails = '/post_details';
   static const String profile = '/profile';
+  static const String myProfile = '/my_profile';
 
   static String getSplashScreen() => splashScreen;
   static String getHomeScreen() => homeScreen;
   static String getCreatePost() => createPost;
   static String getPostDetails() => postDetails;
   static String getProfile() => profile;
+  static String getMyProfile() => myProfile;
 
   static List<GetPage> routes = [
     GetPage(
@@ -46,6 +49,10 @@ class AppRoute {
     GetPage(
       name: profile,
       page: () => const ProfileScreen(),
+    ),
+    GetPage(
+      name: myProfile,
+      page: () => const MyProfileScreen(),
     ),
   ];
 }

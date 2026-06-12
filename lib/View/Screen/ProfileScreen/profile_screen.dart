@@ -163,7 +163,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   String _getUserCoverImage(String userName) {
-    // A nice wooden/nature block textured background or default abstract pattern
     if (userName.toLowerCase() == 'africa') {
       return "https://images.unsplash.com/photo-1541123437800-1bb1317badc2?w=800"; // wood blocks texture
     }
@@ -419,7 +418,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     
                     const SizedBox(height: 24),
                     
-                    // Africa's Posts Header
+                    // User's Posts Header
                     Text(
                       "$userName's Posts",
                       style: const TextStyle(

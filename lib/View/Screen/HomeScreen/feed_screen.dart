@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../../Core/AppRoute/app_route.dart';
 import '../../../Utils/AppColors/app_colors.dart';
 import '../../Widgegt/PostCard/post_card.dart';
 import 'Controller/home_controller.dart';
@@ -18,11 +19,16 @@ class FeedScreen extends GetView<HomeController> {
         scrolledUnderElevation: 0,
         elevation: 0.5,
         leadingWidth: 70,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16, top: 10, bottom: 10),
-          child: SvgPicture.asset(
-            'assets/icons/App-Logo.svg',
-            fit: BoxFit.contain,
+        leading: InkWell(
+          onTap: () {
+            Get.toNamed(AppRoute.myProfile);
+          },
+          child: Padding(
+            padding: const EdgeInsets.only(left: 16, top: 10, bottom: 10),
+            child: SvgPicture.asset(
+              'assets/icons/App-Logo.svg',
+              fit: BoxFit.contain,
+            ),
           ),
         ),
         actions: [
