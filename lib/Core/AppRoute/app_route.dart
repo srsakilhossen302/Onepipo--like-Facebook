@@ -11,9 +11,18 @@ import '../../View/Screen/ProfileScreen/follow_list_screen.dart';
 import '../../View/Screen/CreatePostScreen/group_selection_screen.dart';
 import '../../View/Screen/CreatePostScreen/tag_friends_screen.dart';
 import '../../View/Screen/SettingsScreen/change_password_screen.dart';
+import '../../View/Screen/LoginScreen/login_screen.dart';
+import '../../View/Screen/LoginScreen/Controller/login_controller.dart';
+import '../../View/Screen/CreateAccountScreen/create_account_screen.dart';
+import '../../View/Screen/CreateAccountScreen/Controller/create_account_controller.dart';
+import '../../View/Screen/OtpVerificationScreen/otp_verification_screen.dart';
+import '../../View/Screen/OtpVerificationScreen/Controller/otp_verification_controller.dart';
 
 class AppRoute {
   static const String splashScreen = '/splash_screen';
+  static const String loginScreen = '/login';
+  static const String createAccount = '/create_account';
+  static const String otpVerification = '/otp_verification';
   static const String homeScreen = '/home_screen';
   static const String createPost = '/create_post';
   static const String postDetails = '/post_details';
@@ -25,6 +34,9 @@ class AppRoute {
   static const String changePassword = '/change_password';
 
   static String getSplashScreen() => splashScreen;
+  static String getLoginScreen() => loginScreen;
+  static String getCreateAccount() => createAccount;
+  static String getOtpVerification() => otpVerification;
   static String getHomeScreen() => homeScreen;
   static String getCreatePost() => createPost;
   static String getPostDetails() => postDetails;
@@ -41,6 +53,27 @@ class AppRoute {
       page: () => const SplashScreen(),
       binding: BindingsBuilder(() {
         Get.put<SplashScreenController>(SplashScreenController());
+      }),
+    ),
+    GetPage(
+      name: loginScreen,
+      page: () => const LoginScreen(),
+      binding: BindingsBuilder(() {
+        Get.put<LoginController>(LoginController());
+      }),
+    ),
+    GetPage(
+      name: createAccount,
+      page: () => const CreateAccountScreen(),
+      binding: BindingsBuilder(() {
+        Get.put<CreateAccountController>(CreateAccountController());
+      }),
+    ),
+    GetPage(
+      name: otpVerification,
+      page: () => const OtpVerificationScreen(),
+      binding: BindingsBuilder(() {
+        Get.put<OtpVerificationController>(OtpVerificationController());
       }),
     ),
     GetPage(

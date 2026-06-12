@@ -16,8 +16,11 @@ class SplashScreenController extends GetxController {
     Future.delayed(const Duration(seconds: 3), () {
       final token = _sharedPrefHelper.getString(AppConst.token);
       
-      // Navigate to the newly implemented Feed Home Page
-      Get.offAllNamed(AppRoute.homeScreen);
+      if (token.isNotEmpty) {
+        Get.offAllNamed(AppRoute.homeScreen);
+      } else {
+        Get.offAllNamed(AppRoute.loginScreen);
+      }
       
       print("Splash navigation completed. Auth token present: ${token.isNotEmpty}");
     });
