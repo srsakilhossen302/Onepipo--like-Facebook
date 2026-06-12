@@ -144,5 +144,22 @@ class StaticString {
   static const String searchForPeople = 'search_for_people';
   static const String suggestedPeople = 'suggested_people';
   static const String startedFollowingUser = 'started_following_user';
+
+  // Post Options Bottom Sheet
+  static const String archive = 'archive';
+  static const String archiveSubtitle = 'archive_subtitle';
+  static const String edit = 'edit';
+  static const String editSubtitle = 'edit_subtitle';
+  static const String delete = 'delete';
+  static const String deleteSubtitle = 'delete_subtitle';
+  static const String save = 'save';
+  static const String saveSubtitle = 'save_subtitle';
+  static const String report = 'report';
+  static const String reportSubtitle = 'report_subtitle';
+  static const String postArchivedSuccess = 'post_archived_success';
+  static const String postDeletedSuccess = 'post_deleted_success';
+  static const String editPostClicked = 'edit_post_clicked';
+  static const String postUpdatedSuccess = 'post_updated_success';
+  static const String editPost = 'edit_post';
 }
 

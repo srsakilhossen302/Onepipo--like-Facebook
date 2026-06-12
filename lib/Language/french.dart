@@ -144,6 +144,23 @@ class FrenchTranslations {
     StaticString.searchForPeople: 'Rechercher des personnes',
     StaticString.suggestedPeople: 'Personnes suggérées',
     StaticString.startedFollowingUser: 'Vous suivez maintenant @name',
+
+    // Post Options Bottom Sheet
+    StaticString.archive: 'Archiver',
+    StaticString.archiveSubtitle: 'Archiver ce message, vous seul le verrez.',
+    StaticString.edit: 'Modifier',
+    StaticString.editSubtitle: 'Modifier ce message.',
+    StaticString.delete: 'Supprimer',
+    StaticString.deleteSubtitle: 'Supprimer complètement ce message.',
+    StaticString.save: 'Enregistrer',
+    StaticString.saveSubtitle: 'Enregistrer ce message.',
+    StaticString.report: 'Signaler',
+    StaticString.reportSubtitle: 'Signaler ce message s\'il est sensible.',
+    StaticString.postArchivedSuccess: 'Message archivé avec succès',
+    StaticString.postDeletedSuccess: 'Message supprimé avec succès',
+    StaticString.editPostClicked: 'Clic sur modifier le message',
+    StaticString.postUpdatedSuccess: 'Message mis à jour avec succès',
+    StaticString.editPost: 'Modifier le message',
   };
 }
 

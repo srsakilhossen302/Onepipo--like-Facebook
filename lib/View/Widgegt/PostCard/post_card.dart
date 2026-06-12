@@ -383,6 +383,9 @@ class PostCard extends StatelessWidget {
   }
 
   void _showPostOptionsBottomSheet(BuildContext context, HomeController controller, int index) {
+    final post = controller.posts[index];
+    final bool isMyPost = post.userName.toLowerCase() == 'shahriar';
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -408,53 +411,158 @@ class PostCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              ListTile(
-                leading: const Icon(
-                  Icons.bookmark_outline_rounded,
-                  color: Colors.blueAccent,
-                  size: 28,
-                ),
-                title: const Text(
-                  "Save",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+              if (isMyPost) ...[
+                // Archive
+                ListTile(
+                  leading: const Icon(
+                    Icons.bookmark_outline_rounded,
                     color: Color(0xFF04070D),
+                    size: 28,
                   ),
+                  title: Text(
+                    StaticString.archive.tr,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Color(0xFF04070D),
+                    ),
+                  ),
+                  subtitle: Text(
+                    StaticString.archiveSubtitle.tr,
+                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ToastMessage.showToast(message: StaticString.postArchivedSuccess.tr);
+                  },
                 ),
-                subtitle: Text(
-                  "Save this post.",
-                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  ToastMessage.showToast(message: "Successful save this post");
-                },
-              ),
-              const Divider(height: 1, indent: 16, endIndent: 16),
-              ListTile(
-                leading: const Icon(
-                  Icons.flag_outlined,
-                  color: Colors.redAccent,
-                  size: 28,
-                ),
-                title: const Text(
-                  "Report",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE)),
+                // Edit
+                ListTile(
+                  leading: const Icon(
+                    Icons.edit_outlined,
                     color: Color(0xFF04070D),
+                    size: 28,
                   ),
+                  title: Text(
+                    StaticString.edit.tr,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Color(0xFF04070D),
+                    ),
+                  ),
+                  subtitle: Text(
+                    StaticString.editSubtitle.tr,
+                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Get.toNamed(AppRoute.createPost, arguments: index);
+                  },
                 ),
-                subtitle: Text(
-                  "Flag this post if sensitive.",
-                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE)),
+                // Save
+                ListTile(
+                  leading: const Icon(
+                    Icons.bookmark_outline_rounded,
+                    color: Color(0xFF04070D),
+                    size: 28,
+                  ),
+                  title: Text(
+                    StaticString.save.tr,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Color(0xFF04070D),
+                    ),
+                  ),
+                  subtitle: Text(
+                    StaticString.saveSubtitle.tr,
+                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ToastMessage.showToast(message: "Successful save this post");
+                  },
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showReportBottomSheet(context, index);
-                },
-              ),
+                const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE)),
+                // Delete
+                ListTile(
+                  leading: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: Colors.redAccent,
+                    size: 28,
+                  ),
+                  title: Text(
+                    StaticString.delete.tr,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Color(0xFF04070D),
+                    ),
+                  ),
+                  subtitle: Text(
+                    StaticString.deleteSubtitle.tr,
+                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    controller.deletePost(index);
+                    ToastMessage.showToast(message: StaticString.postDeletedSuccess.tr);
+                  },
+                ),
+              ] else ...[
+                // Save
+                ListTile(
+                  leading: const Icon(
+                    Icons.bookmark_outline_rounded,
+                    color: Colors.blueAccent,
+                    size: 28,
+                  ),
+                  title: Text(
+                    StaticString.save.tr,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Color(0xFF04070D),
+                    ),
+                  ),
+                  subtitle: Text(
+                    StaticString.saveSubtitle.tr,
+                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ToastMessage.showToast(message: "Successful save this post");
+                  },
+                ),
+                const Divider(height: 1, indent: 16, endIndent: 16),
+                // Report
+                ListTile(
+                  leading: const Icon(
+                    Icons.flag_outlined,
+                    color: Colors.redAccent,
+                    size: 28,
+                  ),
+                  title: Text(
+                    StaticString.report.tr,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Color(0xFF04070D),
+                    ),
+                  ),
+                  subtitle: Text(
+                    StaticString.reportSubtitle.tr,
+                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showReportBottomSheet(context, index);
+                  },
+                ),
+              ],
               const SizedBox(height: 16),
             ],
           ),

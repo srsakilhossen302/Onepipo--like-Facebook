@@ -27,8 +27,8 @@ class PostModel {
   final String userName;
   final String userAvatarUrl;
   final String timeAgo;
-  final String badgeText;
-  final String contentText;
+  String badgeText;
+  String contentText;
   final String? contentImageUrl;
   int likesCount;
   int commentsCount;

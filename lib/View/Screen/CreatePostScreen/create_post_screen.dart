@@ -17,11 +17,21 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   final HomeController _homeController = Get.find<HomeController>();
   String _selectedPostType = 'solution'; // Default to match screenshot
   int _wordCount = 0;
+  int? _editingPostIndex;
 
   @override
   void initState() {
     super.initState();
     _textController.addListener(_updateWordCount);
+    
+    // Check if we are editing an existing post
+    if (Get.arguments != null && Get.arguments is int) {
+      _editingPostIndex = Get.arguments as int;
+      final post = _homeController.posts[_editingPostIndex!];
+      _textController.text = post.contentText;
+      _selectedPostType = post.badgeText;
+      _updateWordCount();
+    }
   }
 
   @override
@@ -51,10 +61,18 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       return;
     }
 
-    _homeController.addNewPost(
-      _textController.text,
-      _selectedPostType,
-    );
+    if (_editingPostIndex != null) {
+      _homeController.updatePost(
+        _editingPostIndex!,
+        _textController.text,
+        _selectedPostType,
+      );
+    } else {
+      _homeController.addNewPost(
+        _textController.text,
+        _selectedPostType,
+      );
+    }
     Get.back();
   }
 
@@ -152,7 +170,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         ),
         centerTitle: true,
         title: Text(
-          StaticString.createPost.tr,
+          _editingPostIndex != null ? StaticString.editPost.tr : StaticString.createPost.tr,
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -163,7 +181,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           TextButton(
             onPressed: isPostEnabled ? _handlePostSubmit : null,
             child: Text(
-              StaticString.post.tr,
+              _editingPostIndex != null ? StaticString.save.tr : StaticString.post.tr,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,

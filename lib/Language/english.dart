@@ -144,6 +144,23 @@ class EnglishTranslations {
     StaticString.searchForPeople: 'Search for people',
     StaticString.suggestedPeople: 'Suggested people',
     StaticString.startedFollowingUser: 'Started following @name',
+
+    // Post Options Bottom Sheet
+    StaticString.archive: 'Archive',
+    StaticString.archiveSubtitle: 'Archive this post, only you will see it.',
+    StaticString.edit: 'Edit',
+    StaticString.editSubtitle: 'Edit this post.',
+    StaticString.delete: 'Delete',
+    StaticString.deleteSubtitle: 'Completely trash this post.',
+    StaticString.save: 'Save',
+    StaticString.saveSubtitle: 'Save this post.',
+    StaticString.report: 'Report',
+    StaticString.reportSubtitle: 'Flag this post if sensitive.',
+    StaticString.postArchivedSuccess: 'Post archived successfully',
+    StaticString.postDeletedSuccess: 'Post deleted successfully',
+    StaticString.editPostClicked: 'Edit post clicked',
+    StaticString.postUpdatedSuccess: 'Post updated successfully',
+    StaticString.editPost: 'Edit Post',
   };
 }
 

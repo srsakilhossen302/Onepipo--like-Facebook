@@ -406,6 +406,17 @@ class HomeController extends GetxController {
     ToastMessage.showToast(message: StaticString.postCreatedSuccess.tr);
   }
 
+  void updatePost(int index, String contentText, String badgeText) {
+    if (index >= 0 && index < posts.length) {
+      final post = posts[index];
+      post.contentText = contentText;
+      post.badgeText = badgeText;
+      posts[index] = post;
+      posts.refresh();
+      ToastMessage.showToast(message: StaticString.postUpdatedSuccess.tr);
+    }
+  }
+
   Future<void> refreshFeed() async {
     isLoading.value = true;
     await Future.delayed(const Duration(seconds: 1));
@@ -464,6 +475,12 @@ class HomeController extends GetxController {
     userFollowers.refresh();
     userFollowing.refresh();
     ToastMessage.showToast(message: StaticString.removedFromFollowers.trParams({'name': followerName}));
+  }
+
+  void deletePost(int index) {
+    if (index >= 0 && index < posts.length) {
+      posts.removeAt(index);
+    }
   }
 
   String _getUserAvatar(String name) {
