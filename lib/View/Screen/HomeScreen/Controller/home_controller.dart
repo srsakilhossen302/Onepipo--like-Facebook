@@ -23,9 +23,21 @@ class HomeController extends GetxController {
         badgeText: StaticString.solution,
         contentText: 'Are you ready to dive into this exciting journey? Let\'s get started by exploring the fundamentals together! 🚀 We\'ll cover everything you need to know to set a solid foundation for your adventure ahead. So, buckle up and let\'s embark on this learning experience!',
         likesCount: 23,
-        commentsCount: 13,
+        commentsCount: 1,
         sharesCount: 8,
         isLiked: false,
+        comments: [
+          CommentModel(
+            id: '101',
+            userName: 'africa',
+            userAvatarUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150',
+            timeAgo: '1h',
+            text: 'we need to free the children in Nigeria.',
+            likesCount: 0,
+            isLiked: false,
+            isDisliked: false,
+          ),
+        ],
       ),
       PostModel(
         id: '2',
@@ -36,9 +48,21 @@ class HomeController extends GetxController {
         contentText: 'Are you ready to dive into this exciting journey? Let\'s get started by exploring the fundamentals together',
         contentImageUrl: 'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800',
         likesCount: 23,
-        commentsCount: 13,
+        commentsCount: 1,
         sharesCount: 8,
         isLiked: false,
+        comments: [
+          CommentModel(
+            id: '102',
+            userName: 'africa',
+            userAvatarUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150',
+            timeAgo: '1h',
+            text: 'we need to free the children in Nigeria.',
+            likesCount: 0,
+            isLiked: false,
+            isDisliked: false,
+          ),
+        ],
       ),
       PostModel(
         id: '3',
@@ -48,9 +72,21 @@ class HomeController extends GetxController {
         badgeText: StaticString.solution,
         contentText: 'Are you ready to dive into this exciting journey? Let\'s get started by exploring the fundamentals together',
         likesCount: 23,
-        commentsCount: 13,
+        commentsCount: 1,
         sharesCount: 8,
         isLiked: false,
+        comments: [
+          CommentModel(
+            id: '103',
+            userName: 'africa',
+            userAvatarUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150',
+            timeAgo: '1h',
+            text: 'we need to free the children in Nigeria.',
+            likesCount: 0,
+            isLiked: false,
+            isDisliked: false,
+          ),
+        ],
       ),
     ]);
   }
@@ -74,11 +110,61 @@ class HomeController extends GetxController {
     if (index < 0 || index >= posts.length || commentText.trim().isEmpty) return;
     
     final post = posts[index];
-    post.commentsCount++;
+    final newComment = CommentModel(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      userName: 'shahriar',
+      userAvatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+      timeAgo: 'Just now',
+      text: commentText,
+      likesCount: 0,
+      isLiked: false,
+      isDisliked: false,
+    );
+    post.comments.add(newComment);
+    post.commentsCount = post.comments.length;
     posts[index] = post;
     posts.refresh();
     
     ToastMessage.showToast(message: StaticString.commentAdded.tr);
+  }
+
+  void toggleLikeComment(int postIndex, int commentIndex) {
+    if (postIndex < 0 || postIndex >= posts.length) return;
+    final post = posts[postIndex];
+    if (commentIndex < 0 || commentIndex >= post.comments.length) return;
+    final comment = post.comments[commentIndex];
+    
+    if (comment.isLiked) {
+      comment.isLiked = false;
+      comment.likesCount--;
+    } else {
+      comment.isLiked = true;
+      comment.likesCount++;
+      if (comment.isDisliked) {
+        comment.isDisliked = false;
+      }
+    }
+    posts[postIndex] = post;
+    posts.refresh();
+  }
+
+  void toggleDislikeComment(int postIndex, int commentIndex) {
+    if (postIndex < 0 || postIndex >= posts.length) return;
+    final post = posts[postIndex];
+    if (commentIndex < 0 || commentIndex >= post.comments.length) return;
+    final comment = post.comments[commentIndex];
+    
+    if (comment.isDisliked) {
+      comment.isDisliked = false;
+    } else {
+      comment.isDisliked = true;
+      if (comment.isLiked) {
+        comment.isLiked = false;
+        comment.likesCount--;
+      }
+    }
+    posts[postIndex] = post;
+    posts.refresh();
   }
 
   void sharePost(int index) {

@@ -1,3 +1,25 @@
+class CommentModel {
+  final String id;
+  final String userName;
+  final String userAvatarUrl;
+  final String timeAgo;
+  final String text;
+  int likesCount;
+  bool isLiked;
+  bool isDisliked;
+
+  CommentModel({
+    required this.id,
+    required this.userName,
+    required this.userAvatarUrl,
+    required this.timeAgo,
+    required this.text,
+    this.likesCount = 0,
+    this.isLiked = false,
+    this.isDisliked = false,
+  });
+}
+
 class PostModel {
   final String id;
   final String userName;
@@ -10,6 +32,7 @@ class PostModel {
   int commentsCount;
   int sharesCount;
   bool isLiked;
+  final List<CommentModel> comments;
 
   PostModel({
     required this.id,
@@ -23,5 +46,6 @@ class PostModel {
     this.commentsCount = 0,
     this.sharesCount = 0,
     this.isLiked = false,
+    required this.comments,
   });
 }

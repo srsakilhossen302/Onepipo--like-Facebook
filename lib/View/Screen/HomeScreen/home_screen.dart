@@ -243,6 +243,7 @@ class HomeScreen extends GetView<HomeController> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.8,
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.only(
@@ -250,15 +251,9 @@ class HomeScreen extends GetView<HomeController> {
             topRight: Radius.circular(20),
           ),
         ),
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-          left: 16,
-          right: 16,
-          top: 16,
-        ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
+            const SizedBox(height: 8),
             Container(
               width: 40,
               height: 4,
@@ -267,44 +262,203 @@ class HomeScreen extends GetView<HomeController> {
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              StaticString.addComment.tr,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: AppColors.textLight,
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const Text(
+                    "Comments",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Color(0xFF04070D),
+                    ),
+                  ),
+                  // Positioned(
+                  //   right: 0,
+                  //   child: IconButton(
+                  //     icon: const Icon(Icons.close, color: Colors.black, size: 24),
+                  //     onPressed: () => Navigator.pop(context),
+                  //   ),
+                  // ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: textController,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: StaticString.writeComment.tr,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            const Divider(height: 1, thickness: 0.5),
+            
+            // Comments List
+            Expanded(
+              child: Obx(() {
+                final post = controller.posts[index];
+                if (post.comments.isEmpty) {
+                  return const Center(
+                    child: Text(
+                      "No comments yet",
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  );
+                }
+                return ListView.builder(
+                  itemCount: post.comments.length,
+                  itemBuilder: (context, cIndex) {
+                    final comment = post.comments[cIndex];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          NetworkImg(
+                            imageUrl: comment.userAvatarUrl,
+                            width: 36,
+                            height: 36,
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      comment.userName,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        color: Color(0xFF04070D),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      comment.timeAgo,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[500],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  comment.text,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xFF04070D),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {},
+                                      child: Text(
+                                        "Reply",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    GestureDetector(
+                                      onTap: () => controller.toggleLikeComment(index, cIndex),
+                                      child: Icon(
+                                        comment.isLiked
+                                            ? Icons.thumb_up_alt_rounded
+                                            : Icons.thumb_up_off_alt_rounded,
+                                        size: 16,
+                                        color: comment.isLiked ? Colors.blueAccent : Colors.grey[600],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${comment.likesCount}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    GestureDetector(
+                                      onTap: () => controller.toggleDislikeComment(index, cIndex),
+                                      child: Icon(
+                                        comment.isDisliked
+                                            ? Icons.thumb_down_alt_rounded
+                                            : Icons.thumb_down_off_alt_rounded,
+                                        size: 16,
+                                        color: comment.isDisliked ? Colors.redAccent : Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              }),
+            ),
+            
+            const Divider(height: 1, thickness: 0.5),
+            
+            // Bottom Input Bar
+            Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 8,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2F4F7),
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: TextField(
+                        controller: textController,
+                        decoration: const InputDecoration(
+                          hintText: "Commenting as shahriar",
+                          hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  GestureDetector(
+                    onTap: () {
+                      if (textController.text.trim().isNotEmpty) {
+                        controller.addComment(index, textController.text);
+                        textController.clear();
+                      }
+                    },
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(
+                        color: Colors.blueAccent,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.arrow_upward,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                controller.addComment(index, textController.text);
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                minimumSize: const Size(double.infinity, 44),
-              ),
-              child: Text(StaticString.post.tr),
-            ),
-            const SizedBox(height: 16),
           ],
         ),
       ),
