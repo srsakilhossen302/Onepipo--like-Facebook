@@ -3,14 +3,38 @@ import '../Model/post_model.dart';
 import '../../../../Utils/StaticString/static_string.dart';
 import '../../../../Utils/ToastMessage/toast_message.dart';
 
+class FollowerModel {
+  final String id;
+  final String name;
+  final String avatarUrl;
+
+  FollowerModel({
+    required this.id,
+    required this.name,
+    required this.avatarUrl,
+  });
+}
+
 class HomeController extends GetxController {
   var posts = <PostModel>[].obs;
+  var followers = <FollowerModel>[].obs;
+  var sharedFollowers = <String, Set<String>>{}.obs;
   var isLoading = false.obs;
 
   @override
   void onInit() {
     super.onInit();
     loadMockPosts();
+    loadMockFollowers();
+  }
+
+  void loadMockFollowers() {
+    followers.assignAll([
+      FollowerModel(id: '1', name: 'Owolabi Ridwan', avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'),
+      FollowerModel(id: '2', name: 'Elena Gonzalez', avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150'),
+      FollowerModel(id: '3', name: 'Africa Friend', avatarUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150'),
+      FollowerModel(id: '4', name: 'Shahriar Kabir', avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'),
+    ]);
   }
 
   void loadMockPosts() {
@@ -248,6 +272,26 @@ class HomeController extends GetxController {
       title: StaticString.shared.tr,
       message: StaticString.sharedMsg.tr,
     );
+  }
+
+  void shareWithFollower(int postIndex, String followerId) {
+    if (postIndex < 0 || postIndex >= posts.length) return;
+    final post = posts[postIndex];
+    
+    var sentSet = Map<String, Set<String>>.from(sharedFollowers)[post.id] ?? <String>{};
+    if (sentSet.contains(followerId)) return;
+    
+    final newSet = Set<String>.from(sentSet)..add(followerId);
+    sharedFollowers[post.id] = newSet;
+    sharedFollowers.refresh();
+    
+    post.sharesCount++;
+    posts[postIndex] = post;
+    posts.refresh();
+  }
+
+  bool isFollowerShared(String postId, String followerId) {
+    return sharedFollowers[postId]?.contains(followerId) ?? false;
   }
 
   Future<void> refreshFeed() async {

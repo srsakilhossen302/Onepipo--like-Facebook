@@ -191,7 +191,7 @@ class HomeScreen extends GetView<HomeController> {
                   iconAsset: 'assets/icons/ShareFat.svg',
                   label: '${post.sharesCount}',
                   color: const Color(0xFF04070D),
-                  onTap: () => controller.sharePost(index),
+                  onTap: () => _showShareBottomSheet(context, index),
                 ),
               ],
             ),
@@ -610,6 +610,158 @@ class HomeScreen extends GetView<HomeController> {
                 ),
               );
             }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showShareBottomSheet(BuildContext context, int index) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.65,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.only(left: 16.0, right: 8.0, top: 4.0, bottom: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Share post with:",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.grey, size: 24),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1, thickness: 0.5),
+            Expanded(
+              child: Obx(() {
+                if (controller.followers.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.format_quote_rounded,
+                            color: Colors.white,
+                            size: 36,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          "No followers found.",
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                final post = controller.posts[index];
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: controller.followers.length,
+                  itemBuilder: (context, fIndex) {
+                    final follower = controller.followers[fIndex];
+                    final isSent = controller.isFollowerShared(post.id, follower.id);
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        children: [
+                          NetworkImg(
+                            imageUrl: follower.avatarUrl,
+                            width: 44,
+                            height: 44,
+                            borderRadius: BorderRadius.circular(22),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              follower.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                                color: Color(0xFF04070D),
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            width: 80,
+                            height: 36,
+                            child: ElevatedButton(
+                              onPressed: isSent
+                                  ? null
+                                  : () => controller.shareWithFollower(index, follower.id),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isSent
+                                    ? Colors.grey[200]
+                                    : Colors.blueAccent,
+                                foregroundColor: isSent
+                                    ? Colors.grey[600]
+                                    : Colors.white,
+                                disabledBackgroundColor: Colors.grey[200],
+                                disabledForegroundColor: Colors.grey[600],
+                                elevation: 0,
+                                padding: EdgeInsets.zero,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18),
+                                ),
+                              ),
+                              child: Text(
+                                isSent ? "Sent" : "Send",
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              }),
+            ),
           ],
         ),
       ),
