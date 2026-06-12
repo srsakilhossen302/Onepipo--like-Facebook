@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
+import '../../../Utils/ToastMessage/toast_message.dart';
 import '../../../helper/network_img/network_img.dart';
 import 'Controller/home_controller.dart';
 import 'Model/post_model.dart';
@@ -137,7 +138,7 @@ class HomeScreen extends GetView<HomeController> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.more_vert, color: AppColors.textLight),
-                  onPressed: () {},
+                  onPressed: () => _showPostOptionsBottomSheet(context, index),
                 ),
               ],
             ),
@@ -761,6 +762,252 @@ class HomeScreen extends GetView<HomeController> {
                   },
                 );
               }),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPostOptionsBottomSheet(BuildContext context, int index) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(
+                  Icons.bookmark_outline_rounded,
+                  color: Colors.blueAccent,
+                  size: 28,
+                ),
+                title: const Text(
+                  "Save",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Color(0xFF04070D),
+                  ),
+                ),
+                subtitle: Text(
+                  "Save this post.",
+                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  ToastMessage.showToast(message: "Successful save this post");
+                },
+              ),
+              const Divider(height: 1, indent: 16, endIndent: 16),
+              ListTile(
+                leading: const Icon(
+                  Icons.flag_outlined,
+                  color: Colors.redAccent,
+                  size: 28,
+                ),
+                title: const Text(
+                  "Report",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Color(0xFF04070D),
+                  ),
+                ),
+                subtitle: Text(
+                  "Flag this post if sensitive.",
+                  style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showReportBottomSheet(context, index);
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showReportBottomSheet(BuildContext context, int index) {
+    final reasons = [
+      "Spam", "Harassment", "Misinformation",
+      "Inappropriate", "Violence", "Nudity",
+      "Hate Speech", "Self-Harm", "Other"
+    ];
+    final selectedReason = "".obs;
+    final textController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.85,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const Text(
+                    "Report this post",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Color(0xFF04070D),
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    child: IconButton(
+                      icon: const Icon(Icons.close, color: Colors.black, size: 24),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1, thickness: 0.5),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Select your reporting reason",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Obx(() => Wrap(
+                      spacing: 8,
+                      runSpacing: 12,
+                      children: reasons.map((reason) {
+                        final isSelected = selectedReason.value == reason;
+                        return ChoiceChip(
+                          label: Text(
+                            reason,
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : Colors.black87,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 13,
+                            ),
+                          ),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            if (selected) {
+                              selectedReason.value = reason;
+                            } else {
+                              selectedReason.value = "";
+                            }
+                          },
+                          selectedColor: Colors.blueAccent,
+                          backgroundColor: const Color(0xFFE5E7EB),
+                          checkmarkColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            side: BorderSide.none,
+                          ),
+                        );
+                      }).toList(),
+                    )),
+                    const SizedBox(height: 24),
+                    TextField(
+                      controller: textController,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        labelText: "Tell us more..",
+                        labelStyle: TextStyle(color: Colors.grey[600]),
+                        alignLabelWithHint: true,
+                        enabledBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey),
+                        ),
+                        focusedBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.blueAccent, width: 2),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 8,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              ),
+              child: SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    ToastMessage.showToast(message: "Report submitted successfully");
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                  ),
+                  child: const Text(
+                    "Submit",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
