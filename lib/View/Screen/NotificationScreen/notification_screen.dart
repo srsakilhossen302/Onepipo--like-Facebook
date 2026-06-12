@@ -4,6 +4,7 @@ import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../../Utils/ToastMessage/toast_message.dart';
 import '../../../helper/network_img/network_img.dart';
+import '../../Widgegt/ShimmerLoading/shimmer_loading.dart';
 
 enum NotificationType { like, followRequest, comment }
 
@@ -38,10 +39,18 @@ class NotificationScreen extends StatefulWidget {
 
 class _NotificationScreenState extends State<NotificationScreen> {
   late List<NotificationItem> _notifications;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    });
     _notifications = [
       NotificationItem(
         id: '1',
@@ -176,6 +185,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
   }
 
   Widget _buildNotificationList(List<NotificationItem> items) {
+    if (_isLoading) {
+      return ListView.separated(
+        itemCount: 6,
+        separatorBuilder: (context, index) => const Divider(
+          height: 1,
+          thickness: 0.5,
+          color: Color(0xFFEEEEEE),
+        ),
+        itemBuilder: (context, index) => const NotificationShimmer(),
+      );
+    }
+
     if (items.isEmpty) {
       return Center(
         child: Column(

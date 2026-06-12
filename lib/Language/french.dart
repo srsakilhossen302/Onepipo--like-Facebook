@@ -170,6 +170,15 @@ class FrenchTranslations {
     StaticString.isWith: 'est avec',
     StaticString.noGroupsFound: 'Aucun groupe trouvé',
     StaticString.noFriendsFound: 'Aucun ami trouvé',
+    StaticString.resetPassword: 'Réinitialiser le mot de passe',
+    StaticString.currentPassword: 'Mot de passe actuel',
+    StaticString.newPassword: 'Nouveau mot de passe',
+    StaticString.passwordConfirmation: 'Confirmation du mot de passe',
+    StaticString.update: 'Mettre à jour',
+    StaticString.passwordUpdatedSuccess: 'Mot de passe mis à jour avec succès',
+    StaticString.passwordsDoNotMatch: 'Les mots de passe ne correspondent pas',
+    StaticString.passwordTooShort: 'Le mot de passe doit comporter au moins 6 caractères',
+    StaticString.pleaseFillAllFields: 'Veuillez remplir tous les champs',
   };
 }
 

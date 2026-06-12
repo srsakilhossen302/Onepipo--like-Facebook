@@ -170,6 +170,15 @@ class EnglishTranslations {
     StaticString.isWith: 'is with',
     StaticString.noGroupsFound: 'No groups found',
     StaticString.noFriendsFound: 'No friends found',
+    StaticString.resetPassword: 'Reset password',
+    StaticString.currentPassword: 'Current password',
+    StaticString.newPassword: 'New password',
+    StaticString.passwordConfirmation: 'Password confirmation password',
+    StaticString.update: 'Update',
+    StaticString.passwordUpdatedSuccess: 'Password updated successfully',
+    StaticString.passwordsDoNotMatch: 'Passwords do not match',
+    StaticString.passwordTooShort: 'Password must be at least 6 characters long',
+    StaticString.pleaseFillAllFields: 'Please fill in all fields',
   };
 }
 

@@ -170,5 +170,14 @@ class StaticString {
   static const String isWith = 'is_with';
   static const String noGroupsFound = 'no_groups_found';
   static const String noFriendsFound = 'no_friends_found';
+  static const String resetPassword = 'reset_password';
+  static const String currentPassword = 'current_password';
+  static const String newPassword = 'new_password';
+  static const String passwordConfirmation = 'password_confirmation';
+  static const String update = 'update';
+  static const String passwordUpdatedSuccess = 'password_updated_success';
+  static const String passwordsDoNotMatch = 'passwords_do_not_match';
+  static const String passwordTooShort = 'password_too_short';
+  static const String pleaseFillAllFields = 'please_fill_all_fields';
 }
 

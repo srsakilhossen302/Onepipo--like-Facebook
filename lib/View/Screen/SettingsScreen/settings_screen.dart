@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import '../../../Core/AppRoute/app_route.dart';
 import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../../Utils/ToastMessage/toast_message.dart';
@@ -166,9 +167,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             color: AppColors.textLight,
             size: 20,
           ),
-          onPressed: () {
-            // Navigate back
-          },
+          onPressed: () => Get.back(),
         ),
         centerTitle: true,
         title: Text(
@@ -245,7 +244,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               iconAsset: 'assets/icons/Password.svg',
               title: StaticString.password.tr,
               subtitle: StaticString.changePassword.tr,
-              onTap: () {},
+              onTap: () => Get.toNamed(AppRoute.changePassword),
             ),
             _buildSettingsTile(
               iconAsset: 'assets/icons/Email.svg',

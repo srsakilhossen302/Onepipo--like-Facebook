@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../Core/AppRoute/app_route.dart';
 import '../../../Utils/AppColors/app_colors.dart';
 import '../../Widgegt/PostCard/post_card.dart';
+import '../../Widgegt/ShimmerLoading/shimmer_loading.dart';
 import 'Controller/home_controller.dart';
 
 class FeedScreen extends GetView<HomeController> {
@@ -47,10 +48,10 @@ class FeedScreen extends GetView<HomeController> {
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
-          return const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-            ),
+          return ListView.builder(
+            itemCount: 3,
+            padding: const EdgeInsets.only(top: 8),
+            itemBuilder: (context, index) => const PostCardShimmer(),
           );
         }
         return RefreshIndicator(

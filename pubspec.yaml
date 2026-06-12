@@ -43,6 +43,7 @@ dependencies:
   socket_io_client: ^3.0.2
   flutter_svg: ^2.0.10
   image_picker: ^1.2.2
+  shimmer: ^3.0.0
 
 dev_dependencies:
   flutter_test:

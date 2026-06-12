@@ -4,6 +4,7 @@ import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../../Utils/ToastMessage/toast_message.dart';
 import '../../../helper/network_img/network_img.dart';
+import '../../Widgegt/ShimmerLoading/shimmer_loading.dart';
 
 class SuggestedUser {
   final String id;
@@ -33,6 +34,20 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    });
+  }
+
   final List<SuggestedUser> _suggestedUsers = [
     SuggestedUser(
       id: '1',
@@ -179,8 +194,18 @@ class _SearchScreenState extends State<SearchScreen> {
           
           // List of Suggested Users
           Expanded(
-            child: ListView.separated(
-              itemCount: _suggestedUsers.length,
+            child: _isLoading
+                ? ListView.separated(
+                    itemCount: 6,
+                    separatorBuilder: (context, index) => const Divider(
+                      height: 1,
+                      thickness: 0.5,
+                      color: Color(0xFFEEEEEE),
+                    ),
+                    itemBuilder: (context, index) => const SearchUserShimmer(),
+                  )
+                : ListView.separated(
+                    itemCount: _suggestedUsers.length,
               separatorBuilder: (context, index) => const Divider(
                 height: 1,
                 thickness: 0.5,
