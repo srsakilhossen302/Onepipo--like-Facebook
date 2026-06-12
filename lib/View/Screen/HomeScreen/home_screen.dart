@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
-import '../../../View/Widgegt/CustomAppBar/custom_app_bar.dart';
 import '../../../helper/network_img/network_img.dart';
 import 'Controller/home_controller.dart';
 import 'Model/post_model.dart';
@@ -13,21 +13,29 @@ class HomeScreen extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: CustomAppBar(
-        title: StaticString.feed.tr,
-        showBackButton: false,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        
         backgroundColor: Colors.white,
-        titleColor: AppColors.textLight,
-        leading: Container(
-          margin: const EdgeInsets.only(left: 12),
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.all_inclusive_rounded,
-            color: Colors.blueAccent,
-            size: 32,
+        elevation: 0.5,
+        leadingWidth: 70,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16, top: 10, bottom: 10),
+          child: SvgPicture.asset(
+            'assets/icons/App-Logo.svg',
+            fit: BoxFit.contain,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.search_rounded,
+              color: AppColors.textLight,
+              size: 28,
+            ),
+            onPressed: () {},
+          ),
+        ],
       ),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -107,7 +115,9 @@ class HomeScreen extends GetView<HomeController> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFC62828), // Premium red capsule
+                              color: post.badgeText == StaticString.solution
+                                  ? const Color(0xFF00A86B)
+                                  : const Color(0xFFC62828),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -156,42 +166,43 @@ class HomeScreen extends GetView<HomeController> {
             const SizedBox(height: 8),
           ],
           
-          const Divider(height: 1, thickness: 0.5),
-          
           // Bottom Actions: Like, Comment, Share
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4.0),
+            padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 6.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 _buildActionButton(
-                  icon: post.isLiked ? Icons.thumb_up_alt_rounded : Icons.thumb_up_off_alt_rounded,
+                  iconAsset: 'assets/icons/Like-icons.svg',
                   label: '${post.likesCount}',
-                  color: post.isLiked ? Colors.blueAccent : Colors.grey[600]!,
+                  color: post.isLiked ? Colors.blueAccent : const Color(0xFF04070D),
                   onTap: () => controller.toggleLike(index),
                 ),
+                const SizedBox(width: 24),
                 _buildActionButton(
-                  icon: Icons.chat_bubble_outline_rounded,
+                  iconAsset: 'assets/icons/ChatCircleDots.svg',
                   label: '${post.commentsCount}',
-                  color: Colors.grey[600]!,
+                  color: const Color(0xFF04070D),
                   onTap: () => _showCommentDialog(context, index),
                 ),
+                const SizedBox(width: 24),
                 _buildActionButton(
-                  icon: Icons.reply_rounded,
+                  iconAsset: 'assets/icons/ShareFat.svg',
                   label: '${post.sharesCount}',
-                  color: Colors.grey[600]!,
+                  color: const Color(0xFF04070D),
                   onTap: () => controller.sharePost(index),
                 ),
               ],
             ),
           ),
+          const Divider(height: 1, thickness: 0.5),
         ],
       ),
     );
   }
 
   Widget _buildActionButton({
-    required IconData icon,
+    required String iconAsset,
     required String label,
     required Color color,
     required VoidCallback onTap,
@@ -200,10 +211,15 @@ class HomeScreen extends GetView<HomeController> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
         child: Row(
           children: [
-            Icon(icon, color: color, size: 20),
+            SvgPicture.asset(
+              iconAsset,
+              width: 20,
+              height: 20,
+              colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+            ),
             const SizedBox(width: 6),
             Text(
               label,

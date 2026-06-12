@@ -11,6 +11,7 @@ class StaticString {
   static const String unauthorized = 'unauthorized';
   static const String feed = 'feed';
   static const String problem = 'problem';
+  static const String solution = 'solution';
   static const String addComment = 'add_comment';
   static const String writeComment = 'write_comment';
   static const String post = 'post';

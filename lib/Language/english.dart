@@ -13,6 +13,7 @@ class EnglishTranslations {
     StaticString.unauthorized: 'Session expired. Please log in again.',
     StaticString.feed: 'Feed',
     StaticString.problem: 'Problem',
+    StaticString.solution: 'Solution',
     StaticString.addComment: 'Add Comment',
     StaticString.writeComment: 'Write a comment...',
     StaticString.post: 'Post',

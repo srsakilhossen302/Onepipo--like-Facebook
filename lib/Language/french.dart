@@ -13,6 +13,7 @@ class FrenchTranslations {
     StaticString.unauthorized: 'Session expirée. Veuillez vous reconnecter.',
     StaticString.feed: 'Fil d\'actualité',
     StaticString.problem: 'Problème',
+    StaticString.solution: 'Solution',
     StaticString.addComment: 'Ajouter un commentaire',
     StaticString.writeComment: 'Écrire un commentaire...',
     StaticString.post: 'Publier',
