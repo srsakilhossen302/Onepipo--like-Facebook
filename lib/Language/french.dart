@@ -161,6 +161,15 @@ class FrenchTranslations {
     StaticString.editPostClicked: 'Clic sur modifier le message',
     StaticString.postUpdatedSuccess: 'Message mis à jour avec succès',
     StaticString.editPost: 'Modifier le message',
+    StaticString.selectGroup: 'Sélectionner le groupe',
+    StaticString.tagFriends: 'Identifier des amis',
+    StaticString.searchGroup: 'Rechercher un groupe',
+    StaticString.searchFriends: 'Rechercher des amis',
+    StaticString.next: 'Suivant',
+    StaticString.done: 'Terminé',
+    StaticString.isWith: 'est avec',
+    StaticString.noGroupsFound: 'Aucun groupe trouvé',
+    StaticString.noFriendsFound: 'Aucun ami trouvé',
   };
 }
 

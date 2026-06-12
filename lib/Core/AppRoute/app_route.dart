@@ -8,6 +8,8 @@ import '../../View/Screen/HomeScreen/post_details_screen.dart';
 import '../../View/Screen/ProfileScreen/profile_screen.dart';
 import '../../View/Screen/ProfileScreen/my_profile_screen.dart';
 import '../../View/Screen/ProfileScreen/follow_list_screen.dart';
+import '../../View/Screen/CreatePostScreen/group_selection_screen.dart';
+import '../../View/Screen/CreatePostScreen/tag_friends_screen.dart';
 
 class AppRoute {
   static const String splashScreen = '/splash_screen';
@@ -17,6 +19,8 @@ class AppRoute {
   static const String profile = '/profile';
   static const String myProfile = '/my_profile';
   static const String followList = '/follow_list';
+  static const String groupSelection = '/group_selection';
+  static const String tagFriends = '/tag_friends';
 
   static String getSplashScreen() => splashScreen;
   static String getHomeScreen() => homeScreen;
@@ -25,6 +29,8 @@ class AppRoute {
   static String getProfile() => profile;
   static String getMyProfile() => myProfile;
   static String getFollowList() => followList;
+  static String getGroupSelection() => groupSelection;
+  static String getTagFriends() => tagFriends;
 
   static List<GetPage> routes = [
     GetPage(
@@ -60,6 +66,14 @@ class AppRoute {
     GetPage(
       name: followList,
       page: () => const FollowListScreen(),
+    ),
+    GetPage(
+      name: groupSelection,
+      page: () => const GroupSelectionScreen(),
+    ),
+    GetPage(
+      name: tagFriends,
+      page: () => const TagFriendsScreen(),
     ),
   ];
 }

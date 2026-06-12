@@ -161,6 +161,15 @@ class EnglishTranslations {
     StaticString.editPostClicked: 'Edit post clicked',
     StaticString.postUpdatedSuccess: 'Post updated successfully',
     StaticString.editPost: 'Edit Post',
+    StaticString.selectGroup: 'Select Group',
+    StaticString.tagFriends: 'Tag Friends',
+    StaticString.searchGroup: 'Search Group',
+    StaticString.searchFriends: 'Search Friends',
+    StaticString.next: 'Next',
+    StaticString.done: 'Done',
+    StaticString.isWith: 'is with',
+    StaticString.noGroupsFound: 'No groups found',
+    StaticString.noFriendsFound: 'No friends found',
   };
 }
 

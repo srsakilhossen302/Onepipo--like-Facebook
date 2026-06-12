@@ -161,5 +161,14 @@ class StaticString {
   static const String editPostClicked = 'edit_post_clicked';
   static const String postUpdatedSuccess = 'post_updated_success';
   static const String editPost = 'edit_post';
+  static const String selectGroup = 'select_group';
+  static const String tagFriends = 'tag_friends';
+  static const String searchGroup = 'search_group';
+  static const String searchFriends = 'search_friends';
+  static const String next = 'next';
+  static const String done = 'done';
+  static const String isWith = 'is_with';
+  static const String noGroupsFound = 'no_groups_found';
+  static const String noFriendsFound = 'no_friends_found';
 }
 

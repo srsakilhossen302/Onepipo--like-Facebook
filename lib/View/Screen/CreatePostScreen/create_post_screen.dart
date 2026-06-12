@@ -1,5 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../../Core/AppRoute/app_route.dart';
 import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../../Utils/ToastMessage/toast_message.dart';
@@ -19,6 +22,12 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   int _wordCount = 0;
   int? _editingPostIndex;
 
+  // Selection states
+  String? _selectedImagePath;
+  String? _selectedGroupName;
+  final List<String> _selectedTaggedFriends = [];
+  final ImagePicker _picker = ImagePicker();
+
   @override
   void initState() {
     super.initState();
@@ -30,6 +39,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       final post = _homeController.posts[_editingPostIndex!];
       _textController.text = post.contentText;
       _selectedPostType = post.badgeText;
+      _selectedImagePath = post.contentImageUrl;
+      _selectedGroupName = post.groupName;
+      if (post.taggedFriends != null) {
+        _selectedTaggedFriends.addAll(post.taggedFriends!);
+      }
       _updateWordCount();
     }
   }
@@ -55,7 +69,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   }
 
   void _handlePostSubmit() {
-    if (_textController.text.trim().isEmpty) return;
+    if (_textController.text.trim().isEmpty && _selectedImagePath == null) return;
     if (_wordCount > 350) {
       ToastMessage.showToast(message: StaticString.wordLimitExceeded.tr);
       return;
@@ -66,11 +80,17 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         _editingPostIndex!,
         _textController.text,
         _selectedPostType,
+        groupName: _selectedGroupName,
+        taggedFriends: _selectedTaggedFriends.isEmpty ? null : _selectedTaggedFriends,
+        contentImageUrl: _selectedImagePath,
       );
     } else {
       _homeController.addNewPost(
         _textController.text,
         _selectedPostType,
+        groupName: _selectedGroupName,
+        taggedFriends: _selectedTaggedFriends.isEmpty ? null : _selectedTaggedFriends,
+        contentImageUrl: _selectedImagePath,
       );
     }
     Get.back();
@@ -152,7 +172,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isPostEnabled = _textController.text.trim().isNotEmpty && _wordCount <= 350;
+    final isPostEnabled = (_textController.text.trim().isNotEmpty || _selectedImagePath != null) && _wordCount <= 350;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -223,12 +243,50 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                "Shahriar",
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textLight,
+                              RichText(
+                                text: TextSpan(
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    color: AppColors.textLight,
+                                  ),
+                                  children: [
+                                    const TextSpan(
+                                      text: "Shahriar",
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    if (_selectedGroupName != null) ...[
+                                      const TextSpan(
+                                        text: " ▶ ",
+                                        style: TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: _selectedGroupName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF1877F2),
+                                        ),
+                                      ),
+                                    ],
+                                    if (_selectedTaggedFriends.isNotEmpty) ...[
+                                      TextSpan(
+                                        text: " ${StaticString.isWith.tr} ",
+                                        style: TextStyle(
+                                          color: Colors.grey[600],
+                                          fontSize: 13.5,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: _selectedTaggedFriends.join(', '),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.textLight,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -299,6 +357,61 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         border: InputBorder.none,
                       ),
                     ),
+
+                    if (_selectedImagePath != null) ...[
+                      const SizedBox(height: 12),
+                      Stack(
+                        alignment: Alignment.topRight,
+                        children: [
+                          Container(
+                            constraints: const BoxConstraints(maxHeight: 250),
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey[300]!),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: _selectedImagePath!.startsWith('http')
+                                  ? Image.network(
+                                      _selectedImagePath!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) =>
+                                          const Icon(Icons.broken_image, size: 50),
+                                    )
+                                  : Image.file(
+                                      File(_selectedImagePath!),
+                                      fit: BoxFit.cover,
+                                    ),
+                            ),
+                          ),
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _selectedImagePath = null;
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Colors.black54,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close_rounded,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+
                     const SizedBox(height: 12),
 
                     // Max words hint
@@ -358,28 +471,54 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                       children: [
                         _buildActionButton(
                           icon: Icons.image_outlined,
-                          color: const Color(0xFF04070D),
-                          backgroundColor: const Color(0xFFE4F0EC),
-                          onTap: () {
-                            ToastMessage.showToast(message: StaticString.gallerySelected.tr);
+                          color: _selectedImagePath != null ? Colors.white : const Color(0xFF04070D),
+                          backgroundColor: _selectedImagePath != null ? const Color(0xFF1877F2) : const Color(0xFFE4F0EC),
+                          onTap: () async {
+                            try {
+                              final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+                              if (image != null) {
+                                setState(() {
+                                  _selectedImagePath = image.path;
+                                });
+                              }
+                            } catch (e) {
+                              ToastMessage.showToast(message: "Failed to open gallery: $e");
+                            }
                           },
                         ),
                         const SizedBox(width: 12),
                         _buildActionButton(
                           icon: Icons.people_outline_rounded,
-                          color: const Color(0xFF04070D),
-                          backgroundColor: const Color(0xFFE1F0FC),
-                          onTap: () {
-                            ToastMessage.showToast(message: StaticString.groupsSelected.tr);
+                          color: _selectedGroupName != null ? Colors.white : const Color(0xFF04070D),
+                          backgroundColor: _selectedGroupName != null ? const Color(0xFF1877F2) : const Color(0xFFE1F0FC),
+                          onTap: () async {
+                            final result = await Get.toNamed(
+                              AppRoute.groupSelection,
+                              arguments: _selectedGroupName,
+                            );
+                            if (result != null || result == null) {
+                              setState(() {
+                                _selectedGroupName = result as String?;
+                              });
+                            }
                           },
                         ),
                         const SizedBox(width: 12),
                         _buildActionButton(
                           icon: Icons.local_offer_outlined,
-                          color: const Color(0xFF04070D),
-                          backgroundColor: const Color(0xFFE1F5EC),
-                          onTap: () {
-                            ToastMessage.showToast(message: StaticString.tagSelected.tr);
+                          color: _selectedTaggedFriends.isNotEmpty ? Colors.white : const Color(0xFF04070D),
+                          backgroundColor: _selectedTaggedFriends.isNotEmpty ? const Color(0xFF1877F2) : const Color(0xFFE1F5EC),
+                          onTap: () async {
+                            final result = await Get.toNamed(
+                              AppRoute.tagFriends,
+                              arguments: List<String>.from(_selectedTaggedFriends),
+                            );
+                            if (result != null) {
+                              setState(() {
+                                _selectedTaggedFriends.clear();
+                                _selectedTaggedFriends.addAll(result as List<String>);
+                              });
+                            }
                           },
                         ),
                       ],

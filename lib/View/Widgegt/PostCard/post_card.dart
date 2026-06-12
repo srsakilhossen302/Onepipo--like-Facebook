@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:get/get.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../Utils/AppColors/app_colors.dart';
@@ -68,12 +69,50 @@ class PostCard extends StatelessWidget {
                                 onTap: () {
                                   Get.toNamed(AppRoute.profile, arguments: post.userName);
                                 },
-                                child: Text(
-                                  post.userName,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color: AppColors.textLight,
+                                child: RichText(
+                                  text: TextSpan(
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      color: AppColors.textLight,
+                                    ),
+                                    children: [
+                                      TextSpan(
+                                        text: post.userName,
+                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                      if (post.groupName != null) ...[
+                                        const TextSpan(
+                                          text: " ▶ ",
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: post.groupName,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF1877F2),
+                                          ),
+                                        ),
+                                      ],
+                                      if (post.taggedFriends != null && post.taggedFriends!.isNotEmpty) ...[
+                                        TextSpan(
+                                          text: " ${StaticString.isWith.tr} ",
+                                          style: TextStyle(
+                                            color: Colors.grey[600],
+                                            fontSize: 13.5,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: post.taggedFriends!.join(', '),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.textLight,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
                                   ),
                                 ),
                               ),
@@ -143,11 +182,17 @@ class PostCard extends StatelessWidget {
                   
                   // Post Image (if any)
                   if (post.contentImageUrl != null) ...[
-                    NetworkImg(
-                      imageUrl: post.contentImageUrl!,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
+                    post.contentImageUrl!.startsWith('http')
+                        ? NetworkImg(
+                            imageUrl: post.contentImageUrl!,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          )
+                        : Image.file(
+                            File(post.contentImageUrl!),
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                          ),
                     const SizedBox(height: 8),
                   ],
                 ],

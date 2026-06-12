@@ -3,14 +3,22 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:onepipo/Language/translator.dart';
 import 'package:onepipo/View/Screen/CreatePostScreen/create_post_screen.dart';
+import 'package:onepipo/View/Screen/CreatePostScreen/group_selection_screen.dart';
+import 'package:onepipo/View/Screen/CreatePostScreen/tag_friends_screen.dart';
 import 'package:onepipo/View/Screen/HomeScreen/Controller/home_controller.dart';
 
 void main() {
-  testWidgets('CreatePostScreen renders and validates correctly', (WidgetTester tester) async {
-    // Inject HomeController for the view to fetch
+  setUp(() {
+    Get.reset(); // Reset GetX dependency injector and routing state
     final controller = HomeController();
     Get.put<HomeController>(controller);
+  });
 
+  tearDown(() {
+    Get.reset();
+  });
+
+  testWidgets('CreatePostScreen renders and validates correctly', (WidgetTester tester) async {
     await tester.pumpWidget(
       GetMaterialApp(
         translations: AppTranslator(),
@@ -19,11 +27,15 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     // Verify all static text and layout components exist
     expect(find.text('Create Post'), findsOneWidget);
-    expect(find.text('Shahriar'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate((widget) =>
+          widget is RichText && widget.text.toPlainText().contains('Shahriar')),
+      findsOneWidget,
+    );
     expect(find.text('@shahriar_'), findsOneWidget);
     expect(find.text('Public'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
@@ -40,14 +52,10 @@ void main() {
     
     postButton = tester.widget<TextButton>(postButtonFinder);
     expect(postButton.onPressed, isNotNull);
-
-    // Clean up
-    Get.delete<HomeController>();
   });
 
   testWidgets('CreatePostScreen preloads data and updates post when editing', (WidgetTester tester) async {
-    final controller = HomeController();
-    Get.put<HomeController>(controller);
+    final controller = Get.find<HomeController>();
 
     // Ahmed Wahid's is index 0, Shahriar's is index 3 in mock posts
     const editingIndex = 3; 
@@ -62,7 +70,8 @@ void main() {
     );
 
     Get.to(() => const CreatePostScreen(), arguments: editingIndex);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     // Title should be "Edit Post" and action button should be "Save"
     expect(find.text('Edit Post'), findsOneWidget);
@@ -81,13 +90,90 @@ void main() {
     // Click Save
     final saveButtonFinder = find.widgetWithText(TextButton, 'Save');
     await tester.tap(saveButtonFinder);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
 
     // Check that the controller updated the post
     expect(controller.posts[editingIndex].contentText, 'Updated test post content');
+  });
 
-    // Clean up
-    Get.delete<HomeController>();
+  testWidgets('GroupSelectionScreen lists, filters, selects a group', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      GetMaterialApp(
+        translations: AppTranslator(),
+        locale: const Locale('en', 'US'),
+        home: const Scaffold(),
+      ),
+    );
+
+    String? returnedGroup;
+    Get.to(() => const GroupSelectionScreen())?.then((val) {
+      returnedGroup = val as String?;
+    });
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    // Verify groups list is displayed
+    expect(find.text('Select Group'), findsOneWidget);
+    expect(find.text('Flutter Developers'), findsOneWidget);
+    expect(find.text('Onepipo Community'), findsOneWidget);
+
+    // Filter list
+    await tester.enterText(find.byType(TextField), 'Tech');
+    await tester.pump();
+
+    expect(find.text('Flutter Developers'), findsNothing);
+    expect(find.text('Tech Enthusiasts'), findsOneWidget);
+
+    // Select group
+    await tester.tap(find.text('Tech Enthusiasts'));
+    await tester.pump();
+
+    // Tap Next
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Next'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    // Verify it popped and returned the correct group name
+    expect(returnedGroup, 'Tech Enthusiasts');
+  });
+
+  testWidgets('TagFriendsScreen lists, selects friends', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      GetMaterialApp(
+        translations: AppTranslator(),
+        locale: const Locale('en', 'US'),
+        home: const Scaffold(),
+      ),
+    );
+
+    List<String>? returnedFriends;
+    Get.to(() => const TagFriendsScreen())?.then((val) {
+      returnedFriends = (val as List?)?.cast<String>();
+    });
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    // Verify friends list
+    expect(find.text('Tag Friends'), findsOneWidget);
+    expect(find.text('Owolabi Ridwan'), findsOneWidget);
+    expect(find.text('Elena Gonzalez'), findsOneWidget);
+
+    // Toggle select
+    await tester.tap(find.text('Owolabi Ridwan'));
+    await tester.pump();
+
+    await tester.tap(find.text('Elena Gonzalez'));
+    await tester.pump();
+
+    // Tap Next
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Next'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    // Verify selected friends are returned
+    expect(returnedFriends, isNotNull);
+    expect(returnedFriends, contains('Owolabi Ridwan'));
+    expect(returnedFriends, contains('Elena Gonzalez'));
   });
 }
-

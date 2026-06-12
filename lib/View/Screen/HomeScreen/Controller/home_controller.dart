@@ -382,8 +382,8 @@ class HomeController extends GetxController {
     return sharedFollowers[postId]?.contains(followerId) ?? false;
   }
 
-  void addNewPost(String contentText, String badgeText) {
-    if (contentText.trim().isEmpty) return;
+  void addNewPost(String contentText, String badgeText, {String? groupName, List<String>? taggedFriends, String? contentImageUrl}) {
+    if (contentText.trim().isEmpty && contentImageUrl == null) return;
 
     final newPost = PostModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -393,6 +393,9 @@ class HomeController extends GetxController {
       timeAgo: 'Just now',
       badgeText: badgeText,
       contentText: contentText,
+      contentImageUrl: contentImageUrl,
+      groupName: groupName,
+      taggedFriends: taggedFriends,
       likesCount: 0,
       commentsCount: 0,
       sharesCount: 0,
@@ -406,11 +409,14 @@ class HomeController extends GetxController {
     ToastMessage.showToast(message: StaticString.postCreatedSuccess.tr);
   }
 
-  void updatePost(int index, String contentText, String badgeText) {
+  void updatePost(int index, String contentText, String badgeText, {String? groupName, List<String>? taggedFriends, String? contentImageUrl}) {
     if (index >= 0 && index < posts.length) {
       final post = posts[index];
       post.contentText = contentText;
       post.badgeText = badgeText;
+      post.groupName = groupName;
+      post.taggedFriends = taggedFriends;
+      post.contentImageUrl = contentImageUrl;
       posts[index] = post;
       posts.refresh();
       ToastMessage.showToast(message: StaticString.postUpdatedSuccess.tr);

@@ -29,7 +29,9 @@ class PostModel {
   final String timeAgo;
   String badgeText;
   String contentText;
-  final String? contentImageUrl;
+  String? contentImageUrl;
+  String? groupName;
+  List<String>? taggedFriends;
   int likesCount;
   int commentsCount;
   int sharesCount;
@@ -44,6 +46,8 @@ class PostModel {
     required this.badgeText,
     required this.contentText,
     this.contentImageUrl,
+    this.groupName,
+    this.taggedFriends,
     this.likesCount = 0,
     this.commentsCount = 0,
     this.sharesCount = 0,
