@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'english.dart';
 import 'french.dart';
+import '../helper/shared_prefe/shared_prefe.dart';
 
 class AppTranslator extends Translations {
   @override
@@ -16,5 +17,13 @@ class AppTranslator extends Translations {
   static void changeLanguage(String languageCode, String countryCode) {
     Locale locale = Locale(languageCode, countryCode);
     Get.updateLocale(locale);
+
+    try {
+      if (Get.isRegistered<SharedPreferenceHelper>()) {
+        final prefHelper = Get.find<SharedPreferenceHelper>();
+        prefHelper.setString('language_code', languageCode);
+        prefHelper.setString('country_code', countryCode);
+      }
+    } catch (_) {}
   }
 }

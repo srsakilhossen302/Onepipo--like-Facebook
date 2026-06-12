@@ -5,6 +5,7 @@ import '../../../Core/AppRoute/app_route.dart';
 import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../../Utils/ToastMessage/toast_message.dart';
+import '../../../Language/translator.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -153,6 +154,96 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  void _showLanguageSelector(BuildContext context) {
+    final currentLocale = Get.locale ?? AppTranslator.defaultLocale;
+    final isEnglish = currentLocale.languageCode == 'en';
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag Handle
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE4E6EB),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              // Header Title
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                  StaticString.selectLanguage.tr,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textLight,
+                  ),
+                ),
+              ),
+              const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE)),
+              
+              // English Option
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                leading: const Icon(Icons.language, color: Color(0xFF1877F2)),
+                title: Text(
+                  StaticString.englishLanguage.tr,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textLight,
+                  ),
+                ),
+                trailing: isEnglish
+                    ? const Icon(Icons.check_circle_rounded, color: Color(0xFF1877F2))
+                    : null,
+                onTap: () {
+                  AppTranslator.changeLanguage('en', 'US');
+                  ToastMessage.showToast(message: StaticString.languageChangedSuccess.tr);
+                  Navigator.pop(context);
+                },
+              ),
+              
+              // French Option
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                leading: const Icon(Icons.language, color: Color(0xFF1877F2)),
+                title: Text(
+                  StaticString.frenchLanguage.tr,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textLight,
+                  ),
+                ),
+                trailing: !isEnglish
+                    ? const Icon(Icons.check_circle_rounded, color: Color(0xFF1877F2))
+                    : null,
+                onTap: () {
+                  AppTranslator.changeLanguage('fr', 'FR');
+                  ToastMessage.showToast(message: StaticString.languageChangedSuccess.tr);
+                  Navigator.pop(context);
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -263,7 +354,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSettingsTile(
               icon: Icons.translate_rounded,
               title: StaticString.changeLanguage.tr,
-              onTap: () {},
+              onTap: () => _showLanguageSelector(context),
             ),
             _buildSettingsTile(
               icon: Icons.info_outline_rounded,

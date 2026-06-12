@@ -104,6 +104,10 @@ class StaticString {
   static const String email = 'email';
   static const String phone = 'phone';
   static const String changeLanguage = 'change_language';
+  static const String selectLanguage = 'select_language';
+  static const String englishLanguage = 'english_language';
+  static const String frenchLanguage = 'french_language';
+  static const String languageChangedSuccess = 'language_changed_success';
   static const String aboutAccount = 'about_account';
   static const String savePosts = 'save_posts';
   static const String archivedPosts = 'archived_posts';

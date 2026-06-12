@@ -4,6 +4,7 @@ import 'Core/AppRoute/app_route.dart';
 import 'Core/Dependency/dependency.dart';
 import 'Language/translator.dart';
 import 'Utils/AppColors/app_colors.dart';
+import 'helper/shared_prefe/shared_prefe.dart';
 
 void main() async {
   // Ensure Flutter engine is initialized before calling runApp
@@ -20,6 +21,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Locale initialLocale = AppTranslator.defaultLocale;
+    try {
+      if (Get.isRegistered<SharedPreferenceHelper>()) {
+        final prefHelper = Get.find<SharedPreferenceHelper>();
+        final langCode = prefHelper.getString('language_code', defaultValue: 'en');
+        final countryCode = prefHelper.getString('country_code', defaultValue: 'US');
+        initialLocale = Locale(langCode, countryCode);
+      }
+    } catch (_) {}
+
     return GetMaterialApp(
       title: 'Onepipo',
       debugShowCheckedModeBanner: false,
@@ -32,7 +43,7 @@ class MyApp extends StatelessWidget {
 
       // Localization config
       translations: AppTranslator(),
-      locale: AppTranslator.defaultLocale,
+      locale: initialLocale,
       fallbackLocale: AppTranslator.fallbackLocale,
 
       // Visual styling & theme configurations

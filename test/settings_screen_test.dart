@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:onepipo/Language/translator.dart';
 import 'package:onepipo/View/Screen/SettingsScreen/settings_screen.dart';
 import 'package:onepipo/Core/AppRoute/app_route.dart';
+import 'package:onepipo/helper/shared_prefe/shared_prefe.dart';
 
 void main() {
   setUp(() {
     Get.reset();
+    Get.testMode = true;
   });
 
   tearDown(() {
@@ -128,5 +131,61 @@ void main() {
     expect(methodCalls.last.arguments['msg'], 'Password updated successfully');
     expect(find.text('Reset password'), findsNothing); // Should navigate back to settings screen
     expect(find.text('Password'), findsOneWidget);
+  });
+
+  testWidgets('SettingsScreen language selection test', (WidgetTester tester) async {
+    // Mock the fluttertoast channel to capture the toast messages.
+    final List<MethodCall> methodCalls = [];
+    const channel = MethodChannel('PonnamKarthik/fluttertoast');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+      methodCalls.add(methodCall);
+      return true;
+    });
+
+    // Mock SharedPreferences
+    SharedPreferences.setMockInitialValues({});
+    final sharedPreferences = await SharedPreferences.getInstance();
+    Get.put<SharedPreferences>(sharedPreferences, permanent: true);
+    Get.put<SharedPreferenceHelper>(SharedPreferenceHelper(sharedPreferences: Get.find()), permanent: true);
+
+    // Render SettingsScreen inside a GetMaterialApp
+    await tester.pumpWidget(
+      GetMaterialApp(
+        translations: AppTranslator(),
+        locale: const Locale('en', 'US'),
+        getPages: AppRoute.routes,
+        home: const SettingsScreen(),
+      ),
+    );
+
+    await tester.pump();
+
+    // Verify settings screen has "Change Language" tile in English
+    expect(find.text('Change Language'), findsOneWidget);
+
+    // Tap on the Change Language tile to open language bottom sheet
+    await tester.tap(find.text('Change Language'));
+    await tester.pumpAndSettle();
+
+    // Verify language selector sheet header is shown
+    expect(find.text('Select Language'), findsOneWidget);
+    expect(find.text('English'), findsOneWidget);
+    expect(find.text('French'), findsOneWidget);
+
+    // Tap on French option inside runAsync to allow the async updateLocale to complete
+    await tester.runAsync(() async {
+      await tester.tap(find.text('French'));
+      await Future.delayed(const Duration(milliseconds: 300));
+    });
+    await tester.pumpAndSettle();
+
+    // Verify bottom sheet is dismissed and language changed success toast is shown
+    expect(find.text('Select Language'), findsNothing);
+    expect(methodCalls.last.arguments['msg'], 'Langue changée avec succès');
+
+    // Verify that the UI changed to French dynamically ("Change Language" should now be "Changer de langue")
+    expect(find.text('Changer de langue'), findsOneWidget);
+    expect(find.text('Paramètres'), findsOneWidget); // Settings header also translated
   });
 }
