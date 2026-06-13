@@ -44,6 +44,8 @@ dependencies:
   flutter_svg: ^2.0.10
   image_picker: ^1.2.2
   shimmer: ^3.0.0
+  device_info_plus: ^13.1.0
+  package_info_plus: ^10.1.0
 
 dev_dependencies:
   flutter_test:

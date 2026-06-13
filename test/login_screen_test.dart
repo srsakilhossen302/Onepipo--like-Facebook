@@ -7,6 +7,8 @@ import 'package:onepipo/Language/translator.dart';
 import 'package:onepipo/Core/AppRoute/app_route.dart';
 import 'package:onepipo/helper/shared_prefe/shared_prefe.dart';
 import 'package:onepipo/View/Screen/LoginScreen/Controller/login_controller.dart';
+import 'package:http/http.dart' as http;
+import 'package:onepipo/service/api_client.dart';
 
 void main() {
   setUp(() {
@@ -33,6 +35,7 @@ void main() {
     final sharedPreferences = await SharedPreferences.getInstance();
     Get.put<SharedPreferences>(sharedPreferences, permanent: true);
     Get.put<SharedPreferenceHelper>(SharedPreferenceHelper(sharedPreferences: Get.find()), permanent: true);
+    Get.put<ApiClient>(MockApiClient(), permanent: true);
 
     // Render LoginScreen by routing to `/login` inside GetMaterialApp
     await tester.pumpWidget(
@@ -135,4 +138,21 @@ void main() {
     expect(methodCalls.last.arguments['msg'], 'Login successful');
     expect(find.text('Join Onepipo'), findsNothing);
   });
+}
+
+class MockApiClient extends ApiClient {
+  @override
+  Future<http.Response> post(
+    String uri, {
+    dynamic body,
+    Map<String, String>? headers,
+  }) async {
+    if (uri == '/auth/login') {
+      return http.Response(
+        '{"status":"success","message":"Login successful","data":{"token":"mock_user_token_12345"}}',
+        200,
+      );
+    }
+    return http.Response('{"error":"not found"}', 404);
+  }
 }

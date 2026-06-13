@@ -1,5 +1,5 @@
 class ApiUrl {
-  static const String baseUrl = 'https://api.onepipo.com/v1';
+  static const String baseUrl = 'https://onepipo.com/api/v1';
 
   // Auth endpoints
   static const String login = '/auth/login';

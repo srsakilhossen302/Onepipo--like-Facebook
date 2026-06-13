@@ -2,16 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import '../AppColors/app_colors.dart';
+import '../StaticString/static_string.dart';
 
 class ToastMessage {
   // Simple toast message
   static void showToast({required String message, bool isError = false}) {
+    String cleanMessage = message;
+    bool computedIsError = isError;
+
+    // Filter raw developer exceptions and clean them up
+    if (message.contains('SocketException') || 
+        message.contains('Failed host lookup') || 
+        message.contains('Connection error') ||
+        message.contains('ClientException') ||
+        message.contains('NetworkInfo')) {
+      cleanMessage = StaticString.checkConnection.tr;
+      computedIsError = true;
+    }
+
     Fluttertoast.showToast(
-      msg: message,
+      msg: cleanMessage,
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.BOTTOM,
       timeInSecForIosWeb: 1,
-      backgroundColor: isError ? AppColors.error : AppColors.success,
+      backgroundColor: computedIsError ? AppColors.error : AppColors.success,
       textColor: Colors.white,
       fontSize: 14.0,
     );
@@ -23,6 +37,19 @@ class ToastMessage {
     required String message,
     bool isError = false,
   }) {
+    String cleanMessage = message;
+    bool computedIsError = isError;
+
+    // Filter raw developer exceptions and clean them up
+    if (message.contains('SocketException') || 
+        message.contains('Failed host lookup') || 
+        message.contains('Connection error') ||
+        message.contains('ClientException') ||
+        message.contains('NetworkInfo')) {
+      cleanMessage = StaticString.checkConnection.tr;
+      computedIsError = true;
+    }
+
     Get.rawSnackbar(
       titleText: Text(
         title,
@@ -33,15 +60,15 @@ class ToastMessage {
         ),
       ),
       messageText: Text(
-        message,
+        cleanMessage,
         style: const TextStyle(
           color: Colors.white70,
           fontSize: 13,
         ),
       ),
-      backgroundColor: isError ? AppColors.error : AppColors.success,
+      backgroundColor: computedIsError ? AppColors.error : AppColors.success,
       icon: Icon(
-        isError ? Icons.error_outline : Icons.check_circle_outline,
+        computedIsError ? Icons.error_outline : Icons.check_circle_outline,
         color: Colors.white,
       ),
       margin: const EdgeInsets.all(16),

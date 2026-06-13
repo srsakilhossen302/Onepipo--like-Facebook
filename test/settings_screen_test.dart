@@ -7,11 +7,14 @@ import 'package:onepipo/Language/translator.dart';
 import 'package:onepipo/View/Screen/SettingsScreen/settings_screen.dart';
 import 'package:onepipo/Core/AppRoute/app_route.dart';
 import 'package:onepipo/helper/shared_prefe/shared_prefe.dart';
+import 'package:http/http.dart' as http;
+import 'package:onepipo/service/api_client.dart';
 
 void main() {
   setUp(() {
     Get.reset();
     Get.testMode = true;
+    Get.lazyPut<ApiClient>(() => MockApiClient(), fenix: true);
   });
 
   tearDown(() {
@@ -255,4 +258,21 @@ void main() {
     // Verify auth token is deleted from SharedPreferences
     expect(prefHelper.getString('auth_token'), '');
   });
+}
+
+class MockApiClient extends ApiClient {
+  @override
+  Future<http.Response> post(
+    String uri, {
+    dynamic body,
+    Map<String, String>? headers,
+  }) async {
+    if (uri == '/auth/login') {
+      return http.Response(
+        '{"status":"success","message":"Login successful","data":{"token":"mock_user_token_12345"}}',
+        200,
+      );
+    }
+    return http.Response('{"error":"not found"}', 404);
+  }
 }
