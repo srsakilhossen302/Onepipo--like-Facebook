@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'package:get/get.dart';
 import '../Model/post_model.dart';
 import '../../../../Utils/StaticString/static_string.dart';
 import '../../../../Utils/ToastMessage/toast_message.dart';
+import '../../../../service/api_client.dart';
+import '../../../../service/api_url.dart';
+import '../../../../service/api_check.dart';
 
 class FollowerModel {
   final String id;
@@ -31,7 +35,11 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadMockPosts();
+    if (!Get.testMode) {
+      fetchPosts();
+    } else {
+      loadMockPosts();
+    }
     loadMockFollowers();
   }
 
@@ -423,11 +431,29 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> refreshFeed() async {
+  Future<void> fetchPosts() async {
     isLoading.value = true;
-    await Future.delayed(const Duration(seconds: 1));
-    loadMockPosts();
-    isLoading.value = false;
+    try {
+      final response = await Get.find<ApiClient>().get(ApiUrl.posts);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        if (responseData.containsKey('data') && responseData['data'] is List) {
+          final List<dynamic> data = responseData['data'];
+          final List<PostModel> fetchedPosts = data.map((json) => PostModel.fromJson(json)).toList();
+          posts.assignAll(fetchedPosts);
+        }
+      } else {
+        ApiCheck.checkApi(response);
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Connection error: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> refreshFeed() async {
+    await fetchPosts();
   }
 
   void toggleFollowUser(String targetUserName) {

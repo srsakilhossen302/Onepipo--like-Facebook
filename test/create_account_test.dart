@@ -197,6 +197,31 @@ class MockApiClient extends ApiClient {
         '{"status":"success","message":"Login successful","data":{"token":"mock_user_token_12345"}}',
         200,
       );
+    } else if (uri == '/misc/validate/username') {
+      return http.Response(
+        '{"status":"success","message":"Username is valid"}',
+        200,
+      );
+    } else if (uri == '/misc/validate/refcode') {
+      return http.Response(
+        '{"status":"success","message":"Referral code is valid"}',
+        200,
+      );
+    } else if (uri == '/auth/request-otp') {
+      return http.Response(
+        '{"status":"success","message":"OTP code sent"}',
+        200,
+      );
+    } else if (uri == '/auth/verify-otp') {
+      return http.Response(
+        '{"status":"success","data":{"token":"mock_register_token_xyz"}}',
+        200,
+      );
+    } else if (uri == '/auth/register') {
+      return http.Response(
+        '{"status":"success","message":"Registration successful","data":{"token":"mock_register_token_xyz"}}',
+        200,
+      );
     }
     return http.Response('{"error":"not found"}', 404);
   }

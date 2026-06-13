@@ -20,6 +20,23 @@ class CommentModel {
     this.isDisliked = false,
     List<CommentModel>? replies,
   }) : replies = replies ?? [];
+
+  factory CommentModel.fromJson(Map<String, dynamic> json) {
+    final author = json['author'] as Map<String, dynamic>?;
+    return CommentModel(
+      id: (json['id'] ?? '').toString(),
+      userName: (author != null ? author['name'] : null) ?? 'Anonymous',
+      userAvatarUrl: (author != null ? author['photo'] : null) ?? '',
+      timeAgo: json['time_ago'] ?? 'Just now',
+      text: json['comment'] ?? json['text'] ?? '',
+      likesCount: json['likes_count'] ?? 0,
+      isLiked: json['is_liked'] ?? false,
+      isDisliked: json['is_disliked'] ?? false,
+      replies: json['replies'] != null
+          ? (json['replies'] as List).map((r) => CommentModel.fromJson(r)).toList()
+          : [],
+    );
+  }
 }
 
 class PostModel {
@@ -54,4 +71,28 @@ class PostModel {
     this.isLiked = false,
     required this.comments,
   });
+
+  factory PostModel.fromJson(Map<String, dynamic> json) {
+    final author = json['author'] as Map<String, dynamic>?;
+    return PostModel(
+      id: (json['id'] ?? '').toString(),
+      userName: (author != null ? author['name'] : null) ?? 'Anonymous',
+      userAvatarUrl: (author != null ? author['photo'] : null) ?? '',
+      timeAgo: json['time_ago'] ?? 'Just now',
+      badgeText: json['type'] ?? '',
+      contentText: json['description'] ?? '',
+      contentImageUrl: json['image'],
+      groupName: json['group_name'],
+      taggedFriends: json['tagged_friends'] != null
+          ? List<String>.from(json['tagged_friends'])
+          : null,
+      likesCount: json['likes'] ?? 0,
+      commentsCount: json['comments_count'] ?? 0,
+      sharesCount: json['shares_count'] ?? 0,
+      isLiked: json['is_liked'] ?? false,
+      comments: json['comments'] != null
+          ? (json['comments'] as List).map((c) => CommentModel.fromJson(c)).toList()
+          : [],
+    );
+  }
 }

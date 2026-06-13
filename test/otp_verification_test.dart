@@ -8,11 +8,36 @@ import 'package:onepipo/Language/translator.dart';
 import 'package:onepipo/Core/AppRoute/app_route.dart';
 import 'package:onepipo/helper/shared_prefe/shared_prefe.dart';
 import 'package:onepipo/View/Screen/OtpVerificationScreen/Controller/otp_verification_controller.dart';
+import 'package:onepipo/service/api_client.dart';
+import 'package:http/http.dart' as http;
+
+class MockApiClient extends ApiClient {
+  @override
+  Future<http.Response> post(
+    String uri, {
+    dynamic body,
+    Map<String, String>? headers,
+  }) async {
+    if (uri == '/auth/request-otp') {
+      return http.Response(
+        '{"status":"success","message":"OTP code sent"}',
+        200,
+      );
+    } else if (uri == '/auth/verify-otp') {
+      return http.Response(
+        '{"status":"success","data":{"token":"mock_register_token_xyz"}}',
+        200,
+      );
+    }
+    return http.Response('{"error":"not found"}', 404);
+  }
+}
 
 void main() {
   setUp(() {
     Get.reset();
     Get.testMode = true;
+    Get.lazyPut<ApiClient>(() => MockApiClient(), fenix: true);
   });
 
   tearDown(() {

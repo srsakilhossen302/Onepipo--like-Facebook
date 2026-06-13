@@ -6,10 +6,30 @@ import 'package:onepipo/View/Screen/CreatePostScreen/create_post_screen.dart';
 import 'package:onepipo/View/Screen/CreatePostScreen/group_selection_screen.dart';
 import 'package:onepipo/View/Screen/CreatePostScreen/tag_friends_screen.dart';
 import 'package:onepipo/View/Screen/HomeScreen/Controller/home_controller.dart';
+import 'package:onepipo/service/api_client.dart';
+import 'package:http/http.dart' as http;
+
+class MockApiClient extends ApiClient {
+  @override
+  Future<http.Response> get(
+    String uri, {
+    Map<String, String>? headers,
+  }) async {
+    if (uri == '/posts') {
+      return http.Response(
+        '{"status":"success","data":[]}',
+        200,
+      );
+    }
+    return http.Response('{"error":"not found"}', 404);
+  }
+}
 
 void main() {
   setUp(() {
     Get.reset(); // Reset GetX dependency injector and routing state
+    Get.testMode = true;
+    Get.lazyPut<ApiClient>(() => MockApiClient(), fenix: true);
     final controller = HomeController();
     Get.put<HomeController>(controller);
   });
