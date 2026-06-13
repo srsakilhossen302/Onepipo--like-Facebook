@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import '../Model/post_model.dart';
 import '../../../../Utils/StaticString/static_string.dart';
@@ -26,7 +27,21 @@ class HomeController extends GetxController {
   var userFollowing = <String, List<FollowerModel>>{}.obs;
   var sharedFollowers = <String, Set<String>>{}.obs;
   var isLoading = false.obs;
+  var isLoadingComments = false.obs;
   var selectedIndex = 0.obs;
+
+  // Pagination & Scroll variables for Posts Feed
+  final ScrollController scrollController = ScrollController();
+  int _currentPage = 1;
+  bool _isMorePostsAvailable = true;
+  var isLoadingMore = false.obs;
+
+  // Pagination & Scroll variables for Comments
+  final ScrollController commentsScrollController = ScrollController();
+  int _currentCommentsPage = 1;
+  bool _isMoreCommentsAvailable = true;
+  var isLoadingMoreComments = false.obs;
+  var activePostDetailsIndex = (-1).obs;
 
   void changeIndex(int index) {
     selectedIndex.value = index;
@@ -35,12 +50,37 @@ class HomeController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    scrollController.addListener(_scrollListener);
+    commentsScrollController.addListener(_commentsScrollListener);
     if (!Get.testMode) {
       fetchPosts();
     } else {
       loadMockPosts();
     }
     loadMockFollowers();
+  }
+
+  @override
+  void onClose() {
+    scrollController.dispose();
+    commentsScrollController.dispose();
+    super.onClose();
+  }
+
+  void _scrollListener() {
+    if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
+      if (!isLoading.value && !isLoadingMore.value && _isMorePostsAvailable) {
+        fetchMorePosts();
+      }
+    }
+  }
+
+  void _commentsScrollListener() {
+    if (commentsScrollController.position.pixels >= commentsScrollController.position.maxScrollExtent - 200) {
+      if (!isLoadingComments.value && !isLoadingMoreComments.value && _isMoreCommentsAvailable && activePostDetailsIndex.value != -1) {
+        fetchMoreCommentsForPost(activePostDetailsIndex.value);
+      }
+    }
   }
 
   void loadMockFollowers() {
@@ -203,28 +243,50 @@ class HomeController extends GetxController {
     posts.refresh();
   }
 
-  void addComment(int index, String commentText) {
+  Future<void> addComment(int index, String commentText) async {
     if (index < 0 || index >= posts.length || commentText.trim().isEmpty)
       return;
 
     final post = posts[index];
-    final newComment = CommentModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      userName: 'shahriar',
-      userAvatarUrl:
-          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-      timeAgo: 'Just now',
-      text: commentText,
-      likesCount: 0,
-      isLiked: false,
-      isDisliked: false,
-    );
-    post.comments.add(newComment);
-    post.commentsCount = post.comments.length;
-    posts[index] = post;
-    posts.refresh();
+    try {
+      final response = await Get.find<ApiClient>().post(
+        ApiUrl.comments(post.id),
+        body: {
+          "content": commentText,
+          "mentions": "",
+        },
+      );
 
-    ToastMessage.showToast(message: StaticString.commentAdded.tr);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        CommentModel newComment;
+        if (responseData.containsKey('data') && responseData['data'] is Map<String, dynamic>) {
+          newComment = CommentModel.fromJson(responseData['data']);
+        } else {
+          newComment = CommentModel(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            userName: 'shahriar',
+            userAvatarUrl:
+                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+            timeAgo: 'Just now',
+            text: commentText,
+            likesCount: 0,
+            isLiked: false,
+            isDisliked: false,
+          );
+        }
+        post.comments.add(newComment);
+        post.commentsCount = post.comments.length;
+        posts[index] = post;
+        posts.refresh();
+
+        ToastMessage.showToast(message: StaticString.commentAdded.tr);
+      } else {
+        ApiCheck.checkApi(response);
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Connection error: $e');
+    }
   }
 
   void toggleLikeComment(int postIndex, int commentIndex) {
@@ -390,51 +452,105 @@ class HomeController extends GetxController {
     return sharedFollowers[postId]?.contains(followerId) ?? false;
   }
 
-  void addNewPost(String contentText, String badgeText, {String? groupName, List<String>? taggedFriends, String? contentImageUrl}) {
-    if (contentText.trim().isEmpty && contentImageUrl == null) return;
+  Future<bool> addNewPost(String contentText, String badgeText, {String? groupName, List<String>? taggedFriends, String? contentImageUrl}) async {
+    if (contentText.trim().isEmpty && contentImageUrl == null) return false;
 
-    final newPost = PostModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      userName: 'Shahriar',
-      userAvatarUrl:
-          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-      timeAgo: 'Just now',
-      badgeText: badgeText,
-      contentText: contentText,
-      contentImageUrl: contentImageUrl,
-      groupName: groupName,
-      taggedFriends: taggedFriends,
-      likesCount: 0,
-      commentsCount: 0,
-      sharesCount: 0,
-      isLiked: false,
-      comments: [],
-    );
+    isLoading.value = true;
+    try {
+      final response = await Get.find<ApiClient>().post(
+        ApiUrl.createPost,
+        body: {
+          "description": contentText,
+          "type": badgeText,
+          "is_anonymous": "false",
+          "image": contentImageUrl ?? "",
+          "action": "create",
+          "post_id": 0,
+        },
+      );
 
-    posts.insert(0, newPost);
-    posts.refresh();
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final newPost = PostModel(
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          userName: 'Shahriar',
+          userAvatarUrl:
+              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+          timeAgo: 'Just now',
+          badgeText: badgeText,
+          contentText: contentText,
+          contentImageUrl: contentImageUrl,
+          groupName: groupName,
+          taggedFriends: taggedFriends,
+          likesCount: 0,
+          commentsCount: 0,
+          sharesCount: 0,
+          isLiked: false,
+          comments: [],
+        );
 
-    ToastMessage.showToast(message: StaticString.postCreatedSuccess.tr);
+        posts.insert(0, newPost);
+        posts.refresh();
+
+        ToastMessage.showToast(message: StaticString.postCreatedSuccess.tr);
+        return true;
+      } else {
+        ApiCheck.checkApi(response);
+        return false;
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Connection error: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
+    }
   }
 
-  void updatePost(int index, String contentText, String badgeText, {String? groupName, List<String>? taggedFriends, String? contentImageUrl}) {
-    if (index >= 0 && index < posts.length) {
+  Future<bool> updatePost(int index, String contentText, String badgeText, {String? groupName, List<String>? taggedFriends, String? contentImageUrl}) async {
+    if (index < 0 || index >= posts.length) return false;
+
+    isLoading.value = true;
+    try {
       final post = posts[index];
-      post.contentText = contentText;
-      post.badgeText = badgeText;
-      post.groupName = groupName;
-      post.taggedFriends = taggedFriends;
-      post.contentImageUrl = contentImageUrl;
-      posts[index] = post;
-      posts.refresh();
-      ToastMessage.showToast(message: StaticString.postUpdatedSuccess.tr);
+      final response = await Get.find<ApiClient>().post(
+        ApiUrl.createPost,
+        body: {
+          "description": contentText,
+          "type": badgeText,
+          "is_anonymous": "false",
+          "image": contentImageUrl ?? "",
+          "action": "edit",
+          "post_id": int.tryParse(post.id) ?? 0,
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        post.contentText = contentText;
+        post.badgeText = badgeText;
+        post.groupName = groupName;
+        post.taggedFriends = taggedFriends;
+        post.contentImageUrl = contentImageUrl;
+        posts[index] = post;
+        posts.refresh();
+        ToastMessage.showToast(message: StaticString.postUpdatedSuccess.tr);
+        return true;
+      } else {
+        ApiCheck.checkApi(response);
+        return false;
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Connection error: $e');
+      return false;
+    } finally {
+      isLoading.value = false;
     }
   }
 
   Future<void> fetchPosts() async {
     isLoading.value = true;
+    _currentPage = 1;
+    _isMorePostsAvailable = true;
     try {
-      final response = await Get.find<ApiClient>().get(ApiUrl.posts);
+      final response = await Get.find<ApiClient>().get('${ApiUrl.posts}?page=1');
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         if (responseData.containsKey('data') && responseData['data'] is List) {
@@ -449,6 +565,94 @@ class HomeController extends GetxController {
       ToastMessage.showToast(message: 'Connection error: $e');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchMorePosts() async {
+    isLoadingMore.value = true;
+    try {
+      final response = await Get.find<ApiClient>().get('${ApiUrl.posts}?page=${_currentPage + 1}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        if (responseData.containsKey('data') && responseData['data'] is List) {
+          final List<dynamic> data = responseData['data'];
+          if (data.isEmpty) {
+            _isMorePostsAvailable = false;
+          } else {
+            final List<PostModel> fetchedPosts = data.map((json) => PostModel.fromJson(json)).toList();
+            posts.addAll(fetchedPosts);
+            _currentPage++;
+          }
+        }
+      } else {
+        ApiCheck.checkApi(response);
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Connection error: $e');
+    } finally {
+      isLoadingMore.value = false;
+    }
+  }
+
+  Future<void> fetchCommentsForPost(int index) async {
+    if (index < 0 || index >= posts.length) return;
+    
+    final post = posts[index];
+    isLoadingComments.value = true;
+    _currentCommentsPage = 1;
+    _isMoreCommentsAvailable = true;
+    try {
+      final response = await Get.find<ApiClient>().get('${ApiUrl.comments(post.id)}?page=1');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        if (responseData.containsKey('data') && responseData['data'] is List) {
+          final List<dynamic> data = responseData['data'];
+          final List<CommentModel> fetchedComments = data.map((json) => CommentModel.fromJson(json)).toList();
+          post.comments.clear();
+          post.comments.addAll(fetchedComments);
+          post.commentsCount = post.comments.length;
+          posts[index] = post;
+          posts.refresh();
+        }
+      } else {
+        ApiCheck.checkApi(response);
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Connection error: $e');
+    } finally {
+      isLoadingComments.value = false;
+    }
+  }
+
+  Future<void> fetchMoreCommentsForPost(int index) async {
+    if (index < 0 || index >= posts.length) return;
+
+    final post = posts[index];
+    isLoadingMoreComments.value = true;
+    try {
+      final response = await Get.find<ApiClient>().get('${ApiUrl.comments(post.id)}?page=${_currentCommentsPage + 1}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        if (responseData.containsKey('data') && responseData['data'] is List) {
+          final List<dynamic> data = responseData['data'];
+          if (data.isEmpty) {
+            _isMoreCommentsAvailable = false;
+          } else {
+            final List<CommentModel> fetchedComments = data.map((json) => CommentModel.fromJson(json)).toList();
+            post.comments.addAll(fetchedComments);
+            post.commentsCount = post.comments.length;
+            posts[index] = post;
+            posts.refresh();
+            _currentCommentsPage++;
+          }
+        }
+      } else {
+        ApiCheck.checkApi(response);
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Connection error: $e');
+    } finally {
+      isLoadingMoreComments.value = false;
     }
   }
 

@@ -8,6 +8,7 @@ import '../../../Utils/ToastMessage/toast_message.dart';
 import '../../../helper/network_img/network_img.dart';
 import '../../../Core/AppRoute/app_route.dart';
 import '../../Screen/HomeScreen/Controller/home_controller.dart';
+import 'comment_bottom_sheet.dart';
 
 class PostCard extends StatelessWidget {
   final int postIndex;
@@ -220,7 +221,12 @@ class PostCard extends StatelessWidget {
                       if (onCommentTap != null) {
                         onCommentTap!();
                       } else {
-                        Get.toNamed(AppRoute.postDetails, arguments: postIndex);
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => CommentBottomSheet(postIndex: postIndex),
+                        );
                       }
                     },
                   ),

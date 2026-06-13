@@ -58,10 +58,22 @@ class FeedScreen extends GetView<HomeController> {
           onRefresh: controller.refreshFeed,
           color: AppColors.primary,
           child: ListView.builder(
-            itemCount: controller.posts.length,
+            controller: controller.scrollController,
+            itemCount: controller.posts.length + (controller.isLoadingMore.value ? 1 : 0),
             padding: const EdgeInsets.only(top: 8),
             itemBuilder: (context, index) {
-              return PostCard(postIndex: index);
+              if (index < controller.posts.length) {
+                return PostCard(postIndex: index);
+              } else {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.primary,
+                    ),
+                  ),
+                );
+              }
             },
           ),
         );

@@ -28,7 +28,7 @@ class CommentModel {
       userName: (author != null ? author['name'] : null) ?? 'Anonymous',
       userAvatarUrl: (author != null ? author['photo'] : null) ?? '',
       timeAgo: json['time_ago'] ?? 'Just now',
-      text: json['comment'] ?? json['text'] ?? '',
+      text: json['content'] ?? json['comment'] ?? json['text'] ?? '',
       likesCount: json['likes_count'] ?? 0,
       isLiked: json['is_liked'] ?? false,
       isDisliked: json['is_disliked'] ?? false,

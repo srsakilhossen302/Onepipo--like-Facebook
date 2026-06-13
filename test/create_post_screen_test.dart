@@ -8,6 +8,8 @@ import 'package:onepipo/View/Screen/CreatePostScreen/tag_friends_screen.dart';
 import 'package:onepipo/View/Screen/HomeScreen/Controller/home_controller.dart';
 import 'package:onepipo/service/api_client.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:onepipo/helper/shared_prefe/shared_prefe.dart';
 
 class MockApiClient extends ApiClient {
   @override
@@ -15,7 +17,12 @@ class MockApiClient extends ApiClient {
     String uri, {
     Map<String, String>? headers,
   }) async {
-    if (uri == '/posts') {
+    if (RegExp(r'^\/posts(\?page=\d+)?$').hasMatch(uri)) {
+      return http.Response(
+        '{"status":"success","data":[]}',
+        200,
+      );
+    } else if (RegExp(r'^\/posts\/[^/]+\/comments(\?page=\d+)?$').hasMatch(uri)) {
       return http.Response(
         '{"status":"success","data":[]}',
         200,
@@ -23,12 +30,38 @@ class MockApiClient extends ApiClient {
     }
     return http.Response('{"error":"not found"}', 404);
   }
+
+  @override
+  Future<http.Response> post(
+    String uri, {
+    dynamic body,
+    Map<String, String>? headers,
+  }) async {
+    if (uri == '/posts/create') {
+      return http.Response(
+        '{"status":"success","message":"Post action successful"}',
+        200,
+      );
+    } else if (RegExp(r'^\/posts\/[^/]+\/comments$').hasMatch(uri)) {
+      return http.Response(
+        '{"status":"success","message":"Comment stored","data":{"id":"comment_999","comment":"test comment","author":{"name":"shahriar","photo":""},"time_ago":"Just now"}}',
+        201,
+      );
+    }
+    return http.Response('{"error":"not found"}', 404);
+  }
 }
 
 void main() {
-  setUp(() {
+  setUp(() async {
     Get.reset(); // Reset GetX dependency injector and routing state
     Get.testMode = true;
+
+    SharedPreferences.setMockInitialValues({});
+    final sharedPreferences = await SharedPreferences.getInstance();
+    Get.put<SharedPreferences>(sharedPreferences, permanent: true);
+    Get.put<SharedPreferenceHelper>(SharedPreferenceHelper(sharedPreferences: Get.find()), permanent: true);
+
     Get.lazyPut<ApiClient>(() => MockApiClient(), fenix: true);
     final controller = HomeController();
     Get.put<HomeController>(controller);

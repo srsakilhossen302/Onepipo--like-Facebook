@@ -4,34 +4,31 @@ import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../../helper/network_img/network_img.dart';
 import '../../../Core/AppRoute/app_route.dart';
-import '../../Widgegt/PostCard/post_card.dart';
-import 'Controller/home_controller.dart';
-import 'Model/post_model.dart';
+import '../../Screen/HomeScreen/Controller/home_controller.dart';
+import '../../Screen/HomeScreen/Model/post_model.dart';
 
-class PostDetailsScreen extends StatefulWidget {
-  const PostDetailsScreen({super.key});
+class CommentBottomSheet extends StatefulWidget {
+  final int postIndex;
+
+  const CommentBottomSheet({super.key, required this.postIndex});
 
   @override
-  State<PostDetailsScreen> createState() => _PostDetailsScreenState();
+  State<CommentBottomSheet> createState() => _CommentBottomSheetState();
 }
 
-class _PostDetailsScreenState extends State<PostDetailsScreen> {
+class _CommentBottomSheetState extends State<CommentBottomSheet> {
   final HomeController controller = Get.find<HomeController>();
   final TextEditingController _textController = TextEditingController();
   final FocusNode _commentFocusNode = FocusNode();
   final Rxn<CommentModel> selectedReplyComment = Rxn<CommentModel>();
   final RxSet<String> expandedCommentIds = <String>{}.obs;
-  late final int postIndex;
 
   @override
   void initState() {
     super.initState();
-    postIndex = Get.arguments as int;
-    controller.activePostDetailsIndex.value = postIndex;
+    controller.activePostDetailsIndex.value = widget.postIndex;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (postIndex >= 0 && postIndex < controller.posts.length) {
-        controller.fetchCommentsForPost(postIndex);
-      }
+      controller.fetchCommentsForPost(widget.postIndex);
     });
   }
 
@@ -93,82 +90,83 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
-        scrolledUnderElevation: 0,
-        elevation: 0.5,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.textLight,
-            size: 20,
-          ),
-          onPressed: () => Get.back(),
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
         ),
-        title: Text(
-          StaticString.postDetails.tr,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textLight,
-          ),
-        ),
-        centerTitle: true,
       ),
-      body: SafeArea(
+      child: SafeArea(
         child: Column(
           children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Header
+            Obx(() {
+              if (widget.postIndex < 0 || widget.postIndex >= controller.posts.length) {
+                return const SizedBox.shrink();
+              }
+              final post = controller.posts[widget.postIndex];
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      StaticString.commentsCount.trParams({'count': post.comments.length.toString()}),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Color(0xFF04070D),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.grey, size: 22),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
+              );
+            }),
+            const Divider(height: 1, thickness: 0.5),
+            
+            // Comments List Area
             Expanded(
               child: Obx(() {
-                if (postIndex < 0 || postIndex >= controller.posts.length) {
+                if (widget.postIndex < 0 || widget.postIndex >= controller.posts.length) {
                   return Center(
                     child: Text(StaticString.postNotFound.tr),
                   );
                 }
-                final post = controller.posts[postIndex];
+                final post = controller.posts[widget.postIndex];
+                
+                if (controller.isLoadingComments.value) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.blueAccent,
+                    ),
+                  );
+                }
+
                 return SingleChildScrollView(
                   controller: controller.commentsScrollController,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Original Post Item UI using reusable PostCard
-                      PostCard(
-                        postIndex: postIndex,
-                        isClickable: false,
-                        onCommentTap: () => _commentFocusNode.requestFocus(),
-                      ),
-                      
-                      const Divider(height: 1, thickness: 0.5),
-                      
-                      // Comments Section Header
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                          StaticString.commentsCount.trParams({'count': post.comments.length.toString()}),
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Color(0xFF04070D),
-                          ),
-                        ),
-                      ),
-                      
-                      // Comments & Replies List
-                      if (controller.isLoadingComments.value)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 40.0),
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              color: Colors.blueAccent,
-                            ),
-                          ),
-                        )
-                      else if (post.comments.isEmpty)
+                      if (post.comments.isEmpty)
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 40.0),
+                          padding: const EdgeInsets.symmetric(vertical: 60.0),
                           child: Center(
                             child: Text(
                               StaticString.noCommentsYet.tr,
@@ -194,6 +192,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                                     children: [
                                       GestureDetector(
                                         onTap: () {
+                                          Navigator.pop(context);
                                           Get.toNamed(AppRoute.profile, arguments: comment.userName);
                                         },
                                         child: NetworkImg(
@@ -212,6 +211,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                                               children: [
                                                 GestureDetector(
                                                   onTap: () {
+                                                    Navigator.pop(context);
                                                     Get.toNamed(AppRoute.profile, arguments: comment.userName);
                                                   },
                                                   child: Text(
@@ -260,7 +260,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                                                 ),
                                                 const Spacer(),
                                                 GestureDetector(
-                                                  onTap: () => controller.toggleLikeComment(postIndex, cIndex),
+                                                  onTap: () => controller.toggleLikeComment(widget.postIndex, cIndex),
                                                   child: Icon(
                                                     comment.isLiked
                                                         ? Icons.thumb_up_alt_rounded
@@ -279,7 +279,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                                                 ),
                                                 const SizedBox(width: 16),
                                                 GestureDetector(
-                                                  onTap: () => controller.toggleDislikeComment(postIndex, cIndex),
+                                                  onTap: () => controller.toggleDislikeComment(widget.postIndex, cIndex),
                                                   child: Icon(
                                                     comment.isDisliked
                                                         ? Icons.thumb_down_alt_rounded
@@ -351,6 +351,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                                             children: [
                                               GestureDetector(
                                                 onTap: () {
+                                                  Navigator.pop(context);
                                                   Get.toNamed(AppRoute.profile, arguments: reply.userName);
                                                 },
                                                 child: NetworkImg(
@@ -369,6 +370,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                                                       children: [
                                                         GestureDetector(
                                                           onTap: () {
+                                                            Navigator.pop(context);
                                                             Get.toNamed(AppRoute.profile, arguments: reply.userName);
                                                           },
                                                           child: Text(
@@ -397,7 +399,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                                                       children: [
                                                         const Spacer(),
                                                         GestureDetector(
-                                                          onTap: () => controller.toggleLikeCommentReply(postIndex, comment.id, reply.id),
+                                                          onTap: () => controller.toggleLikeCommentReply(widget.postIndex, comment.id, reply.id),
                                                           child: Icon(
                                                             reply.isLiked
                                                                 ? Icons.thumb_up_alt_rounded
@@ -416,7 +418,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                                                         ),
                                                         const SizedBox(width: 12),
                                                         GestureDetector(
-                                                          onTap: () => controller.toggleDislikeCommentReply(postIndex, comment.id, reply.id),
+                                                          onTap: () => controller.toggleDislikeCommentReply(widget.postIndex, comment.id, reply.id),
                                                           child: Icon(
                                                             reply.isDisliked
                                                                 ? Icons.thumb_down_alt_rounded
@@ -527,14 +529,14 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                         if (_textController.text.trim().isNotEmpty) {
                           if (isReplying) {
                             controller.addReply(
-                              postIndex,
+                              widget.postIndex,
                               selectedReplyComment.value!.id,
                               _textController.text,
                             );
                             expandedCommentIds.add(selectedReplyComment.value!.id);
                             selectedReplyComment.value = null;
                           } else {
-                            controller.addComment(postIndex, _textController.text);
+                            controller.addComment(widget.postIndex, _textController.text);
                           }
                           _textController.clear();
                           _commentFocusNode.unfocus();

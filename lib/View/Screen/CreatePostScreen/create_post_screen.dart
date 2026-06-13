@@ -68,15 +68,16 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     });
   }
 
-  void _handlePostSubmit() {
+  void _handlePostSubmit() async {
     if (_textController.text.trim().isEmpty && _selectedImagePath == null) return;
     if (_wordCount > 350) {
       ToastMessage.showToast(message: StaticString.wordLimitExceeded.tr);
       return;
     }
 
+    bool success = false;
     if (_editingPostIndex != null) {
-      _homeController.updatePost(
+      success = await _homeController.updatePost(
         _editingPostIndex!,
         _textController.text,
         _selectedPostType,
@@ -85,7 +86,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         contentImageUrl: _selectedImagePath,
       );
     } else {
-      _homeController.addNewPost(
+      success = await _homeController.addNewPost(
         _textController.text,
         _selectedPostType,
         groupName: _selectedGroupName,
@@ -93,7 +94,10 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         contentImageUrl: _selectedImagePath,
       );
     }
-    Get.back();
+
+    if (success) {
+      Get.back();
+    }
   }
 
   Widget _buildPostTypeRadio(String label, String value) {
@@ -198,17 +202,30 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: isPostEnabled ? _handlePostSubmit : null,
-            child: Text(
-              _editingPostIndex != null ? StaticString.save.tr : StaticString.post.tr,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: isPostEnabled ? const Color(0xFF1877F2) : Colors.grey[400],
-              ),
-            ),
-          ),
+          Obx(() {
+            final isPostEnabled = (_textController.text.trim().isNotEmpty || _selectedImagePath != null) && _wordCount <= 350;
+            final isSaving = _homeController.isLoading.value;
+            return TextButton(
+              onPressed: (isPostEnabled && !isSaving) ? _handlePostSubmit : null,
+              child: isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.0,
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1877F2)),
+                      ),
+                    )
+                  : Text(
+                      _editingPostIndex != null ? StaticString.save.tr : StaticString.post.tr,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isPostEnabled ? const Color(0xFF1877F2) : Colors.grey[400],
+                      ),
+                    ),
+            );
+          }),
           const SizedBox(width: 8),
         ],
       ),
