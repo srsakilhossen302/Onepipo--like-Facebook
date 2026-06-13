@@ -297,7 +297,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                   ),
                                   
                                   // Toggle Replies Expand/Collapse Button
-                                  if (comment.replies.isNotEmpty) ...[
+                                  if (comment.replies.isNotEmpty || comment.repliesCount > 0) ...[
                                     const SizedBox(height: 8),
                                     GestureDetector(
                                       onTap: () {
@@ -305,6 +305,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                           expandedCommentIds.remove(comment.id);
                                         } else {
                                           expandedCommentIds.add(comment.id);
+                                          controller.fetchRepliesForComment(widget.postIndex, comment.id);
                                         }
                                       },
                                       child: Padding(
@@ -322,7 +323,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                             Text(
                                               isExpanded
                                                   ? StaticString.hideReplies.tr
-                                                  : StaticString.viewRepliesCount.trParams({'count': comment.replies.length.toString()}),
+                                                  : StaticString.viewRepliesCount.trParams({'count': comment.repliesCount.toString()}),
                                               style: TextStyle(
                                                 fontSize: 12.5,
                                                 fontWeight: FontWeight.w600,

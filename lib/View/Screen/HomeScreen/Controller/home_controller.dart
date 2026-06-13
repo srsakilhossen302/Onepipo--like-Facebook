@@ -420,7 +420,7 @@ class HomeController extends GetxController {
     posts.refresh();
   }
 
-  void addReply(int postIndex, String parentCommentId, String replyText) {
+  Future<void> addReply(int postIndex, String parentCommentId, String replyText) async {
     if (postIndex < 0 || postIndex >= posts.length || replyText.trim().isEmpty)
       return;
 
@@ -430,24 +430,73 @@ class HomeController extends GetxController {
     );
     if (parentComment == null) return;
 
-    final newReply = CommentModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      userName: 'shahriar',
-      userAvatarUrl:
-          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-      timeAgo: 'Just now',
-      text: replyText,
-      likesCount: 0,
-      isLiked: false,
-      isDisliked: false,
-    );
+    try {
+      final response = await Get.find<ApiClient>().post(
+        ApiUrl.commentReplies(parentCommentId),
+        body: {
+          "content": replyText,
+        },
+      );
 
-    parentComment.replies.add(newReply);
-    post.commentsCount++;
-    posts[postIndex] = post;
-    posts.refresh();
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        CommentModel newReply;
+        if (responseData.containsKey('data') && responseData['data'] is Map<String, dynamic>) {
+          newReply = CommentModel.fromJson(responseData['data']);
+        } else {
+          newReply = CommentModel(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            userName: 'shahriar',
+            userAvatarUrl:
+                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+            timeAgo: 'Just now',
+            text: replyText,
+            likesCount: 0,
+            isLiked: false,
+            isDisliked: false,
+          );
+        }
 
-    ToastMessage.showToast(message: StaticString.commentAdded.tr);
+        parentComment.replies.add(newReply);
+        parentComment.repliesCount = parentComment.replies.length;
+        post.commentsCount++;
+        posts[postIndex] = post;
+        posts.refresh();
+
+        ToastMessage.showToast(message: StaticString.commentAdded.tr);
+      } else {
+        ApiCheck.checkApi(response);
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Connection error: $e');
+    }
+  }
+
+  Future<void> fetchRepliesForComment(int postIndex, String commentId) async {
+    if (postIndex < 0 || postIndex >= posts.length) return;
+    final post = posts[postIndex];
+    final parentComment = post.comments.firstWhereOrNull((c) => c.id == commentId);
+    if (parentComment == null) return;
+
+    try {
+      final response = await Get.find<ApiClient>().get('${ApiUrl.commentReplies(commentId)}?per_page=10');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        if (responseData.containsKey('data') && responseData['data'] is List) {
+          final List<dynamic> data = responseData['data'];
+          final List<CommentModel> fetchedReplies = data.map((json) => CommentModel.fromJson(json)).toList();
+          parentComment.replies.clear();
+          parentComment.replies.addAll(fetchedReplies);
+          parentComment.repliesCount = parentComment.replies.length;
+          posts[postIndex] = post;
+          posts.refresh();
+        }
+      } else {
+        ApiCheck.checkApi(response);
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Connection error: $e');
+    }
   }
 
   void toggleLikeCommentReply(

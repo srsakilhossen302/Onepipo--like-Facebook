@@ -29,6 +29,11 @@ class MockApiClient extends ApiClient {
         '{"status":"success","data":[]}',
         200,
       );
+    } else if (RegExp(r'^\/comments\/[^/]+\/replies(\?per_page=\d+)?$').hasMatch(uri)) {
+      return http.Response(
+        '{"status":"success","data":[{"id":"reply_111","content":"mock reply text","author":{"name":"shahriar","photo":""},"time_ago":"Just now","replies_count":0}]}',
+        200,
+      );
     }
     return http.Response('{"error":"not found"}', 404);
   }
@@ -69,6 +74,11 @@ class MockApiClient extends ApiClient {
       return http.Response(
         '{"status":"success","message":"Post reported successfully"}',
         200,
+      );
+    } else if (RegExp(r'^\/comments\/[^/]+\/replies$').hasMatch(uri)) {
+      return http.Response(
+        '{"status":"success","message":"Reply stored","data":{"id":"reply_222","content":"test reply","author":{"name":"shahriar","photo":""},"time_ago":"Just now","replies_count":0}}',
+        201,
       );
     }
     return http.Response('{"error":"not found"}', 404);
@@ -337,5 +347,47 @@ void main() {
     final failureIndex = controller.posts.indexOf(failurePost);
     final failureResult = await controller.reportPost(failureIndex, "Inappropriate", "");
     expect(failureResult, isFalse);
+  });
+
+  testWidgets('HomeController addReply and fetchRepliesForComment API tests', (WidgetTester tester) async {
+    final controller = Get.find<HomeController>();
+
+    final testPost = PostModel(
+      id: '123',
+      userName: 'Test User',
+      userAvatarUrl: '',
+      timeAgo: 'Just now',
+      badgeText: 'solution',
+      contentText: 'Test body',
+      comments: [
+        CommentModel(
+          id: 'comment_abc',
+          userName: 'africa',
+          userAvatarUrl: '',
+          timeAgo: '1h',
+          text: 'some comment',
+          repliesCount: 0,
+        )
+      ],
+    );
+
+    controller.posts.add(testPost);
+    final postIndex = controller.posts.indexOf(testPost);
+
+    // Verify initial state
+    expect(testPost.comments[0].replies, isEmpty);
+    expect(testPost.comments[0].repliesCount, 0);
+
+    // Test fetchRepliesForComment
+    await controller.fetchRepliesForComment(postIndex, 'comment_abc');
+    expect(testPost.comments[0].replies.length, 1);
+    expect(testPost.comments[0].replies[0].id, 'reply_111');
+    expect(testPost.comments[0].repliesCount, 1);
+
+    // Test addReply
+    await controller.addReply(postIndex, 'comment_abc', 'Hello, this is a reply');
+    expect(testPost.comments[0].replies.length, 2);
+    expect(testPost.comments[0].replies[1].id, 'reply_222');
+    expect(testPost.comments[0].repliesCount, 2);
   });
 }

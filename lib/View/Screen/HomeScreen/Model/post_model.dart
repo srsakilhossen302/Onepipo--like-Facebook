@@ -7,6 +7,7 @@ class CommentModel {
   int likesCount;
   bool isLiked;
   bool isDisliked;
+  int repliesCount;
   final List<CommentModel> replies;
 
   CommentModel({
@@ -18,11 +19,15 @@ class CommentModel {
     this.likesCount = 0,
     this.isLiked = false,
     this.isDisliked = false,
+    this.repliesCount = 0,
     List<CommentModel>? replies,
   }) : replies = replies ?? [];
 
   factory CommentModel.fromJson(Map<String, dynamic> json) {
     final author = json['author'] as Map<String, dynamic>?;
+    final repliesList = json['replies'] != null
+        ? (json['replies'] as List).map((r) => CommentModel.fromJson(r)).toList()
+        : <CommentModel>[];
     return CommentModel(
       id: (json['id'] ?? '').toString(),
       userName: (author != null ? author['name'] : null) ?? 'Anonymous',
@@ -32,9 +37,8 @@ class CommentModel {
       likesCount: json['likes_count'] ?? 0,
       isLiked: json['is_liked'] ?? false,
       isDisliked: json['is_disliked'] ?? false,
-      replies: json['replies'] != null
-          ? (json['replies'] as List).map((r) => CommentModel.fromJson(r)).toList()
-          : [],
+      repliesCount: json['replies_count'] ?? repliesList.length,
+      replies: repliesList,
     );
   }
 }

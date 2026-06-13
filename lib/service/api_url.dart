@@ -15,4 +15,5 @@ class ApiUrl {
   static String comments(String postId) => '/posts/$postId/comments';
   static String savePost(String postId) => '/posts/$postId/save';
   static String reportPost(String postId) => '/posts/$postId/report';
+  static String commentReplies(String commentId) => '/comments/$commentId/replies';
 }
