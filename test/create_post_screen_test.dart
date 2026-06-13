@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:onepipo/Language/translator.dart';
@@ -6,6 +7,7 @@ import 'package:onepipo/View/Screen/CreatePostScreen/create_post_screen.dart';
 import 'package:onepipo/View/Screen/CreatePostScreen/group_selection_screen.dart';
 import 'package:onepipo/View/Screen/CreatePostScreen/tag_friends_screen.dart';
 import 'package:onepipo/View/Screen/HomeScreen/Controller/home_controller.dart';
+import 'package:onepipo/View/Screen/HomeScreen/Model/post_model.dart';
 import 'package:onepipo/service/api_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -47,6 +49,27 @@ class MockApiClient extends ApiClient {
         '{"status":"success","message":"Comment stored","data":{"id":"comment_999","comment":"test comment","author":{"name":"shahriar","photo":""},"time_ago":"Just now"}}',
         201,
       );
+    } else if (RegExp(r'^\/posts\/[^/]+\/like$').hasMatch(uri)) {
+      return http.Response(
+        '{"status":"success","message":"Post liked successfully"}',
+        200,
+      );
+    } else if (RegExp(r'^\/posts\/[^/]+\/save$').hasMatch(uri)) {
+      if (uri.contains('999')) {
+        return http.Response('{"error":"server error"}', 500);
+      }
+      return http.Response(
+        '{"status":"success","message":"Post saved successfully"}',
+        200,
+      );
+    } else if (RegExp(r'^\/posts\/[^/]+\/report$').hasMatch(uri)) {
+      if (uri.contains('999')) {
+        return http.Response('{"error":"server error"}', 500);
+      }
+      return http.Response(
+        '{"status":"success","message":"Post reported successfully"}',
+        200,
+      );
     }
     return http.Response('{"error":"not found"}', 404);
   }
@@ -56,6 +79,12 @@ void main() {
   setUp(() async {
     Get.reset(); // Reset GetX dependency injector and routing state
     Get.testMode = true;
+
+    const channel = MethodChannel('PonnamKarthik/fluttertoast');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+      return true;
+    });
 
     SharedPreferences.setMockInitialValues({});
     final sharedPreferences = await SharedPreferences.getInstance();
@@ -228,5 +257,85 @@ void main() {
     expect(returnedFriends, isNotNull);
     expect(returnedFriends, contains('Owolabi Ridwan'));
     expect(returnedFriends, contains('Elena Gonzalez'));
+  });
+
+  testWidgets('HomeController toggleSave success and failure rollback tests', (WidgetTester tester) async {
+    final controller = Get.find<HomeController>();
+    
+    // Add mock posts to test
+    final successPost = PostModel(
+      id: '123',
+      userName: 'Test User',
+      userAvatarUrl: '',
+      timeAgo: 'Just now',
+      badgeText: 'solution',
+      contentText: 'Test body',
+      isSaved: false,
+      comments: [],
+    );
+    
+    final failurePost = PostModel(
+      id: '999',
+      userName: 'Test User',
+      userAvatarUrl: '',
+      timeAgo: 'Just now',
+      badgeText: 'solution',
+      contentText: 'Test body 2',
+      isSaved: false,
+      comments: [],
+    );
+
+    controller.posts.addAll([successPost, failurePost]);
+
+    // Test toggleSave Success
+    final successIndex = controller.posts.indexOf(successPost);
+    expect(controller.posts[successIndex].isSaved, isFalse);
+
+    await controller.toggleSave(successIndex);
+    expect(controller.posts[successIndex].isSaved, isTrue);
+
+    await controller.toggleSave(successIndex);
+    expect(controller.posts[successIndex].isSaved, isFalse);
+
+    // Test toggleSave Failure (ID 999 triggers 500 error, should rollback)
+    final failureIndex = controller.posts.indexOf(failurePost);
+    expect(controller.posts[failureIndex].isSaved, isFalse);
+
+    await controller.toggleSave(failureIndex);
+    expect(controller.posts[failureIndex].isSaved, isFalse); // Rollback to false
+  });
+
+  testWidgets('HomeController reportPost success and failure tests', (WidgetTester tester) async {
+    final controller = Get.find<HomeController>();
+
+    final successPost = PostModel(
+      id: '123',
+      userName: 'Test User',
+      userAvatarUrl: '',
+      timeAgo: 'Just now',
+      badgeText: 'solution',
+      contentText: 'Test body',
+      comments: [],
+    );
+    
+    final failurePost = PostModel(
+      id: '999',
+      userName: 'Test User',
+      userAvatarUrl: '',
+      timeAgo: 'Just now',
+      badgeText: 'solution',
+      contentText: 'Test body 2',
+      comments: [],
+    );
+
+    controller.posts.addAll([successPost, failurePost]);
+
+    final successIndex = controller.posts.indexOf(successPost);
+    final successResult = await controller.reportPost(successIndex, "Spam", "Some details");
+    expect(successResult, isTrue);
+
+    final failureIndex = controller.posts.indexOf(failurePost);
+    final failureResult = await controller.reportPost(failureIndex, "Inappropriate", "");
+    expect(failureResult, isFalse);
   });
 }

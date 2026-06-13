@@ -228,10 +228,14 @@ class HomeController extends GetxController {
     ]);
   }
 
-  void toggleLike(int index) {
+  Future<void> toggleLike(int index) async {
     if (index < 0 || index >= posts.length) return;
 
     final post = posts[index];
+    final originalIsLiked = post.isLiked;
+    final originalLikesCount = post.likesCount;
+
+    // Optimistically toggle state in UI
     if (post.isLiked) {
       post.isLiked = false;
       post.likesCount--;
@@ -241,6 +245,94 @@ class HomeController extends GetxController {
     }
     posts[index] = post;
     posts.refresh();
+
+    try {
+      final response = await Get.find<ApiClient>().post(
+        '/posts/${post.id}/like',
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        // Revert on failure
+        post.isLiked = originalIsLiked;
+        post.likesCount = originalLikesCount;
+        posts[index] = post;
+        posts.refresh();
+        
+        ApiCheck.checkApi(response);
+      }
+    } catch (e) {
+      // Revert on connection error
+      post.isLiked = originalIsLiked;
+      post.likesCount = originalLikesCount;
+      posts[index] = post;
+      posts.refresh();
+      
+      ToastMessage.showToast(message: 'Connection error: $e');
+    }
+  }
+
+  Future<void> toggleSave(int index) async {
+    if (index < 0 || index >= posts.length) return;
+
+    final post = posts[index];
+    final originalIsSaved = post.isSaved;
+
+    // Optimistically toggle state in UI
+    post.isSaved = !post.isSaved;
+    posts[index] = post;
+    posts.refresh();
+
+    try {
+      final response = await Get.find<ApiClient>().post(
+        ApiUrl.savePost(post.id),
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        // Revert on failure
+        post.isSaved = originalIsSaved;
+        posts[index] = post;
+        posts.refresh();
+        
+        ApiCheck.checkApi(response);
+      } else {
+        ToastMessage.showToast(
+          message: post.isSaved ? 'Successful save this post' : 'Removed from saved posts',
+        );
+      }
+    } catch (e) {
+      // Revert on connection error
+      post.isSaved = originalIsSaved;
+      posts[index] = post;
+      posts.refresh();
+      
+      ToastMessage.showToast(message: 'Connection error: $e');
+    }
+  }
+
+  Future<bool> reportPost(int index, String reason, String details) async {
+    if (index < 0 || index >= posts.length) return false;
+
+    final post = posts[index];
+    try {
+      final response = await Get.find<ApiClient>().post(
+        ApiUrl.reportPost(post.id),
+        body: {
+          "reason": reason,
+          "description": details,
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ToastMessage.showToast(message: "Report submitted successfully");
+        return true;
+      } else {
+        ApiCheck.checkApi(response);
+        return false;
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Connection error: $e');
+      return false;
+    }
   }
 
   Future<void> addComment(int index, String commentText) async {

@@ -37,6 +37,7 @@ class ToastMessage {
     required String message,
     bool isError = false,
   }) {
+    if (Get.testMode) return;
     String cleanMessage = message;
     bool computedIsError = isError;
 

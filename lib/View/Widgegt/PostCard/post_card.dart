@@ -515,13 +515,13 @@ class PostCard extends StatelessWidget {
                 const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE)),
                 // Save
                 ListTile(
-                  leading: const Icon(
-                    Icons.bookmark_outline_rounded,
-                    color: Color(0xFF04070D),
+                  leading: Icon(
+                    post.isSaved ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+                    color: post.isSaved ? Colors.blueAccent : const Color(0xFF04070D),
                     size: 28,
                   ),
                   title: Text(
-                    StaticString.save.tr,
+                    post.isSaved ? "Saved" : StaticString.save.tr,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -529,12 +529,12 @@ class PostCard extends StatelessWidget {
                     ),
                   ),
                   subtitle: Text(
-                    StaticString.saveSubtitle.tr,
+                    post.isSaved ? "Remove from saved posts" : StaticString.saveSubtitle.tr,
                     style: TextStyle(color: Colors.grey[600], fontSize: 13),
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    ToastMessage.showToast(message: "Successful save this post");
+                    controller.toggleSave(index);
                   },
                 ),
                 const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE)),
@@ -566,13 +566,13 @@ class PostCard extends StatelessWidget {
               ] else ...[
                 // Save
                 ListTile(
-                  leading: const Icon(
-                    Icons.bookmark_outline_rounded,
+                  leading: Icon(
+                    post.isSaved ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
                     color: Colors.blueAccent,
                     size: 28,
                   ),
                   title: Text(
-                    StaticString.save.tr,
+                    post.isSaved ? "Saved" : StaticString.save.tr,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -580,12 +580,12 @@ class PostCard extends StatelessWidget {
                     ),
                   ),
                   subtitle: Text(
-                    StaticString.saveSubtitle.tr,
+                    post.isSaved ? "Remove from saved posts" : StaticString.saveSubtitle.tr,
                     style: TextStyle(color: Colors.grey[600], fontSize: 13),
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    ToastMessage.showToast(message: "Successful save this post");
+                    controller.toggleSave(index);
                   },
                 ),
                 const Divider(height: 1, indent: 16, endIndent: 16),
@@ -623,6 +623,7 @@ class PostCard extends StatelessWidget {
   }
 
   void _showReportBottomSheet(BuildContext context, int index) {
+    final controller = Get.find<HomeController>();
     final reasons = [
       "Spam", "Harassment", "Misinformation",
       "Inappropriate", "Violence", "Nudity",
@@ -759,9 +760,20 @@ class PostCard extends StatelessWidget {
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
+                    if (selectedReason.value.isEmpty) {
+                      ToastMessage.showToast(
+                        message: "Please select a reason for reporting",
+                        isError: true,
+                      );
+                      return;
+                    }
                     Navigator.pop(context);
-                    ToastMessage.showToast(message: "Report submitted successfully");
+                    await controller.reportPost(
+                      index,
+                      selectedReason.value,
+                      textController.text,
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blueAccent,

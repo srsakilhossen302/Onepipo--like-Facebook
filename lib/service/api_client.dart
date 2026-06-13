@@ -33,12 +33,17 @@ class ApiClient {
   }) async {
     try {
       final url = Uri.parse('${ApiUrl.baseUrl}$uri');
+      print('--> GET $url');
+      print('Headers: ${_getHeaders(headers)}');
       final response = await http.get(
         url,
         headers: _getHeaders(headers),
       ).timeout(const Duration(seconds: 30));
+      print('<-- ${response.statusCode} $url');
+      print('Response Body: ${response.body}');
       return response;
     } catch (e) {
+      print('GET Error: $e');
       throw Exception('Connection error: $e');
     }
   }
@@ -51,13 +56,19 @@ class ApiClient {
   }) async {
     try {
       final url = Uri.parse('${ApiUrl.baseUrl}$uri');
+      print('--> POST $url');
+      print('Headers: ${_getHeaders(headers)}');
+      print('Body: ${body is Map ? jsonEncode(body) : body}');
       final response = await http.post(
         url,
         body: body is Map ? jsonEncode(body) : body,
         headers: _getHeaders(headers),
       ).timeout(const Duration(seconds: 30));
+      print('<-- ${response.statusCode} $url');
+      print('Response Body: ${response.body}');
       return response;
     } catch (e) {
+      print('POST Error: $e');
       throw Exception('Connection error: $e');
     }
   }

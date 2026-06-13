@@ -13,4 +13,6 @@ class ApiUrl {
   static const String countries = '/countries';
   static const String createPost = '/posts/create';
   static String comments(String postId) => '/posts/$postId/comments';
+  static String savePost(String postId) => '/posts/$postId/save';
+  static String reportPost(String postId) => '/posts/$postId/report';
 }

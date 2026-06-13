@@ -53,6 +53,7 @@ class PostModel {
   int commentsCount;
   int sharesCount;
   bool isLiked;
+  bool isSaved;
   final List<CommentModel> comments;
 
   PostModel({
@@ -69,6 +70,7 @@ class PostModel {
     this.commentsCount = 0,
     this.sharesCount = 0,
     this.isLiked = false,
+    this.isSaved = false,
     required this.comments,
   });
 
@@ -90,6 +92,7 @@ class PostModel {
       commentsCount: json['comments_count'] ?? 0,
       sharesCount: json['shares_count'] ?? 0,
       isLiked: json['is_liked'] ?? false,
+      isSaved: json['is_saved'] ?? false,
       comments: json['comments'] != null
           ? (json['comments'] as List).map((c) => CommentModel.fromJson(c)).toList()
           : [],
