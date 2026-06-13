@@ -326,22 +326,48 @@ class CreateAccountController extends GetxController {
   }
 }
 
+class CityModel {
+  final int id;
+  final int countryId;
+  final String name;
+
+  CityModel({
+    required this.id,
+    required this.countryId,
+    required this.name,
+  });
+
+  factory CityModel.fromJson(Map<String, dynamic> json) {
+    return CityModel(
+      id: json['id'] is int ? json['id'] as int : int.parse(json['id'].toString()),
+      countryId: json['country_id'] is int ? json['country_id'] as int : int.parse(json['country_id'].toString()),
+      name: (json['name'] ?? '').toString(),
+    );
+  }
+}
+
 class CountryModel {
   final int id;
   final String name;
   final String code;
+  final List<CityModel> cities;
 
   CountryModel({
     required this.id,
     required this.name,
     required this.code,
+    required this.cities,
   });
 
   factory CountryModel.fromJson(Map<String, dynamic> json) {
+    final citiesList = json['cities'] != null
+        ? (json['cities'] as List).map((c) => CityModel.fromJson(c)).toList()
+        : <CityModel>[];
     return CountryModel(
-      id: json['id'] as int,
-      name: json['name'] as String,
-      code: json['code'] as String,
+      id: json['id'] is int ? json['id'] as int : int.parse(json['id'].toString()),
+      name: (json['name'] ?? '').toString(),
+      code: (json['code'] ?? '').toString(),
+      cities: citiesList,
     );
   }
 }

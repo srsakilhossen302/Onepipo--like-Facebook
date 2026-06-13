@@ -272,6 +272,16 @@ class MockApiClient extends ApiClient {
         '{"status":"success","message":"Login successful","data":{"token":"mock_user_token_12345"}}',
         200,
       );
+    } else if (uri == '/users/update-settings') {
+      return http.Response(
+        '{"status":"success","message":"Settings updated successfully"}',
+        200,
+      );
+    } else if (uri == '/users/update-profile') {
+      return http.Response(
+        '{"status":"success","message":"Profile updated successfully"}',
+        200,
+      );
     }
     return http.Response('{"error":"not found"}', 404);
   }

@@ -7,6 +7,7 @@ import '../../../helper/network_img/network_img.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../Widgegt/PostCard/post_card.dart';
 import 'Controller/my_profile_controller.dart';
+import 'edit_profile_screen.dart';
 
 class MyProfileScreen extends StatefulWidget {
   const MyProfileScreen({super.key});
@@ -319,7 +320,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                       height: 44,
                       child: OutlinedButton(
                         onPressed: () {
-                          ToastMessage.showToast(message: StaticString.editProfile.tr);
+                          Get.to(() => const EditProfileScreen());
                         },
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Color(0xFFD0D5DD)),

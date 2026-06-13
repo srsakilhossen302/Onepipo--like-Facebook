@@ -8,6 +8,8 @@ import '../../../Utils/ToastMessage/toast_message.dart';
 import '../../../Language/translator.dart';
 import '../../../Utils/AppConst/app_const.dart';
 import '../../../helper/shared_prefe/shared_prefe.dart';
+import '../../../service/api_client.dart';
+import '../../../service/api_url.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -23,6 +25,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _smsNotifications = false;
   bool _twoFactorAuth = false;
   bool _anonymousMode = false;
+  
+  Future<void> _updateSettings(String value) async {
+    try {
+      final response = await Get.find<ApiClient>().post(
+        ApiUrl.updateSettings,
+        body: {
+          'value': value,
+        },
+      );
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        print('Failed to update settings: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error updating settings: $e');
+    }
+  }
 
   void _showLogoutConfirmationDialog(BuildContext context) {
     showDialog(
@@ -304,6 +322,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     : null,
                 onTap: () {
                   AppTranslator.changeLanguage('en', 'US');
+                  _updateSettings('en');
                   ToastMessage.showToast(message: StaticString.languageChangedSuccess.tr);
                   Navigator.pop(context);
                 },
@@ -326,6 +345,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     : null,
                 onTap: () {
                   AppTranslator.changeLanguage('fr', 'FR');
+                  _updateSettings('fr');
                   ToastMessage.showToast(message: StaticString.languageChangedSuccess.tr);
                   Navigator.pop(context);
                 },
@@ -484,6 +504,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   setState(() {
                     _anonymousMode = val;
                   });
+                  _updateSettings(val ? 'anonymous_mode:true' : 'anonymous_mode:false');
                   ToastMessage.showToast(
                     message: val ? StaticString.anonymousModeEnabled.tr : StaticString.anonymousModeDisabled.tr,
                   );
@@ -517,6 +538,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   setState(() {
                     _pushNotifications = val;
                   });
+                  _updateSettings(val ? 'push_notifications:true' : 'push_notifications:false');
                   ToastMessage.showToast(
                     message: val ? StaticString.pushNotificationsEnabled.tr : StaticString.pushNotificationsDisabled.tr,
                   );
@@ -534,6 +556,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   setState(() {
                     _emailNotifications = val;
                   });
+                  _updateSettings(val ? 'email_notifications:true' : 'email_notifications:false');
                   ToastMessage.showToast(
                     message: val ? StaticString.emailNotificationsEnabled.tr : StaticString.emailNotificationsDisabled.tr,
                   );
@@ -551,6 +574,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   setState(() {
                     _smsNotifications = val;
                   });
+                  _updateSettings(val ? 'sms_notifications:true' : 'sms_notifications:false');
                   ToastMessage.showToast(
                     message: val ? StaticString.smsNotificationsEnabled.tr : StaticString.smsNotificationsDisabled.tr,
                   );
@@ -571,6 +595,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   setState(() {
                     _twoFactorAuth = val;
                   });
+                  _updateSettings(val ? 'two_factor_auth:true' : 'two_factor_auth:false');
                   ToastMessage.showToast(
                     message: val ? StaticString.twoFactorAuthEnabled.tr : StaticString.twoFactorAuthDisabled.tr,
                   );

@@ -19,4 +19,6 @@ class ApiUrl {
   static String likeComment(String commentId) => '/comments/$commentId/like';
   static String unlikeComment(String commentId) => '/comments/$commentId/unlike';
   static String sharePost(String postId, String userId) => '/posts/$postId/share/$userId';
+  static const String updateSettings = '/users/update-settings';
+  static const String updateProfile = '/users/update-profile';
 }
