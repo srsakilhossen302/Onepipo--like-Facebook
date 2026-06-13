@@ -80,6 +80,22 @@ class MockApiClient extends ApiClient {
         '{"status":"success","message":"Reply stored","data":{"id":"reply_222","content":"test reply","author":{"name":"shahriar","photo":""},"time_ago":"Just now","replies_count":0}}',
         201,
       );
+    } else if (RegExp(r'^\/comments\/[^/]+\/(like|unlike)$').hasMatch(uri)) {
+      if (uri.contains('fail')) {
+        return http.Response('{"error":"server error"}', 500);
+      }
+      return http.Response(
+        '{"status":"success","message":"Action successful"}',
+        200,
+      );
+    } else if (RegExp(r'^\/posts\/[^/]+\/share\/[^/]+$').hasMatch(uri)) {
+      if (uri.contains('fail')) {
+        return http.Response('{"error":"server error"}', 500);
+      }
+      return http.Response(
+        '{"status":"success","message":"Post shared successfully"}',
+        200,
+      );
     }
     return http.Response('{"error":"not found"}', 404);
   }
@@ -389,5 +405,169 @@ void main() {
     expect(testPost.comments[0].replies.length, 2);
     expect(testPost.comments[0].replies[1].id, 'reply_222');
     expect(testPost.comments[0].repliesCount, 2);
+  });
+
+  testWidgets('HomeController toggleLikeComment success and failure rollback tests', (WidgetTester tester) async {
+    final controller = Get.find<HomeController>();
+
+    final testPost = PostModel(
+      id: '123',
+      userName: 'Test User',
+      userAvatarUrl: '',
+      timeAgo: 'Just now',
+      badgeText: 'solution',
+      contentText: 'Test body',
+      comments: [
+        CommentModel(
+          id: 'comment_success',
+          userName: 'User A',
+          userAvatarUrl: '',
+          timeAgo: '1h',
+          text: 'successful comment',
+          likesCount: 5,
+          isLiked: false,
+        ),
+        CommentModel(
+          id: 'comment_fail',
+          userName: 'User B',
+          userAvatarUrl: '',
+          timeAgo: '2h',
+          text: 'failed comment',
+          likesCount: 10,
+          isLiked: false,
+        ),
+      ],
+    );
+
+    controller.posts.clear();
+    controller.posts.add(testPost);
+    final postIndex = controller.posts.indexOf(testPost);
+
+    // Success Test
+    expect(testPost.comments[0].isLiked, isFalse);
+    expect(testPost.comments[0].likesCount, 5);
+
+    await controller.toggleLikeComment(postIndex, 0);
+    expect(testPost.comments[0].isLiked, isTrue);
+    expect(testPost.comments[0].likesCount, 6);
+
+    await controller.toggleLikeComment(postIndex, 0);
+    expect(testPost.comments[0].isLiked, isFalse);
+    expect(testPost.comments[0].likesCount, 5);
+
+    // Failure Rollback Test
+    expect(testPost.comments[1].isLiked, isFalse);
+    expect(testPost.comments[1].likesCount, 10);
+
+    await controller.toggleLikeComment(postIndex, 1);
+    // Should rollback to original values due to 500 error
+    expect(testPost.comments[1].isLiked, isFalse);
+    expect(testPost.comments[1].likesCount, 10);
+  });
+
+  testWidgets('HomeController toggleLikeCommentReply success and failure rollback tests', (WidgetTester tester) async {
+    final controller = Get.find<HomeController>();
+
+    final testPost = PostModel(
+      id: '123',
+      userName: 'Test User',
+      userAvatarUrl: '',
+      timeAgo: 'Just now',
+      badgeText: 'solution',
+      contentText: 'Test body',
+      comments: [
+        CommentModel(
+          id: 'comment_abc',
+          userName: 'User A',
+          userAvatarUrl: '',
+          timeAgo: '1h',
+          text: 'some comment',
+          replies: [
+            CommentModel(
+              id: 'reply_success',
+              userName: 'User C',
+              userAvatarUrl: '',
+              timeAgo: '30m',
+              text: 'success reply',
+              likesCount: 2,
+              isLiked: false,
+            ),
+            CommentModel(
+              id: 'reply_fail',
+              userName: 'User D',
+              userAvatarUrl: '',
+              timeAgo: '15m',
+              text: 'failed reply',
+              likesCount: 8,
+              isLiked: false,
+            ),
+          ],
+        ),
+      ],
+    );
+
+    controller.posts.clear();
+    controller.posts.add(testPost);
+    final postIndex = controller.posts.indexOf(testPost);
+
+    // Success Test
+    expect(testPost.comments[0].replies[0].isLiked, isFalse);
+    expect(testPost.comments[0].replies[0].likesCount, 2);
+
+    await controller.toggleLikeCommentReply(postIndex, 'comment_abc', 'reply_success');
+    expect(testPost.comments[0].replies[0].isLiked, isTrue);
+    expect(testPost.comments[0].replies[0].likesCount, 3);
+
+    await controller.toggleLikeCommentReply(postIndex, 'comment_abc', 'reply_success');
+    expect(testPost.comments[0].replies[0].isLiked, isFalse);
+    expect(testPost.comments[0].replies[0].likesCount, 2);
+
+    // Failure Rollback Test
+    expect(testPost.comments[0].replies[1].isLiked, isFalse);
+    expect(testPost.comments[0].replies[1].likesCount, 8);
+
+    await controller.toggleLikeCommentReply(postIndex, 'comment_abc', 'reply_fail');
+    // Should rollback to original values due to 500 error
+    expect(testPost.comments[0].replies[1].isLiked, isFalse);
+    expect(testPost.comments[0].replies[1].likesCount, 8);
+  });
+
+  testWidgets('HomeController shareWithFollower success and failure rollback tests', (WidgetTester tester) async {
+    final controller = Get.find<HomeController>();
+
+    final testPost = PostModel(
+      id: 'post_123',
+      userName: 'Test User',
+      userAvatarUrl: '',
+      timeAgo: 'Just now',
+      badgeText: 'solution',
+      contentText: 'Test body',
+      sharesCount: 10,
+      comments: [],
+    );
+
+    controller.posts.clear();
+    controller.posts.add(testPost);
+    final postIndex = controller.posts.indexOf(testPost);
+
+    // Success Test
+    expect(controller.isFollowerShared('post_123', 'follower_success'), isFalse);
+    expect(testPost.sharesCount, 10);
+
+    await controller.shareWithFollower(postIndex, 'follower_success');
+    expect(controller.isFollowerShared('post_123', 'follower_success'), isTrue);
+    expect(testPost.sharesCount, 11);
+
+    // Trying to share with same follower again should do nothing
+    await controller.shareWithFollower(postIndex, 'follower_success');
+    expect(testPost.sharesCount, 11);
+
+    // Failure Rollback Test
+    expect(controller.isFollowerShared('post_123', 'follower_fail'), isFalse);
+
+    await controller.shareWithFollower(postIndex, 'follower_fail');
+    // Should rollback due to 500 error
+    expect(controller.isFollowerShared('post_123', 'follower_fail'), isFalse);
+    expect(testPost.sharesCount, 11);
   });
 }

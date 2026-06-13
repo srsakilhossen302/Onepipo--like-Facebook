@@ -381,12 +381,17 @@ class HomeController extends GetxController {
     }
   }
 
-  void toggleLikeComment(int postIndex, int commentIndex) {
+  Future<void> toggleLikeComment(int postIndex, int commentIndex) async {
     if (postIndex < 0 || postIndex >= posts.length) return;
     final post = posts[postIndex];
     if (commentIndex < 0 || commentIndex >= post.comments.length) return;
     final comment = post.comments[commentIndex];
 
+    final originalIsLiked = comment.isLiked;
+    final originalLikesCount = comment.likesCount;
+    final originalIsDisliked = comment.isDisliked;
+
+    // Optimistically toggle state in UI
     if (comment.isLiked) {
       comment.isLiked = false;
       comment.likesCount--;
@@ -399,6 +404,39 @@ class HomeController extends GetxController {
     }
     posts[postIndex] = post;
     posts.refresh();
+
+    try {
+      final endpoint = originalIsLiked
+          ? ApiUrl.unlikeComment(comment.id)
+          : ApiUrl.likeComment(comment.id);
+
+      final response = await Get.find<ApiClient>().post(
+        endpoint,
+        body: {
+          "type": "comment",
+        },
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        // Revert on failure
+        comment.isLiked = originalIsLiked;
+        comment.likesCount = originalLikesCount;
+        comment.isDisliked = originalIsDisliked;
+        posts[postIndex] = post;
+        posts.refresh();
+
+        ApiCheck.checkApi(response);
+      }
+    } catch (e) {
+      // Revert on connection error
+      comment.isLiked = originalIsLiked;
+      comment.likesCount = originalLikesCount;
+      comment.isDisliked = originalIsDisliked;
+      posts[postIndex] = post;
+      posts.refresh();
+
+      ToastMessage.showToast(message: 'Connection error: $e');
+    }
   }
 
   void toggleDislikeComment(int postIndex, int commentIndex) {
@@ -499,11 +537,11 @@ class HomeController extends GetxController {
     }
   }
 
-  void toggleLikeCommentReply(
+  Future<void> toggleLikeCommentReply(
     int postIndex,
     String parentCommentId,
     String replyId,
-  ) {
+  ) async {
     if (postIndex < 0 || postIndex >= posts.length) return;
     final post = posts[postIndex];
     final parentComment = post.comments.firstWhereOrNull(
@@ -515,6 +553,11 @@ class HomeController extends GetxController {
     );
     if (reply == null) return;
 
+    final originalIsLiked = reply.isLiked;
+    final originalLikesCount = reply.likesCount;
+    final originalIsDisliked = reply.isDisliked;
+
+    // Optimistically toggle state in UI
     if (reply.isLiked) {
       reply.isLiked = false;
       reply.likesCount--;
@@ -527,6 +570,39 @@ class HomeController extends GetxController {
     }
     posts[postIndex] = post;
     posts.refresh();
+
+    try {
+      final endpoint = originalIsLiked
+          ? ApiUrl.unlikeComment(reply.id)
+          : ApiUrl.likeComment(reply.id);
+
+      final response = await Get.find<ApiClient>().post(
+        endpoint,
+        body: {
+          "type": "reply",
+        },
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        // Revert on failure
+        reply.isLiked = originalIsLiked;
+        reply.likesCount = originalLikesCount;
+        reply.isDisliked = originalIsDisliked;
+        posts[postIndex] = post;
+        posts.refresh();
+
+        ApiCheck.checkApi(response);
+      }
+    } catch (e) {
+      // Revert on connection error
+      reply.isLiked = originalIsLiked;
+      reply.likesCount = originalLikesCount;
+      reply.isDisliked = originalIsDisliked;
+      posts[postIndex] = post;
+      posts.refresh();
+
+      ToastMessage.showToast(message: 'Connection error: $e');
+    }
   }
 
   void toggleDislikeCommentReply(
@@ -572,7 +648,7 @@ class HomeController extends GetxController {
     );
   }
 
-  void shareWithFollower(int postIndex, String followerId) {
+  Future<void> shareWithFollower(int postIndex, String followerId) async {
     if (postIndex < 0 || postIndex >= posts.length) return;
     final post = posts[postIndex];
 
@@ -587,6 +663,36 @@ class HomeController extends GetxController {
     post.sharesCount++;
     posts[postIndex] = post;
     posts.refresh();
+
+    try {
+      final response = await Get.find<ApiClient>().post(
+        ApiUrl.sharePost(post.id, followerId),
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        // Revert on failure
+        final revertedSet = Set<String>.from(newSet)..remove(followerId);
+        sharedFollowers[post.id] = revertedSet;
+        sharedFollowers.refresh();
+
+        post.sharesCount--;
+        posts[postIndex] = post;
+        posts.refresh();
+
+        ApiCheck.checkApi(response);
+      }
+    } catch (e) {
+      // Revert on connection error
+      final revertedSet = Set<String>.from(newSet)..remove(followerId);
+      sharedFollowers[post.id] = revertedSet;
+      sharedFollowers.refresh();
+
+      post.sharesCount--;
+      posts[postIndex] = post;
+      posts.refresh();
+
+      ToastMessage.showToast(message: 'Connection error: $e');
+    }
   }
 
   bool isFollowerShared(String postId, String followerId) {
