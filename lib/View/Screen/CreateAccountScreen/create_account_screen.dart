@@ -543,9 +543,11 @@ class CreateAccountScreen extends GetView<CreateAccountController> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: const Color(0xFFE5E7EB), width: 1.0),
                   ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: controller.selectedCountry.value,
+                  child: Obx(() => DropdownButtonHideUnderline(
+                    child: DropdownButton<CountryModel>(
+                      value: controller.countriesList.firstWhereOrNull(
+                        (c) => c.name == controller.selectedCountry.value,
+                      ),
                       hint: Text(
                         StaticString.selectCountry.tr,
                         style: const TextStyle(
@@ -563,17 +565,17 @@ class CreateAccountScreen extends GetView<CreateAccountController> {
                         color: AppColors.textLight,
                       ),
                       dropdownColor: Colors.white,
-                      items: countries.map((String country) {
-                        return DropdownMenuItem<String>(
+                      items: controller.countriesList.map((CountryModel country) {
+                        return DropdownMenuItem<CountryModel>(
                           value: country,
-                          child: Text(country),
+                          child: Text(country.name),
                         );
                       }).toList(),
-                      onChanged: (String? value) {
-                        controller.selectedCountry.value = value;
+                      onChanged: (CountryModel? value) {
+                        controller.selectedCountry.value = value?.name;
                       },
                     ),
-                  ),
+                  )),
                 ),
                 const SizedBox(height: 24),
 

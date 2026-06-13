@@ -187,6 +187,20 @@ void main() {
 
 class MockApiClient extends ApiClient {
   @override
+  Future<http.Response> get(
+    String uri, {
+    Map<String, String>? headers,
+  }) async {
+    if (uri == '/countries') {
+      return http.Response(
+        '{"status":"success","data":[{"id":1,"name":"Bangladesh","code":"BD"},{"id":2,"name":"United States","code":"US"}]}',
+        200,
+      );
+    }
+    return http.Response('{"error":"not found"}', 404);
+  }
+
+  @override
   Future<http.Response> post(
     String uri, {
     dynamic body,

@@ -23,7 +23,34 @@ class CreateAccountController extends GetxController {
   final isLoading = false.obs;
 
   final otpCode = ''.obs;
-  final _apiClient = Get.find<ApiClient>();
+  ApiClient get apiClient => Get.find<ApiClient>();
+
+  final countriesList = <CountryModel>[].obs;
+  final selectedCountryModel = Rxn<CountryModel>();
+
+  @override
+  void onInit() {
+    super.onInit();
+    fetchCountries();
+  }
+
+  Future<void> fetchCountries() async {
+    try {
+      final response = await apiClient.get(ApiUrl.countries);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        if (responseData.containsKey('data') && responseData['data'] is List) {
+          final List<dynamic> data = responseData['data'];
+          final List<CountryModel> fetchedCountries = data.map((json) => CountryModel.fromJson(json)).toList();
+          countriesList.assignAll(fetchedCountries);
+        }
+      } else {
+        ApiCheck.checkApi(response);
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Failed to load countries: $e');
+    }
+  }
 
   // Step 2 Form values
   final selectedCountry = RxnString();
@@ -88,6 +115,12 @@ class CreateAccountController extends GetxController {
   }
 
   int getCountryId(String countryName) {
+    final country = countriesList.firstWhereOrNull(
+      (c) => c.name.toLowerCase() == countryName.toLowerCase(),
+    );
+    if (country != null) {
+      return country.id;
+    }
     switch (countryName) {
       case 'Bangladesh': return 1;
       case 'United States': return 2;
@@ -173,7 +206,7 @@ class CreateAccountController extends GetxController {
 
       try {
         // 1. Validate username
-        final usernameResponse = await _apiClient.post(
+        final usernameResponse = await apiClient.post(
           ApiUrl.validateUsername,
           body: {'username': username},
         );
@@ -186,7 +219,7 @@ class CreateAccountController extends GetxController {
 
         // 2. Validate referral code if provided
         if (referralCode.isNotEmpty) {
-          final referralResponse = await _apiClient.post(
+          final referralResponse = await apiClient.post(
             ApiUrl.validateReferralCode,
             body: {
               'refcode': referralCode,
@@ -204,7 +237,7 @@ class CreateAccountController extends GetxController {
 
         // 3. Request OTP (2nd image API)
         final deviceToken = await _getDeviceToken();
-        final requestOtpResponse = await _apiClient.post(
+        final requestOtpResponse = await apiClient.post(
           ApiUrl.requestOtp,
           body: {
             'credential': email,
@@ -255,7 +288,7 @@ class CreateAccountController extends GetxController {
         };
 
         // 4. Submit registration (1st image API)
-        final response = await _apiClient.post(
+        final response = await apiClient.post(
           ApiUrl.register,
           body: body,
         );
@@ -290,5 +323,25 @@ class CreateAccountController extends GetxController {
         ToastMessage.showToast(message: 'Connection error: $e');
       }
     }
+  }
+}
+
+class CountryModel {
+  final int id;
+  final String name;
+  final String code;
+
+  CountryModel({
+    required this.id,
+    required this.name,
+    required this.code,
+  });
+
+  factory CountryModel.fromJson(Map<String, dynamic> json) {
+    return CountryModel(
+      id: json['id'] as int,
+      name: json['name'] as String,
+      code: json['code'] as String,
+    );
   }
 }

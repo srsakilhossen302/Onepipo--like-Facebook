@@ -10,4 +10,5 @@ class ApiUrl {
   static const String validateUsername = '/misc/validate/username';
   static const String validateReferralCode = '/misc/validate/refcode';
   static const String posts = '/posts';
+  static const String countries = '/countries';
 }
