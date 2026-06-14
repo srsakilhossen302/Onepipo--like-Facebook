@@ -416,7 +416,7 @@ class HomeController extends GetxController {
       final response = await Get.find<ApiClient>().post(
         endpoint,
         body: {
-          "type": "comment",
+          "type": "like",
         },
       );
 
@@ -582,7 +582,7 @@ class HomeController extends GetxController {
       final response = await Get.find<ApiClient>().post(
         endpoint,
         body: {
-          "type": "reply",
+          "type": "like",
         },
       );
 
