@@ -9,6 +9,7 @@ import 'package:onepipo/View/Screen/CreatePostScreen/tag_friends_screen.dart';
 import 'package:onepipo/View/Screen/HomeScreen/Controller/home_controller.dart';
 import 'package:onepipo/View/Screen/HomeScreen/Model/post_model.dart';
 import 'package:onepipo/View/Screen/ProfileScreen/Controller/my_profile_controller.dart';
+import 'package:onepipo/View/Screen/ProfileScreen/Controller/profile_controller.dart';
 import 'package:onepipo/service/api_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,6 +34,26 @@ class MockApiClient extends ApiClient {
     } else if (RegExp(r'^\/comments\/[^/]+\/replies(\?per_page=\d+)?$').hasMatch(uri)) {
       return http.Response(
         '{"status":"success","data":[{"id":"reply_111","content":"mock reply text","author":{"name":"shahriar","photo":""},"time_ago":"Just now","replies_count":0}]}',
+        200,
+      );
+    } else if (RegExp(r'^\/users\/[^/]+\/posts(\?.*)?$').hasMatch(uri)) {
+      final matches = RegExp(r'^\/users\/([^/]+)\/posts').firstMatch(uri);
+      final uId = matches != null ? matches.group(1) : '5';
+      final uName = uId == '5' ? 'Shahriar' : (uId == '2' ? 'Elena Gonzalez' : 'Other User');
+      final pageMatch = RegExp(r'page=(\d+)').firstMatch(uri);
+      final page = pageMatch != null ? int.parse(pageMatch.group(1)!) : 1;
+      
+      if (page >= 3) {
+        return http.Response('{"status":"success","data":[]}', 200);
+      }
+      final postId = page == 2 ? 'mock_profile_post_1002' : 'mock_profile_post_1001';
+      return http.Response(
+        '{"status":"success","data":[{"id":"$postId","description":"Dynamic profile post for $uName page $page","type":"solution","time_ago":"Just now","likes":10,"comments_count":1,"shares_count":2,"is_liked":false,"is_saved":false,"author":{"id":$uId,"name":"$uName","photo":""},"comments":[]}]}',
+        200,
+      );
+    } else if (uri == '/user/profile') {
+      return http.Response(
+        '{"status":"success","data":{"id":5,"name":"Shahriar","username":"shahriar","photo":""}}',
         200,
       );
     }
@@ -586,5 +607,85 @@ void main() {
     final myProfileController = Get.put(MyProfileController());
     final successUrl = await myProfileController.uploadPhoto('mock_image_path.png');
     expect(successUrl, 'https://onepipo.com/uploads/mock_photo.png');
+  });
+
+  testWidgets('MyProfileController fetchMyPosts success test', (WidgetTester tester) async {
+    final myProfileController = Get.put(MyProfileController());
+    final homeController = Get.find<HomeController>();
+
+    // Clear posts
+    homeController.posts.clear();
+
+    // Call fetchMyPosts
+    await myProfileController.fetchMyPosts();
+
+    // Verify it completed and post was added/merged
+    expect(myProfileController.isLoadingPosts.value, isFalse);
+    expect(homeController.posts.length, 1);
+    expect(homeController.posts[0].id, 'mock_profile_post_1001');
+    expect(homeController.posts[0].contentText, 'Dynamic profile post for Shahriar page 1');
+  });
+
+  testWidgets('ProfileController fetchUserPosts success test', (WidgetTester tester) async {
+    final profileController = ProfileController();
+    final homeController = Get.find<HomeController>();
+
+    // Clear posts
+    homeController.posts.clear();
+
+    // Init user triggers fetchUserPosts
+    profileController.initUser('Elena Gonzalez');
+
+    // Wait for async task
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    expect(profileController.isLoadingPosts.value, isFalse);
+    expect(profileController.userName, 'Elena Gonzalez');
+    expect(homeController.posts.length, 1);
+    expect(homeController.posts[0].id, 'mock_profile_post_1001');
+    expect(homeController.posts[0].contentText, 'Dynamic profile post for Elena Gonzalez page 1');
+  });
+
+  testWidgets('MyProfileController pagination test', (WidgetTester tester) async {
+    final myProfileController = Get.put(MyProfileController());
+    final homeController = Get.find<HomeController>();
+
+    homeController.posts.clear();
+
+    // Load page 1
+    await myProfileController.fetchMyPosts();
+    expect(homeController.posts.length, 1);
+    expect(homeController.posts[0].id, 'mock_profile_post_1001');
+
+    // Load page 2
+    await myProfileController.fetchMoreMyPosts();
+    expect(homeController.posts.length, 2);
+    expect(homeController.posts[1].id, 'mock_profile_post_1002');
+
+    // Load page 3 (returns empty data, no more posts available)
+    await myProfileController.fetchMoreMyPosts();
+    expect(homeController.posts.length, 2);
+  });
+
+  testWidgets('ProfileController pagination test', (WidgetTester tester) async {
+    final profileController = ProfileController();
+    final homeController = Get.find<HomeController>();
+
+    homeController.posts.clear();
+
+    // Load page 1 via initUser
+    profileController.initUser('Elena Gonzalez');
+    await Future.delayed(const Duration(milliseconds: 100));
+    expect(homeController.posts.length, 1);
+    expect(homeController.posts[0].id, 'mock_profile_post_1001');
+
+    // Load page 2
+    await profileController.fetchMoreUserPosts();
+    expect(homeController.posts.length, 2);
+    expect(homeController.posts[1].id, 'mock_profile_post_1002');
+
+    // Load page 3
+    await profileController.fetchMoreUserPosts();
+    expect(homeController.posts.length, 2);
   });
 }

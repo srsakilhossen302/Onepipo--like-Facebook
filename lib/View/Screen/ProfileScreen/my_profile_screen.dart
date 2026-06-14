@@ -6,6 +6,7 @@ import '../../../Utils/ToastMessage/toast_message.dart';
 import '../../../helper/network_img/network_img.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../Widgegt/PostCard/post_card.dart';
+import '../../Widgegt/ShimmerLoading/shimmer_loading.dart';
 import 'Controller/my_profile_controller.dart';
 import 'edit_profile_screen.dart';
 
@@ -21,6 +22,12 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   late final String userName = controller.userName;
 
   @override
+  void initState() {
+    super.initState();
+    controller.fetchMyPosts();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
@@ -29,6 +36,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         final userPosts = controller.myPosts;
 
         return SingleChildScrollView(
+          controller: controller.scrollController,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -356,7 +364,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
               ),
               
               // List of user posts
-              if (userPosts.isEmpty)
+              if (controller.isLoadingPosts.value)
+                const Column(
+                  children: [
+                    PostCardShimmer(),
+                    PostCardShimmer(),
+                  ],
+                )
+              else if (userPosts.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 60.0),
                   child: Center(
@@ -391,6 +406,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     final actualIndex = controller.homeController.posts.indexOf(post);
                     return PostCard(postIndex: actualIndex);
                   },
+                ),
+              if (controller.isLoadingMore.value)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  child: Center(
+                    child: CircularProgressIndicator(color: Colors.blueAccent),
+                  ),
                 ),
             ],
           ),

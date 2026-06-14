@@ -22,4 +22,5 @@ class ApiUrl {
   static const String updateSettings = '/users/update-settings';
   static const String updateProfile = '/users/update-profile';
   static const String uploadPhoto = '/users/upload-photo';
+  static String userPosts(String userId) => '/users/$userId/posts';
 }

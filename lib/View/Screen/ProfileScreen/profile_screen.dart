@@ -4,6 +4,7 @@ import '../../../Utils/AppColors/app_colors.dart';
 import '../../../helper/network_img/network_img.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../Widgegt/PostCard/post_card.dart';
+import '../../Widgegt/ShimmerLoading/shimmer_loading.dart';
 import 'Controller/profile_controller.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -66,6 +67,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }
 
         return SingleChildScrollView(
+          controller: controller.scrollController,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -335,7 +337,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               
               // List of Posts made by this user
-              if (userPosts.isEmpty)
+              if (controller.isLoadingPosts.value)
+                const Column(
+                  children: [
+                    PostCardShimmer(),
+                    PostCardShimmer(),
+                  ],
+                )
+              else if (userPosts.isEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 40.0),
                   child: Center(
@@ -356,6 +365,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     final actualIndex = controller.homeController.posts.indexOf(post);
                     return PostCard(postIndex: actualIndex);
                   },
+                ),
+              if (controller.isLoadingMore.value)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16.0),
+                  child: Center(
+                    child: CircularProgressIndicator(color: Colors.blueAccent),
+                  ),
                 ),
             ],
           ),

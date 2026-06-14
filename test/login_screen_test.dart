@@ -142,6 +142,25 @@ void main() {
 
 class MockApiClient extends ApiClient {
   @override
+  Future<http.Response> get(
+    String uri, {
+    Map<String, String>? headers,
+  }) async {
+    if (RegExp(r'^\/users\/[^/]+\/posts(\?post_limit=\d+)?$').hasMatch(uri)) {
+      return http.Response(
+        '{"status":"success","data":[]}',
+        200,
+      );
+    } else if (uri == '/user/profile') {
+      return http.Response(
+        '{"status":"success","data":{"id":5,"name":"Shahriar","username":"shahriar","photo":""}}',
+        200,
+      );
+    }
+    return http.Response('{"error":"not found"}', 404);
+  }
+
+  @override
   Future<http.Response> post(
     String uri, {
     dynamic body,
