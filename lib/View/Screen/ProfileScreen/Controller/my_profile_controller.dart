@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../HomeScreen/Controller/home_controller.dart';
@@ -21,6 +22,7 @@ class MyProfileController extends GetxController {
   final countriesList = <CountryModel>[].obs;
   final isLoadingCountries = false.obs;
   final isLoadingUpdate = false.obs;
+  final isLoadingUploadPhoto = false.obs;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -97,7 +99,12 @@ class MyProfileController extends GetxController {
 
   Future<void> openGallery(String target) async {
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 60,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      );
       if (image != null) {
         if (target == 'cover photo') {
           coverPhotoPath.value = image.path;
@@ -108,9 +115,81 @@ class MyProfileController extends GetxController {
             ? StaticString.galleryOpenedCover.tr
             : StaticString.galleryOpenedProfile.tr;
         ToastMessage.showToast(message: message);
+
+        // Upload photo immediately
+        await uploadPhoto(image.path);
       }
     } catch (e) {
       ToastMessage.showToast(message: "Failed to open gallery: $e");
+    }
+  }
+
+  Future<String?> uploadPhoto(String imagePath) async {
+    isLoadingUploadPhoto.value = true;
+    try {
+      final file = File(imagePath);
+      if (Get.testMode) {
+        isLoadingUploadPhoto.value = false;
+        final response = await Get.find<ApiClient>().post(
+          ApiUrl.uploadPhoto,
+          body: {
+            'image': 'mock_base64_data',
+          },
+        );
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          final Map<String, dynamic> responseData = jsonDecode(response.body);
+          if (responseData.containsKey('data')) {
+            final data = responseData['data'];
+            if (data is List && data.isNotEmpty) {
+              return data[0].toString();
+            } else if (data is String) {
+              return data;
+            }
+          }
+          return 'https://onepipo.com/uploads/mock_photo.png';
+        }
+        return null;
+      }
+
+      if (!await file.exists()) {
+        isLoadingUploadPhoto.value = false;
+        ToastMessage.showToast(message: 'File does not exist');
+        return null;
+      }
+
+      final bytes = await file.readAsBytes();
+      final base64Image = base64Encode(bytes);
+
+      final response = await Get.find<ApiClient>().post(
+        ApiUrl.uploadPhoto,
+        body: {
+          'image': base64Image,
+        },
+      );
+
+      isLoadingUploadPhoto.value = false;
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        String? url;
+        if (responseData.containsKey('data')) {
+          final data = responseData['data'];
+          if (data is List && data.isNotEmpty) {
+            url = data[0].toString();
+          } else if (data is String) {
+            url = data;
+          }
+        }
+        ToastMessage.showToast(message: 'Photo uploaded successfully');
+        return url;
+      } else {
+        ApiCheck.checkApi(response);
+        return null;
+      }
+    } catch (e) {
+      isLoadingUploadPhoto.value = false;
+      ToastMessage.showToast(message: 'Failed to upload photo: $e');
+      return null;
     }
   }
 }

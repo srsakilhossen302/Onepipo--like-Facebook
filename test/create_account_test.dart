@@ -241,6 +241,11 @@ class MockApiClient extends ApiClient {
         '{"status":"success","message":"Profile updated successfully"}',
         200,
       );
+    } else if (uri == '/users/upload-photo') {
+      return http.Response(
+        '{"status":"success","data":["https://onepipo.com/uploads/mock_photo.png"]}',
+        200,
+      );
     }
     return http.Response('{"error":"not found"}', 404);
   }

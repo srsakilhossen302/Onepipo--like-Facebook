@@ -73,6 +73,54 @@ class ApiClient {
     }
   }
 
+  // Multipart POST request
+  Future<http.Response> postMultipart(
+    String uri,
+    String fileKey,
+    String filePath, {
+    Map<String, String>? fields,
+    Map<String, String>? headers,
+  }) async {
+    try {
+      final url = Uri.parse('${ApiUrl.baseUrl}$uri');
+      print('--> POST MULTIPART $url');
+      
+      var request = http.MultipartRequest('POST', url);
+      
+      final Map<String, String> multipartHeaders = {
+        AppConst.accept: AppConst.applicationJson,
+      };
+      final token = _sharedPrefHelper.getString(AppConst.token);
+      if (token.isNotEmpty) {
+        multipartHeaders[AppConst.authorization] = 'Bearer $token';
+      }
+      if (headers != null) {
+        multipartHeaders.addAll(headers);
+      }
+      request.headers.addAll(multipartHeaders);
+      
+      if (fields != null) {
+        request.fields.addAll(fields);
+      }
+      
+      request.files.add(await http.MultipartFile.fromPath(fileKey, filePath));
+      
+      print('Multipart Request Headers: ${request.headers}');
+      print('Multipart Request Fields: ${request.fields}');
+      print('Multipart Request File: $fileKey -> $filePath');
+      
+      final streamedResponse = await request.send().timeout(const Duration(seconds: 45));
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      print('<-- ${response.statusCode} $url');
+      print('Response Body: ${response.body}');
+      return response;
+    } catch (e) {
+      print('Multipart POST Error: $e');
+      throw Exception('Connection error: $e');
+    }
+  }
+
   // PUT request
   Future<http.Response> put(
     String uri, {

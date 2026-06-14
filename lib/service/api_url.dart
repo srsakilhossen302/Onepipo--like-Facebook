@@ -21,4 +21,5 @@ class ApiUrl {
   static String sharePost(String postId, String userId) => '/posts/$postId/share/$userId';
   static const String updateSettings = '/users/update-settings';
   static const String updateProfile = '/users/update-profile';
+  static const String uploadPhoto = '/users/upload-photo';
 }

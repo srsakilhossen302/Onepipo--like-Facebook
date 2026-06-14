@@ -8,6 +8,7 @@ import 'package:onepipo/View/Screen/CreatePostScreen/group_selection_screen.dart
 import 'package:onepipo/View/Screen/CreatePostScreen/tag_friends_screen.dart';
 import 'package:onepipo/View/Screen/HomeScreen/Controller/home_controller.dart';
 import 'package:onepipo/View/Screen/HomeScreen/Model/post_model.dart';
+import 'package:onepipo/View/Screen/ProfileScreen/Controller/my_profile_controller.dart';
 import 'package:onepipo/service/api_client.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -99,6 +100,11 @@ class MockApiClient extends ApiClient {
     } else if (uri == '/users/update-profile') {
       return http.Response(
         '{"status":"success","message":"Profile updated successfully"}',
+        200,
+      );
+    } else if (uri == '/users/upload-photo') {
+      return http.Response(
+        '{"status":"success","data":["https://onepipo.com/uploads/mock_photo.png"]}',
         200,
       );
     }
@@ -574,5 +580,11 @@ void main() {
     // Should rollback due to 500 error
     expect(controller.isFollowerShared('post_123', 'follower_fail'), isFalse);
     expect(testPost.sharesCount, 11);
+  });
+
+  testWidgets('MyProfileController uploadPhoto success tests', (WidgetTester tester) async {
+    final myProfileController = Get.put(MyProfileController());
+    final successUrl = await myProfileController.uploadPhoto('mock_image_path.png');
+    expect(successUrl, 'https://onepipo.com/uploads/mock_photo.png');
   });
 }
