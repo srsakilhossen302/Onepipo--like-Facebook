@@ -31,7 +31,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } else {
       userName = args as String;
     }
-    controller = ProfileController()..initUser(userName, userId: argUserId, authorData: authorData);
+    controller = Get.put(ProfileController(), tag: userName)..initUser(userName, userId: argUserId, authorData: authorData);
   }
 
   String _getUserBio(String userName) {

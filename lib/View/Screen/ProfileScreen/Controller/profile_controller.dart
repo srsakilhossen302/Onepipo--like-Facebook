@@ -143,7 +143,11 @@ class ProfileController extends GetxController {
   }
 
   void loadUserPosts() {
-    userPosts.assignAll(homeController.posts.where((p) => p.userName.toLowerCase() == userName.toLowerCase()).toList());
+    userPosts.assignAll(homeController.posts.where((p) {
+      final matchesName = p.userName.toLowerCase() == userName.toLowerCase();
+      final matchesId = p.postUserId == userId || p.userId == userId;
+      return matchesName || matchesId;
+    }).toList());
   }
 
   String getUserIdByUsername(String name) {

@@ -20,6 +20,7 @@ class MyProfileController extends GetxController {
   final HomeController homeController = Get.find<HomeController>();
   var currentUserName = 'Shahriar'.obs;
   String get userName => currentUserName.value;
+  var myUserId = "".obs;
 
   var myPosts = <PostModel>[].obs;
   var coverPhotoPath = ''.obs;
@@ -42,7 +43,12 @@ class MyProfileController extends GetxController {
   void onInit() {
     super.onInit();
     scrollController.addListener(_scrollListener);
-    loadMyPosts();
+    _getLoggedInUserId().then((id) {
+      if (id != null) {
+        myUserId.value = id;
+        loadMyPosts();
+      }
+    });
     fetchCountries();
     if (!Get.testMode) {
       fetchMyPosts();
@@ -66,7 +72,11 @@ class MyProfileController extends GetxController {
   }
 
   void loadMyPosts() {
-    myPosts.assignAll(homeController.posts.where((p) => p.userName.toLowerCase() == currentUserName.value.toLowerCase()).toList());
+    myPosts.assignAll(homeController.posts.where((p) {
+      final matchesName = p.userName.toLowerCase() == currentUserName.value.toLowerCase();
+      final matchesId = myUserId.value.isNotEmpty && (p.postUserId == myUserId.value || p.userId == myUserId.value);
+      return matchesName || matchesId;
+    }).toList());
   }
 
   Future<String?> _getLoggedInUserId() async {
