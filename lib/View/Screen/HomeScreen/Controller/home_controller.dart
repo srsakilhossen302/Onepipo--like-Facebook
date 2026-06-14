@@ -249,6 +249,9 @@ class HomeController extends GetxController {
     try {
       final response = await Get.find<ApiClient>().post(
         '/posts/${post.id}/like',
+        body: {
+          "type": "like",
+        },
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
