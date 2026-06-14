@@ -21,8 +21,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    userName = Get.arguments as String;
-    controller = ProfileController()..initUser(userName);
+    final args = Get.arguments;
+    Map<String, dynamic>? authorData;
+    String? argUserId;
+    if (args is Map) {
+      userName = args['userName'] as String;
+      argUserId = args['userId']?.toString();
+      authorData = args['author'] as Map<String, dynamic>?;
+    } else {
+      userName = args as String;
+    }
+    controller = ProfileController()..initUser(userName, userId: argUserId, authorData: authorData);
   }
 
   String _getUserBio(String userName) {
@@ -54,9 +63,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final userPosts = controller.userPosts;
         final isFollowingUser = controller.isFollowing.value;
         
-        // Find the user's avatar from their posts
+        // Find the user's avatar from their posts or observables
         String userAvatarUrl = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150";
-        if (userPosts.isNotEmpty) {
+        if (controller.userPhotoUrl.value.isNotEmpty) {
+          userAvatarUrl = controller.userPhotoUrl.value;
+        } else if (userPosts.isNotEmpty) {
           userAvatarUrl = userPosts.first.userAvatarUrl;
         } else {
           // Check followers list for avatar
@@ -77,7 +88,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   // Cover Image
                   NetworkImg(
-                    imageUrl: _getUserCoverImage(userName),
+                    imageUrl: controller.userCoverUrl.value.isNotEmpty
+                        ? controller.userCoverUrl.value
+                        : _getUserCoverImage(userName),
                     width: double.infinity,
                     height: 180,
                     fit: BoxFit.cover,
@@ -201,7 +214,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 12),
                     // Bio
                     Text(
-                      _getUserBio(userName),
+                      controller.userBio.value.isNotEmpty
+                          ? controller.userBio.value
+                          : _getUserBio(userName),
                       style: const TextStyle(
                         fontSize: 15,
                         color: Color(0xFF04070D),
@@ -215,7 +230,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         Icon(Icons.rss_feed_rounded, size: 16, color: Colors.grey[600]),
                         const SizedBox(width: 4),
                         Text(
-                          "${userPosts.length} ${StaticString.posts.tr}",
+                          "${controller.userPostsCount.value > 0 ? controller.userPostsCount.value : userPosts.length} ${StaticString.posts.tr}",
                           style: TextStyle(
                             color: Colors.grey[600],
                             fontSize: 13,
@@ -245,7 +260,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Icon(Icons.group_outlined, size: 16, color: Colors.grey[600]),
                               const SizedBox(width: 4),
                               Text(
-                                "${(controller.homeController.userFollowers[userName] ?? []).length} ${StaticString.followers.tr}",
+                                "${controller.userFollowersCount.value > 0 ? controller.userFollowersCount.value : (controller.homeController.userFollowers[userName] ?? []).length} ${StaticString.followers.tr}",
                                 style: TextStyle(
                                   color: Colors.grey[600],
                                   fontSize: 13,
@@ -278,7 +293,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               Icon(Icons.person_add_alt_1_outlined, size: 16, color: Colors.grey[600]),
                               const SizedBox(width: 4),
                               Text(
-                                "${(controller.homeController.userFollowing[userName] ?? []).length} ${StaticString.following.tr}",
+                                "${controller.userFollowingCount.value > 0 ? controller.userFollowingCount.value : (controller.homeController.userFollowing[userName] ?? []).length} ${StaticString.following.tr}",
                                 style: TextStyle(
                                   color: Colors.grey[600],
                                   fontSize: 13,

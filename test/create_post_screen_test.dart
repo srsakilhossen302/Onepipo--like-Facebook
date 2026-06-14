@@ -56,6 +56,11 @@ class MockApiClient extends ApiClient {
         '{"status":"success","data":{"id":5,"name":"Shahriar","username":"shahriar","photo":""}}',
         200,
       );
+    } else if (uri.startsWith('/users/search')) {
+      return http.Response(
+        '{"status":"success","data":[{"id":"1","name":"Owolabi Ridwan","username":"owolabi","photo":"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"}]}',
+        200,
+      );
     }
     return http.Response('{"error":"not found"}', 404);
   }
@@ -634,10 +639,7 @@ void main() {
     homeController.posts.clear();
 
     // Init user triggers fetchUserPosts
-    profileController.initUser('Elena Gonzalez');
-
-    // Wait for async task
-    await Future.delayed(const Duration(milliseconds: 100));
+    await profileController.initUser('Elena Gonzalez');
 
     expect(profileController.isLoadingPosts.value, isFalse);
     expect(profileController.userName, 'Elena Gonzalez');
@@ -674,8 +676,7 @@ void main() {
     homeController.posts.clear();
 
     // Load page 1 via initUser
-    profileController.initUser('Elena Gonzalez');
-    await Future.delayed(const Duration(milliseconds: 100));
+    await profileController.initUser('Elena Gonzalez');
     expect(homeController.posts.length, 1);
     expect(homeController.posts[0].id, 'mock_profile_post_1001');
 

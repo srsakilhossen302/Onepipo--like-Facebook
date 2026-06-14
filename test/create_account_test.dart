@@ -196,7 +196,7 @@ class MockApiClient extends ApiClient {
         '{"status":"success","data":[{"id":1,"name":"Bangladesh","code":"BD"},{"id":2,"name":"United States","code":"US"}]}',
         200,
       );
-    } else if (RegExp(r'^\/users\/[^/]+\/posts(\?post_limit=\d+)?$').hasMatch(uri)) {
+    } else if (RegExp(r'^\/users\/[^/]+\/posts(\?.*)?$').hasMatch(uri)) {
       return http.Response(
         '{"status":"success","data":[]}',
         200,
@@ -204,6 +204,11 @@ class MockApiClient extends ApiClient {
     } else if (uri == '/user/profile') {
       return http.Response(
         '{"status":"success","data":{"id":5,"name":"Shahriar","username":"shahriar","photo":""}}',
+        200,
+      );
+    } else if (uri.startsWith('/users/search')) {
+      return http.Response(
+        '{"status":"success","data":[{"id":"1","name":"Owolabi Ridwan","username":"owolabi","photo":"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"}]}',
         200,
       );
     }

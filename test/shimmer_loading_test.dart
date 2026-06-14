@@ -8,9 +8,40 @@ import 'package:onepipo/View/Screen/NotificationScreen/notification_screen.dart'
 import 'package:onepipo/View/Screen/SearchScreen/search_screen.dart';
 import 'package:onepipo/View/Widgegt/ShimmerLoading/shimmer_loading.dart';
 
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:onepipo/helper/shared_prefe/shared_prefe.dart';
+import 'package:onepipo/service/api_client.dart';
+import 'package:http/http.dart' as http;
+
+class MockApiClient extends ApiClient {
+  @override
+  Future<http.Response> get(
+    String uri, {
+    Map<String, String>? headers,
+  }) async {
+    if (uri.startsWith('/users/search')) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return http.Response(
+        '{"status":"success","data":[{"id":"1","name":"Owolabi Ridwan","username":"owolabi","photo":"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"}]}',
+        200,
+      );
+    }
+    return http.Response('{"error":"not found"}', 404);
+  }
+}
+
 void main() {
-  setUp(() {
+  setUp(() async {
     Get.reset();
+    Get.testMode = true;
+
+    SharedPreferences.setMockInitialValues({});
+    final sharedPreferences = await SharedPreferences.getInstance();
+    Get.put<SharedPreferences>(sharedPreferences, permanent: true);
+    Get.put<SharedPreferenceHelper>(SharedPreferenceHelper(sharedPreferences: Get.find()), permanent: true);
+
+    Get.lazyPut<ApiClient>(() => MockApiClient(), fenix: true);
+    Get.put<HomeController>(HomeController());
   });
 
   tearDown(() {
@@ -18,8 +49,7 @@ void main() {
   });
 
   testWidgets('FeedScreen displays PostCardShimmer when loading', (WidgetTester tester) async {
-    final homeController = HomeController();
-    Get.put<HomeController>(homeController);
+    final homeController = Get.find<HomeController>();
 
     homeController.isLoading.value = true;
 

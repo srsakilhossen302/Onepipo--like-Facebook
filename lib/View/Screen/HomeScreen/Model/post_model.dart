@@ -1,5 +1,7 @@
 class CommentModel {
   final String id;
+  final String userId;
+  final String postUserId;
   final String userName;
   final String userAvatarUrl;
   final String timeAgo;
@@ -9,9 +11,12 @@ class CommentModel {
   bool isDisliked;
   int repliesCount;
   final List<CommentModel> replies;
+  final Map<String, dynamic>? authorRaw;
 
   CommentModel({
     required this.id,
+    this.userId = '',
+    this.postUserId = '',
     required this.userName,
     required this.userAvatarUrl,
     required this.timeAgo,
@@ -21,6 +26,7 @@ class CommentModel {
     this.isDisliked = false,
     this.repliesCount = 0,
     List<CommentModel>? replies,
+    this.authorRaw,
   }) : replies = replies ?? [];
 
   factory CommentModel.fromJson(Map<String, dynamic> json) {
@@ -30,6 +36,8 @@ class CommentModel {
         : <CommentModel>[];
     return CommentModel(
       id: (json['id'] ?? '').toString(),
+      userId: (author != null ? author['id'] : json['user_id'])?.toString() ?? '',
+      postUserId: (json['user_id'] ?? (author != null ? author['id'] : null))?.toString() ?? '',
       userName: (author != null ? author['name'] : null) ?? 'Anonymous',
       userAvatarUrl: (author != null ? author['photo'] : null) ?? '',
       timeAgo: json['time_ago'] ?? 'Just now',
@@ -39,12 +47,15 @@ class CommentModel {
       isDisliked: json['is_disliked'] ?? false,
       repliesCount: json['replies_count'] ?? repliesList.length,
       replies: repliesList,
+      authorRaw: author,
     );
   }
 }
 
 class PostModel {
   final String id;
+  final String userId;
+  final String postUserId;
   final String userName;
   final String userAvatarUrl;
   final String timeAgo;
@@ -59,9 +70,12 @@ class PostModel {
   bool isLiked;
   bool isSaved;
   final List<CommentModel> comments;
+  final Map<String, dynamic>? authorRaw;
 
   PostModel({
     required this.id,
+    this.userId = '',
+    this.postUserId = '',
     required this.userName,
     required this.userAvatarUrl,
     required this.timeAgo,
@@ -76,12 +90,15 @@ class PostModel {
     this.isLiked = false,
     this.isSaved = false,
     required this.comments,
+    this.authorRaw,
   });
 
   factory PostModel.fromJson(Map<String, dynamic> json) {
     final author = json['author'] as Map<String, dynamic>?;
     return PostModel(
       id: (json['id'] ?? '').toString(),
+      userId: (author != null ? author['id'] : json['user_id'])?.toString() ?? '5',
+      postUserId: (json['user_id'] ?? (author != null ? author['id'] : null))?.toString() ?? '5',
       userName: (author != null ? author['name'] : null) ?? 'Anonymous',
       userAvatarUrl: (author != null ? author['photo'] : null) ?? '',
       timeAgo: json['time_ago'] ?? 'Just now',
@@ -100,6 +117,7 @@ class PostModel {
       comments: json['comments'] != null
           ? (json['comments'] as List).map((c) => CommentModel.fromJson(c)).toList()
           : [],
+      authorRaw: author,
     );
   }
 }

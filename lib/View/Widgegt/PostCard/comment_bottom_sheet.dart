@@ -193,7 +193,15 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                       GestureDetector(
                                         onTap: () {
                                           Navigator.pop(context);
-                                          Get.toNamed(AppRoute.profile, arguments: comment.userName);
+                                          if (comment.userName.toLowerCase() == 'shahriar') {
+                                            Get.toNamed(AppRoute.myProfile);
+                                          } else {
+                                            Get.toNamed(AppRoute.profile, arguments: {
+                                              'userId': comment.postUserId,
+                                              'userName': comment.userName,
+                                              'author': comment.authorRaw,
+                                            });
+                                          }
                                         },
                                         child: NetworkImg(
                                           imageUrl: comment.userAvatarUrl,
@@ -212,7 +220,15 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                                 GestureDetector(
                                                   onTap: () {
                                                     Navigator.pop(context);
-                                                    Get.toNamed(AppRoute.profile, arguments: comment.userName);
+                                                    if (comment.userName.toLowerCase() == 'shahriar') {
+                                                      Get.toNamed(AppRoute.myProfile);
+                                                    } else {
+                                                      Get.toNamed(AppRoute.profile, arguments: {
+                                                        'userId': comment.postUserId,
+                                                        'userName': comment.userName,
+                                                        'author': comment.authorRaw,
+                                                      });
+                                                    }
                                                   },
                                                   child: Text(
                                                     comment.userName,
@@ -353,7 +369,15 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                               GestureDetector(
                                                 onTap: () {
                                                   Navigator.pop(context);
-                                                  Get.toNamed(AppRoute.profile, arguments: reply.userName);
+                                                  if (reply.userName.toLowerCase() == 'shahriar') {
+                                                    Get.toNamed(AppRoute.myProfile);
+                                                  } else {
+                                                    Get.toNamed(AppRoute.profile, arguments: {
+                                                      'userId': reply.postUserId,
+                                                      'userName': reply.userName,
+                                                      'author': reply.authorRaw,
+                                                    });
+                                                  }
                                                 },
                                                 child: NetworkImg(
                                                   imageUrl: reply.userAvatarUrl,
@@ -372,7 +396,15 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                                         GestureDetector(
                                                           onTap: () {
                                                             Navigator.pop(context);
-                                                            Get.toNamed(AppRoute.profile, arguments: reply.userName);
+                                                            if (reply.userName.toLowerCase() == 'shahriar') {
+                                                              Get.toNamed(AppRoute.myProfile);
+                                                            } else {
+                                                              Get.toNamed(AppRoute.profile, arguments: {
+                                                                'userId': reply.postUserId,
+                                                                'userName': reply.userName,
+                                                                'author': reply.authorRaw,
+                                                              });
+                                                            }
                                                           },
                                                           child: Text(
                                                             reply.userName,

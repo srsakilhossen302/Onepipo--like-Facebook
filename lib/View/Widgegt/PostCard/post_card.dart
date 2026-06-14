@@ -52,7 +52,15 @@ class PostCard extends StatelessWidget {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            Get.toNamed(AppRoute.profile, arguments: post.userName);
+                            if (post.userName.toLowerCase() == 'shahriar') {
+                              Get.toNamed(AppRoute.myProfile);
+                            } else {
+                              Get.toNamed(AppRoute.profile, arguments: {
+                                'userId': post.postUserId,
+                                'userName': post.userName,
+                                'author': post.authorRaw,
+                              });
+                            }
                           },
                           child: NetworkImg(
                             imageUrl: post.userAvatarUrl,
@@ -68,7 +76,15 @@ class PostCard extends StatelessWidget {
                             children: [
                               GestureDetector(
                                 onTap: () {
-                                  Get.toNamed(AppRoute.profile, arguments: post.userName);
+                                  if (post.userName.toLowerCase() == 'shahriar') {
+                                    Get.toNamed(AppRoute.myProfile);
+                                  } else {
+                                    Get.toNamed(AppRoute.profile, arguments: {
+                                      'userId': post.postUserId,
+                                      'userName': post.userName,
+                                      'author': post.authorRaw,
+                                    });
+                                  }
                                 },
                                 child: RichText(
                                   text: TextSpan(

@@ -111,12 +111,16 @@ class MyProfileController extends GetxController {
         isLoadingPosts.value = false;
         return;
       }
-      final response = await Get.find<ApiClient>().get('${ApiUrl.userPosts(userId)}?page=1&post_limit=100');
+      final response = await Get.find<ApiClient>().get('${ApiUrl.userPosts(userId)}?page=1&per_page=10');
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         if (responseData.containsKey('data') && responseData['data'] is List) {
           final List<dynamic> data = responseData['data'];
           final List<PostModel> fetchedPosts = data.map((json) => PostModel.fromJson(json)).toList();
+          
+          if (fetchedPosts.isEmpty) {
+            _isMorePostsAvailable = false;
+          }
           
           // Merge fetched posts into homeController.posts
           for (var post in fetchedPosts) {
@@ -147,7 +151,7 @@ class MyProfileController extends GetxController {
         isLoadingMore.value = false;
         return;
       }
-      final response = await Get.find<ApiClient>().get('${ApiUrl.userPosts(userId)}?page=${_currentPage + 1}&post_limit=100');
+      final response = await Get.find<ApiClient>().get('${ApiUrl.userPosts(userId)}?page=${_currentPage + 1}&per_page=10');
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         if (responseData.containsKey('data') && responseData['data'] is List) {
