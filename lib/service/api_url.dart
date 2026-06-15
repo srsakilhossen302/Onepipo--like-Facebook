@@ -31,4 +31,13 @@ class ApiUrl {
   static String unblockUser(String userId) => '/users/$userId/unblock';
   static const String blockedUsersList = '/users/blocked';
   static const String changePassword = '/users/change-password';
+
+  // Notifications endpoints
+  static const String notifications = '/notifications';
+  static String markNotificationRead(String id) => '/notifications/$id/read';
+  static const String markAllNotificationsRead = '/notifications/read-all';
+  static const String clearAllNotifications = '/notifications/clear';
+  static String acceptFollowRequest(String id) => '/follow-requests/$id/accept';
+  static String declineFollowRequest(String id) =>
+      '/follow-requests/$id/decline';
 }

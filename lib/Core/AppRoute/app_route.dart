@@ -12,6 +12,7 @@ import '../../View/Screen/CreatePostScreen/group_selection_screen.dart';
 import '../../View/Screen/CreatePostScreen/tag_friends_screen.dart';
 import '../../View/Screen/SettingsScreen/change_password_screen.dart';
 import '../../View/Screen/SettingsScreen/blocked_users_screen.dart';
+import '../../View/Screen/NotificationScreen/notification_screen.dart';
 import '../../View/Screen/LoginScreen/login_screen.dart';
 import '../../View/Screen/LoginScreen/Controller/login_controller.dart';
 import '../../View/Screen/CreateAccountScreen/create_account_screen.dart';
@@ -34,6 +35,7 @@ class AppRoute {
   static const String tagFriends = '/tag_friends';
   static const String changePassword = '/change_password';
   static const String blockedUsers = '/blocked_users';
+  static const String notifications = '/notifications';
 
   static String getSplashScreen() => splashScreen;
   static String getLoginScreen() => loginScreen;
@@ -49,6 +51,7 @@ class AppRoute {
   static String getTagFriends() => tagFriends;
   static String getChangePassword() => changePassword;
   static String getBlockedUsers() => blockedUsers;
+  static String getNotifications() => notifications;
 
   static List<GetPage> routes = [
     GetPage(
@@ -95,5 +98,6 @@ class AppRoute {
     GetPage(name: tagFriends, page: () => const TagFriendsScreen()),
     GetPage(name: changePassword, page: () => const ChangePasswordScreen()),
     GetPage(name: blockedUsers, page: () => const BlockedUsersScreen()),
+    GetPage(name: notifications, page: () => const NotificationScreen()),
   ];
 }
