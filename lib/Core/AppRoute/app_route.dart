@@ -11,6 +11,7 @@ import '../../View/Screen/ProfileScreen/follow_list_screen.dart';
 import '../../View/Screen/CreatePostScreen/group_selection_screen.dart';
 import '../../View/Screen/CreatePostScreen/tag_friends_screen.dart';
 import '../../View/Screen/SettingsScreen/change_password_screen.dart';
+import '../../View/Screen/SettingsScreen/blocked_users_screen.dart';
 import '../../View/Screen/LoginScreen/login_screen.dart';
 import '../../View/Screen/LoginScreen/Controller/login_controller.dart';
 import '../../View/Screen/CreateAccountScreen/create_account_screen.dart';
@@ -32,6 +33,7 @@ class AppRoute {
   static const String groupSelection = '/group_selection';
   static const String tagFriends = '/tag_friends';
   static const String changePassword = '/change_password';
+  static const String blockedUsers = '/blocked_users';
 
   static String getSplashScreen() => splashScreen;
   static String getLoginScreen() => loginScreen;
@@ -46,6 +48,7 @@ class AppRoute {
   static String getGroupSelection() => groupSelection;
   static String getTagFriends() => tagFriends;
   static String getChangePassword() => changePassword;
+  static String getBlockedUsers() => blockedUsers;
 
   static List<GetPage> routes = [
     GetPage(
@@ -83,37 +86,14 @@ class AppRoute {
         Get.put<HomeController>(HomeController());
       }),
     ),
-    GetPage(
-      name: createPost,
-      page: () => const CreatePostScreen(),
-    ),
-    GetPage(
-      name: postDetails,
-      page: () => const PostDetailsScreen(),
-    ),
-    GetPage(
-      name: profile,
-      page: () => const ProfileScreen(),
-    ),
-    GetPage(
-      name: myProfile,
-      page: () => const MyProfileScreen(),
-    ),
-    GetPage(
-      name: followList,
-      page: () => const FollowListScreen(),
-    ),
-    GetPage(
-      name: groupSelection,
-      page: () => const GroupSelectionScreen(),
-    ),
-    GetPage(
-      name: tagFriends,
-      page: () => const TagFriendsScreen(),
-    ),
-    GetPage(
-      name: changePassword,
-      page: () => const ChangePasswordScreen(),
-    ),
+    GetPage(name: createPost, page: () => const CreatePostScreen()),
+    GetPage(name: postDetails, page: () => const PostDetailsScreen()),
+    GetPage(name: profile, page: () => const ProfileScreen()),
+    GetPage(name: myProfile, page: () => const MyProfileScreen()),
+    GetPage(name: followList, page: () => const FollowListScreen()),
+    GetPage(name: groupSelection, page: () => const GroupSelectionScreen()),
+    GetPage(name: tagFriends, page: () => const TagFriendsScreen()),
+    GetPage(name: changePassword, page: () => const ChangePasswordScreen()),
+    GetPage(name: blockedUsers, page: () => const BlockedUsersScreen()),
   ];
 }

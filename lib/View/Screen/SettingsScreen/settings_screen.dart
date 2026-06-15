@@ -25,17 +25,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _smsNotifications = false;
   bool _twoFactorAuth = false;
   bool _anonymousMode = false;
-  
+
   Future<void> _updateSettings(String value) async {
     try {
       final response = await Get.find<ApiClient>().post(
         ApiUrl.updateSettings,
-        body: {
-          'value': value,
-        },
+        body: {'value': value},
       );
       if (response.statusCode != 200 && response.statusCode != 201) {
-        print('Failed to update settings: ${response.statusCode} - ${response.body}');
+        print(
+          'Failed to update settings: ${response.statusCode} - ${response.body}',
+        );
       }
     } catch (e) {
       print('Error updating settings: $e');
@@ -62,10 +62,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           content: Text(
             StaticString.logoutConfirmation.tr,
-            style: const TextStyle(
-              color: AppColors.textLight,
-              fontSize: 15,
-            ),
+            style: const TextStyle(color: AppColors.textLight, fontSize: 15),
           ),
           actions: [
             TextButton(
@@ -81,7 +78,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             TextButton(
               onPressed: () async {
                 Navigator.pop(context); // Dismiss dialog
-                
+
                 // Show a loading dialog during logout processing
                 showDialog(
                   context: context,
@@ -107,7 +104,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
                 // Simulate logout processing (e.g. 1s delay)
                 await Future.delayed(const Duration(milliseconds: 1000));
-                
+
                 if (Get.isRegistered<SharedPreferenceHelper>()) {
                   final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
                   await sharedPrefHelper.removeKey(AppConst.token);
@@ -134,7 +131,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildCustomSwitch({required bool value, required ValueChanged<bool> onChanged}) {
+  Widget _buildCustomSwitch({
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: AnimatedContainer(
@@ -151,7 +151,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             // Text label: "ON" or "OFF"
             AnimatedAlign(
               duration: const Duration(milliseconds: 200),
-              alignment: value ? const Alignment(-0.45, 0.0) : const Alignment(0.45, 0.0),
+              alignment: value
+                  ? const Alignment(-0.45, 0.0)
+                  : const Alignment(0.45, 0.0),
               child: Text(
                 value ? StaticString.switchOn.tr : StaticString.switchOff.tr,
                 style: TextStyle(
@@ -216,17 +218,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         iconAsset,
         width: 20,
         height: 20,
-        colorFilter: const ColorFilter.mode(
-          Color(0xFF0F1419),
-          BlendMode.srcIn,
-        ),
+        colorFilter: const ColorFilter.mode(Color(0xFF0F1419), BlendMode.srcIn),
       );
     } else {
-      leadingWidget = Icon(
-        icon,
-        color: const Color(0xFF0F1419),
-        size: 20,
-      );
+      leadingWidget = Icon(icon, color: const Color(0xFF0F1419), size: 20);
     }
 
     return ListTile(
@@ -251,17 +246,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       subtitle: subtitle != null
           ? Text(
               subtitle,
-              style: TextStyle(
-                color: Colors.grey[500],
-                fontSize: 12.5,
-              ),
+              style: TextStyle(color: Colors.grey[500], fontSize: 12.5),
             )
           : null,
-      trailing: trailing ?? const Icon(
-        Icons.chevron_right_rounded,
-        color: Colors.grey,
-        size: 24,
-      ),
+      trailing:
+          trailing ??
+          const Icon(Icons.chevron_right_rounded, color: Colors.grey, size: 24),
       onTap: onTap,
     );
   }
@@ -293,7 +283,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               // Header Title
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Text(
                   StaticString.selectLanguage.tr,
                   style: const TextStyle(
@@ -303,11 +296,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
               ),
-              const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE)),
-              
+              const Divider(
+                height: 1,
+                thickness: 0.5,
+                color: Color(0xFFEEEEEE),
+              ),
+
               // English Option
               ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 4,
+                ),
                 leading: const Icon(Icons.language, color: Color(0xFF1877F2)),
                 title: Text(
                   StaticString.englishLanguage.tr,
@@ -318,19 +318,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 trailing: isEnglish
-                    ? const Icon(Icons.check_circle_rounded, color: Color(0xFF1877F2))
+                    ? const Icon(
+                        Icons.check_circle_rounded,
+                        color: Color(0xFF1877F2),
+                      )
                     : null,
                 onTap: () {
                   AppTranslator.changeLanguage('en', 'US');
                   _updateSettings('en');
-                  ToastMessage.showToast(message: StaticString.languageChangedSuccess.tr);
+                  ToastMessage.showToast(
+                    message: StaticString.languageChangedSuccess.tr,
+                  );
                   Navigator.pop(context);
                 },
               ),
-              
+
               // French Option
               ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 4,
+                ),
                 leading: const Icon(Icons.language, color: Color(0xFF1877F2)),
                 title: Text(
                   StaticString.frenchLanguage.tr,
@@ -341,12 +349,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 trailing: !isEnglish
-                    ? const Icon(Icons.check_circle_rounded, color: Color(0xFF1877F2))
+                    ? const Icon(
+                        Icons.check_circle_rounded,
+                        color: Color(0xFF1877F2),
+                      )
                     : null,
                 onTap: () {
                   AppTranslator.changeLanguage('fr', 'FR');
                   _updateSettings('fr');
-                  ToastMessage.showToast(message: StaticString.languageChangedSuccess.tr);
+                  ToastMessage.showToast(
+                    message: StaticString.languageChangedSuccess.tr,
+                  );
                   Navigator.pop(context);
                 },
               ),
@@ -392,7 +405,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             InkWell(
               onTap: () {},
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 16.0,
+                ),
                 child: Row(
                   children: [
                     Container(
@@ -492,7 +508,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               iconAsset: 'assets/icons/Blocked users.svg',
               title: StaticString.blockedUsers.tr,
               subtitle: StaticString.usersBlockedDesc.tr,
-              onTap: () {},
+              onTap: () => Get.toNamed(AppRoute.blockedUsers),
             ),
             _buildSettingsTile(
               iconAsset: 'assets/icons/Anonymous mode.svg',
@@ -504,9 +520,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   setState(() {
                     _anonymousMode = val;
                   });
-                  _updateSettings(val ? 'anonymous_mode:true' : 'anonymous_mode:false');
+                  _updateSettings(
+                    val ? 'anonymous_mode:true' : 'anonymous_mode:false',
+                  );
                   ToastMessage.showToast(
-                    message: val ? StaticString.anonymousModeEnabled.tr : StaticString.anonymousModeDisabled.tr,
+                    message: val
+                        ? StaticString.anonymousModeEnabled.tr
+                        : StaticString.anonymousModeDisabled.tr,
                   );
                 },
               ),
@@ -538,9 +558,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   setState(() {
                     _pushNotifications = val;
                   });
-                  _updateSettings(val ? 'push_notifications:true' : 'push_notifications:false');
+                  _updateSettings(
+                    val
+                        ? 'push_notifications:true'
+                        : 'push_notifications:false',
+                  );
                   ToastMessage.showToast(
-                    message: val ? StaticString.pushNotificationsEnabled.tr : StaticString.pushNotificationsDisabled.tr,
+                    message: val
+                        ? StaticString.pushNotificationsEnabled.tr
+                        : StaticString.pushNotificationsDisabled.tr,
                   );
                 },
               ),
@@ -556,9 +582,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   setState(() {
                     _emailNotifications = val;
                   });
-                  _updateSettings(val ? 'email_notifications:true' : 'email_notifications:false');
+                  _updateSettings(
+                    val
+                        ? 'email_notifications:true'
+                        : 'email_notifications:false',
+                  );
                   ToastMessage.showToast(
-                    message: val ? StaticString.emailNotificationsEnabled.tr : StaticString.emailNotificationsDisabled.tr,
+                    message: val
+                        ? StaticString.emailNotificationsEnabled.tr
+                        : StaticString.emailNotificationsDisabled.tr,
                   );
                 },
               ),
@@ -574,9 +606,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   setState(() {
                     _smsNotifications = val;
                   });
-                  _updateSettings(val ? 'sms_notifications:true' : 'sms_notifications:false');
+                  _updateSettings(
+                    val ? 'sms_notifications:true' : 'sms_notifications:false',
+                  );
                   ToastMessage.showToast(
-                    message: val ? StaticString.smsNotificationsEnabled.tr : StaticString.smsNotificationsDisabled.tr,
+                    message: val
+                        ? StaticString.smsNotificationsEnabled.tr
+                        : StaticString.smsNotificationsDisabled.tr,
                   );
                 },
               ),
@@ -595,9 +631,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   setState(() {
                     _twoFactorAuth = val;
                   });
-                  _updateSettings(val ? 'two_factor_auth:true' : 'two_factor_auth:false');
+                  _updateSettings(
+                    val ? 'two_factor_auth:true' : 'two_factor_auth:false',
+                  );
                   ToastMessage.showToast(
-                    message: val ? StaticString.twoFactorAuthEnabled.tr : StaticString.twoFactorAuthDisabled.tr,
+                    message: val
+                        ? StaticString.twoFactorAuthEnabled.tr
+                        : StaticString.twoFactorAuthDisabled.tr,
                   );
                 },
               ),
@@ -619,7 +659,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
                 borderRadius: BorderRadius.circular(30),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

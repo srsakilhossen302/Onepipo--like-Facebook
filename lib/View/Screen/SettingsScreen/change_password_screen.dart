@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../../Utils/ToastMessage/toast_message.dart';
+import '../../../service/api_client.dart';
+import '../../../service/api_url.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -13,13 +15,16 @@ class ChangePasswordScreen extends StatefulWidget {
 
 class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _currentPasswordController = TextEditingController();
+  final TextEditingController _currentPasswordController =
+      TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   bool _isCurrentPasswordObscured = true;
   bool _isNewPasswordObscured = true;
   bool _isConfirmPasswordObscured = true;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -29,7 +34,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
-  void _handleUpdatePassword() {
+  Future<void> _handleUpdatePassword() async {
     final current = _currentPasswordController.text.trim();
     final newPass = _newPasswordController.text.trim();
     final confirm = _confirmPasswordController.text.trim();
@@ -49,9 +54,35 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       return;
     }
 
-    // Success
-    ToastMessage.showToast(message: StaticString.passwordUpdatedSuccess.tr);
-    Get.back();
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await Get.find<ApiClient>().post(
+        ApiUrl.changePassword,
+        body: {
+          'current_password': current,
+          'password': newPass,
+          'password_confirmation': confirm,
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ToastMessage.showToast(message: StaticString.passwordUpdatedSuccess.tr);
+        Get.back();
+      } else {
+        ToastMessage.showToast(message: 'Failed to update password');
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Connection error: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -172,7 +203,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: _handleUpdatePassword,
+                    onPressed: _isLoading ? null : _handleUpdatePassword,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1877F2),
                       foregroundColor: Colors.white,
@@ -181,13 +212,22 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: Text(
-                      StaticString.update.tr,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            StaticString.update.tr,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -247,10 +287,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   ),
                   decoration: const InputDecoration(
                     hintText: "Password",
-                    hintStyle: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 15,
-                    ),
+                    hintStyle: TextStyle(color: Colors.grey, fontSize: 15),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(vertical: 14.0),
                   ),
@@ -258,7 +295,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               ),
               IconButton(
                 icon: Icon(
-                  isObscured ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  isObscured
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
                   color: Colors.grey[500],
                   size: 20,
                 ),

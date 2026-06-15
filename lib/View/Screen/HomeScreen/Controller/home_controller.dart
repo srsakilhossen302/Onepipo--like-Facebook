@@ -1066,6 +1066,29 @@ class HomeController extends GetxController {
     }
   }
 
+  Future<bool> unblockUser(String userId, String userName) async {
+    try {
+      final response = await Get.find<ApiClient>().post(
+        ApiUrl.blockUser(userId),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Remove from blocked list
+        blockedUsers.removeWhere((u) => u.id == userId);
+        blockedUsers.refresh();
+        ToastMessage.showToast(message: "Unblocked $userName");
+        return true;
+      } else {
+        ApiCheck.checkApi(response);
+        ToastMessage.showToast(message: "Failed to unblock user");
+        return false;
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Connection error: $e');
+      return false;
+    }
+  }
+
   void deletePost(int index) {
     if (index >= 0 && index < posts.length) {
       posts.removeAt(index);

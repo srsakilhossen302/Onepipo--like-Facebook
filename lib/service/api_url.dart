@@ -28,4 +28,5 @@ class ApiUrl {
   static const String searchUsers = '/users/search';
   static String userPosts(String userId) => '/users/$userId/posts';
   static String blockUser(String userId) => '/users/$userId/block';
+  static const String changePassword = '/users/change-password';
 }
