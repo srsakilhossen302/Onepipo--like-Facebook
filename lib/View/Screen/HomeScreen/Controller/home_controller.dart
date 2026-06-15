@@ -26,6 +26,7 @@ class HomeController extends GetxController {
   var userFollowers = <String, List<FollowerModel>>{}.obs;
   var userFollowing = <String, List<FollowerModel>>{}.obs;
   var sharedFollowers = <String, Set<String>>{}.obs;
+  var blockedUsers = <FollowerModel>[].obs;
   var isLoading = false.obs;
   var isLoadingComments = false.obs;
   var selectedIndex = 0.obs;
@@ -68,7 +69,8 @@ class HomeController extends GetxController {
   }
 
   void _scrollListener() {
-    if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent - 200) {
       if (!isLoading.value && !isLoadingMore.value && _isMorePostsAvailable) {
         fetchMorePosts();
       }
@@ -76,8 +78,12 @@ class HomeController extends GetxController {
   }
 
   void _commentsScrollListener() {
-    if (commentsScrollController.position.pixels >= commentsScrollController.position.maxScrollExtent - 200) {
-      if (!isLoadingComments.value && !isLoadingMoreComments.value && _isMoreCommentsAvailable && activePostDetailsIndex.value != -1) {
+    if (commentsScrollController.position.pixels >=
+        commentsScrollController.position.maxScrollExtent - 200) {
+      if (!isLoadingComments.value &&
+          !isLoadingMoreComments.value &&
+          _isMoreCommentsAvailable &&
+          activePostDetailsIndex.value != -1) {
         fetchMoreCommentsForPost(activePostDetailsIndex.value);
       }
     }
@@ -87,27 +93,32 @@ class HomeController extends GetxController {
     final owolabi = FollowerModel(
       id: '1',
       name: 'Owolabi Ridwan',
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+      avatarUrl:
+          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
     );
     final elena = FollowerModel(
       id: '2',
       name: 'Elena Gonzalez',
-      avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+      avatarUrl:
+          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
     );
     final africa = FollowerModel(
       id: '3',
       name: 'Africa',
-      avatarUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150',
+      avatarUrl:
+          'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150',
     );
     final ahmed = FollowerModel(
       id: '4',
       name: 'Ahmed Wahid',
-      avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+      avatarUrl:
+          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
     );
     final shahriarModel = FollowerModel(
       id: '5',
       name: 'Shahriar',
-      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+      avatarUrl:
+          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
     );
 
     // Set initial followers
@@ -119,7 +130,12 @@ class HomeController extends GetxController {
     // Set initial following
     userFollowing['Shahriar'] = [elena, ahmed].obs;
     userFollowing['Ahmed Wahid'] = [elena, africa].obs;
-    userFollowing['Elena Gonzalez'] = [owolabi, africa, ahmed, shahriarModel].obs;
+    userFollowing['Elena Gonzalez'] = [
+      owolabi,
+      africa,
+      ahmed,
+      shahriarModel,
+    ].obs;
     userFollowing['Africa'] = [elena, ahmed].obs;
 
     followers.assignAll([owolabi, elena, africa, ahmed]);
@@ -249,9 +265,7 @@ class HomeController extends GetxController {
     try {
       final response = await Get.find<ApiClient>().post(
         '/posts/${post.id}/like',
-        body: {
-          "type": "like",
-        },
+        body: {"type": "like"},
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -260,7 +274,7 @@ class HomeController extends GetxController {
         post.likesCount = originalLikesCount;
         posts[index] = post;
         posts.refresh();
-        
+
         ApiCheck.checkApi(response);
       }
     } catch (e) {
@@ -269,7 +283,7 @@ class HomeController extends GetxController {
       post.likesCount = originalLikesCount;
       posts[index] = post;
       posts.refresh();
-      
+
       ToastMessage.showToast(message: 'Connection error: $e');
     }
   }
@@ -295,11 +309,13 @@ class HomeController extends GetxController {
         post.isSaved = originalIsSaved;
         posts[index] = post;
         posts.refresh();
-        
+
         ApiCheck.checkApi(response);
       } else {
         ToastMessage.showToast(
-          message: post.isSaved ? 'Successful save this post' : 'Removed from saved posts',
+          message: post.isSaved
+              ? 'Successful save this post'
+              : 'Removed from saved posts',
         );
       }
     } catch (e) {
@@ -307,7 +323,7 @@ class HomeController extends GetxController {
       post.isSaved = originalIsSaved;
       posts[index] = post;
       posts.refresh();
-      
+
       ToastMessage.showToast(message: 'Connection error: $e');
     }
   }
@@ -319,10 +335,7 @@ class HomeController extends GetxController {
     try {
       final response = await Get.find<ApiClient>().post(
         ApiUrl.reportPost(post.id),
-        body: {
-          "reason": reason,
-          "description": details,
-        },
+        body: {"reason": reason, "description": details},
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -346,16 +359,14 @@ class HomeController extends GetxController {
     try {
       final response = await Get.find<ApiClient>().post(
         ApiUrl.comments(post.id),
-        body: {
-          "content": commentText,
-          "mentions": "",
-        },
+        body: {"content": commentText, "mentions": ""},
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         CommentModel newComment;
-        if (responseData.containsKey('data') && responseData['data'] is Map<String, dynamic>) {
+        if (responseData.containsKey('data') &&
+            responseData['data'] is Map<String, dynamic>) {
           newComment = CommentModel.fromJson(responseData['data']);
         } else {
           newComment = CommentModel(
@@ -415,9 +426,7 @@ class HomeController extends GetxController {
 
       final response = await Get.find<ApiClient>().post(
         endpoint,
-        body: {
-          "type": "like",
-        },
+        body: {"type": "like"},
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -461,7 +470,11 @@ class HomeController extends GetxController {
     posts.refresh();
   }
 
-  Future<void> addReply(int postIndex, String parentCommentId, String replyText) async {
+  Future<void> addReply(
+    int postIndex,
+    String parentCommentId,
+    String replyText,
+  ) async {
     if (postIndex < 0 || postIndex >= posts.length || replyText.trim().isEmpty)
       return;
 
@@ -474,15 +487,14 @@ class HomeController extends GetxController {
     try {
       final response = await Get.find<ApiClient>().post(
         ApiUrl.commentReplies(parentCommentId),
-        body: {
-          "content": replyText,
-        },
+        body: {"content": replyText},
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         CommentModel newReply;
-        if (responseData.containsKey('data') && responseData['data'] is Map<String, dynamic>) {
+        if (responseData.containsKey('data') &&
+            responseData['data'] is Map<String, dynamic>) {
           newReply = CommentModel.fromJson(responseData['data']);
         } else {
           newReply = CommentModel(
@@ -516,16 +528,22 @@ class HomeController extends GetxController {
   Future<void> fetchRepliesForComment(int postIndex, String commentId) async {
     if (postIndex < 0 || postIndex >= posts.length) return;
     final post = posts[postIndex];
-    final parentComment = post.comments.firstWhereOrNull((c) => c.id == commentId);
+    final parentComment = post.comments.firstWhereOrNull(
+      (c) => c.id == commentId,
+    );
     if (parentComment == null) return;
 
     try {
-      final response = await Get.find<ApiClient>().get('${ApiUrl.commentReplies(commentId)}?per_page=10');
+      final response = await Get.find<ApiClient>().get(
+        '${ApiUrl.commentReplies(commentId)}?per_page=10',
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         if (responseData.containsKey('data') && responseData['data'] is List) {
           final List<dynamic> data = responseData['data'];
-          final List<CommentModel> fetchedReplies = data.map((json) => CommentModel.fromJson(json)).toList();
+          final List<CommentModel> fetchedReplies = data
+              .map((json) => CommentModel.fromJson(json))
+              .toList();
           parentComment.replies.clear();
           parentComment.replies.addAll(fetchedReplies);
           parentComment.repliesCount = parentComment.replies.length;
@@ -581,9 +599,7 @@ class HomeController extends GetxController {
 
       final response = await Get.find<ApiClient>().post(
         endpoint,
-        body: {
-          "type": "like",
-        },
+        body: {"type": "like"},
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
@@ -702,7 +718,13 @@ class HomeController extends GetxController {
     return sharedFollowers[postId]?.contains(followerId) ?? false;
   }
 
-  Future<bool> addNewPost(String contentText, String badgeText, {String? groupName, List<String>? taggedFriends, String? contentImageUrl}) async {
+  Future<bool> addNewPost(
+    String contentText,
+    String badgeText, {
+    String? groupName,
+    List<String>? taggedFriends,
+    String? contentImageUrl,
+  }) async {
     if (contentText.trim().isEmpty && contentImageUrl == null) return false;
 
     isLoading.value = true;
@@ -755,7 +777,14 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<bool> updatePost(int index, String contentText, String badgeText, {String? groupName, List<String>? taggedFriends, String? contentImageUrl}) async {
+  Future<bool> updatePost(
+    int index,
+    String contentText,
+    String badgeText, {
+    String? groupName,
+    List<String>? taggedFriends,
+    String? contentImageUrl,
+  }) async {
     if (index < 0 || index >= posts.length) return false;
 
     isLoading.value = true;
@@ -800,12 +829,16 @@ class HomeController extends GetxController {
     _currentPage = 1;
     _isMorePostsAvailable = true;
     try {
-      final response = await Get.find<ApiClient>().get('${ApiUrl.posts}?page=1');
+      final response = await Get.find<ApiClient>().get(
+        '${ApiUrl.posts}?page=1',
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         if (responseData.containsKey('data') && responseData['data'] is List) {
           final List<dynamic> data = responseData['data'];
-          final List<PostModel> fetchedPosts = data.map((json) => PostModel.fromJson(json)).toList();
+          final List<PostModel> fetchedPosts = data
+              .map((json) => PostModel.fromJson(json))
+              .toList();
           posts.assignAll(fetchedPosts);
         }
       } else {
@@ -821,7 +854,9 @@ class HomeController extends GetxController {
   Future<void> fetchMorePosts() async {
     isLoadingMore.value = true;
     try {
-      final response = await Get.find<ApiClient>().get('${ApiUrl.posts}?page=${_currentPage + 1}');
+      final response = await Get.find<ApiClient>().get(
+        '${ApiUrl.posts}?page=${_currentPage + 1}',
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         if (responseData.containsKey('data') && responseData['data'] is List) {
@@ -829,7 +864,9 @@ class HomeController extends GetxController {
           if (data.isEmpty) {
             _isMorePostsAvailable = false;
           } else {
-            final List<PostModel> fetchedPosts = data.map((json) => PostModel.fromJson(json)).toList();
+            final List<PostModel> fetchedPosts = data
+                .map((json) => PostModel.fromJson(json))
+                .toList();
             posts.addAll(fetchedPosts);
             _currentPage++;
           }
@@ -846,18 +883,22 @@ class HomeController extends GetxController {
 
   Future<void> fetchCommentsForPost(int index) async {
     if (index < 0 || index >= posts.length) return;
-    
+
     final post = posts[index];
     isLoadingComments.value = true;
     _currentCommentsPage = 1;
     _isMoreCommentsAvailable = true;
     try {
-      final response = await Get.find<ApiClient>().get('${ApiUrl.comments(post.id)}?page=1');
+      final response = await Get.find<ApiClient>().get(
+        '${ApiUrl.comments(post.id)}?page=1',
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         if (responseData.containsKey('data') && responseData['data'] is List) {
           final List<dynamic> data = responseData['data'];
-          final List<CommentModel> fetchedComments = data.map((json) => CommentModel.fromJson(json)).toList();
+          final List<CommentModel> fetchedComments = data
+              .map((json) => CommentModel.fromJson(json))
+              .toList();
           post.comments.clear();
           post.comments.addAll(fetchedComments);
           post.commentsCount = post.comments.length;
@@ -880,7 +921,9 @@ class HomeController extends GetxController {
     final post = posts[index];
     isLoadingMoreComments.value = true;
     try {
-      final response = await Get.find<ApiClient>().get('${ApiUrl.comments(post.id)}?page=${_currentCommentsPage + 1}');
+      final response = await Get.find<ApiClient>().get(
+        '${ApiUrl.comments(post.id)}?page=${_currentCommentsPage + 1}',
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
         if (responseData.containsKey('data') && responseData['data'] is List) {
@@ -888,7 +931,9 @@ class HomeController extends GetxController {
           if (data.isEmpty) {
             _isMoreCommentsAvailable = false;
           } else {
-            final List<CommentModel> fetchedComments = data.map((json) => CommentModel.fromJson(json)).toList();
+            final List<CommentModel> fetchedComments = data
+                .map((json) => CommentModel.fromJson(json))
+                .toList();
             post.comments.addAll(fetchedComments);
             post.commentsCount = post.comments.length;
             posts[index] = post;
@@ -916,13 +961,21 @@ class HomeController extends GetxController {
 
     final targetUserAvatar = _getUserAvatar(targetUserName);
     final followingList = userFollowing[currentUserName] ?? <FollowerModel>[];
-    final isAlreadyFollowing = followingList.any((u) => u.name.toLowerCase() == targetUserName.toLowerCase());
+    final isAlreadyFollowing = followingList.any(
+      (u) => u.name.toLowerCase() == targetUserName.toLowerCase(),
+    );
 
     if (isAlreadyFollowing) {
       // Unfollow
-      userFollowing[currentUserName]?.removeWhere((u) => u.name.toLowerCase() == targetUserName.toLowerCase());
-      userFollowers[targetUserName]?.removeWhere((u) => u.name.toLowerCase() == currentUserName.toLowerCase());
-      ToastMessage.showToast(message: StaticString.unfollowedUser.trParams({'name': targetUserName}));
+      userFollowing[currentUserName]?.removeWhere(
+        (u) => u.name.toLowerCase() == targetUserName.toLowerCase(),
+      );
+      userFollowers[targetUserName]?.removeWhere(
+        (u) => u.name.toLowerCase() == currentUserName.toLowerCase(),
+      );
+      ToastMessage.showToast(
+        message: StaticString.unfollowedUser.trParams({'name': targetUserName}),
+      );
     } else {
       // Follow
       final currentModel = FollowerModel(
@@ -946,7 +999,9 @@ class HomeController extends GetxController {
       }
       userFollowers[targetUserName]!.add(currentModel);
 
-      ToastMessage.showToast(message: StaticString.followingUser.trParams({'name': targetUserName}));
+      ToastMessage.showToast(
+        message: StaticString.followingUser.trParams({'name': targetUserName}),
+      );
     }
 
     userFollowing.refresh();
@@ -955,12 +1010,60 @@ class HomeController extends GetxController {
 
   void removeFollower(String followerName) {
     final currentUserName = 'Shahriar';
-    userFollowers[currentUserName]?.removeWhere((u) => u.name.toLowerCase() == followerName.toLowerCase());
-    userFollowing[followerName]?.removeWhere((u) => u.name.toLowerCase() == currentUserName.toLowerCase());
+    userFollowers[currentUserName]?.removeWhere(
+      (u) => u.name.toLowerCase() == followerName.toLowerCase(),
+    );
+    userFollowing[followerName]?.removeWhere(
+      (u) => u.name.toLowerCase() == currentUserName.toLowerCase(),
+    );
 
     userFollowers.refresh();
     userFollowing.refresh();
-    ToastMessage.showToast(message: StaticString.removedFromFollowers.trParams({'name': followerName}));
+    ToastMessage.showToast(
+      message: StaticString.removedFromFollowers.trParams({
+        'name': followerName,
+      }),
+    );
+  }
+
+  Future<bool> blockUser(String userId, String userName) async {
+    try {
+      final response = await Get.find<ApiClient>().post(
+        ApiUrl.blockUser(userId),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Optimistically add to blocked list and remove from followers/following
+        final currentUserName = 'Shahriar';
+        final userAvatar = _getUserAvatar(userName);
+        final blockedUser = FollowerModel(
+          id: userId,
+          name: userName,
+          avatarUrl: userAvatar,
+        );
+        blockedUsers.add(blockedUser);
+
+        // Remove from following and followers
+        userFollowing[currentUserName]?.removeWhere(
+          (u) => u.name.toLowerCase() == userName.toLowerCase(),
+        );
+        userFollowers[userName]?.removeWhere(
+          (u) => u.name.toLowerCase() == currentUserName.toLowerCase(),
+        );
+
+        userFollowing.refresh();
+        userFollowers.refresh();
+        blockedUsers.refresh();
+
+        return true;
+      } else {
+        ApiCheck.checkApi(response);
+        return false;
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Connection error: $e');
+      return false;
+    }
   }
 
   void deletePost(int index) {

@@ -308,10 +308,12 @@ class ProfileController extends GetxController {
               TextButton(
                 onPressed: () async {
                   isDialogLoading.value = true;
-                  await Future.delayed(const Duration(milliseconds: 1500));
+                  final success = await homeController.blockUser(userId, userName);
                   if (context.mounted) {
                     Navigator.pop(context); // Dismiss loading dialog
-                    _showUserBlockedSuccessDialog(context);
+                    if (success) {
+                      _showUserBlockedSuccessDialog(context);
+                    }
                   }
                 },
                 child: Text(

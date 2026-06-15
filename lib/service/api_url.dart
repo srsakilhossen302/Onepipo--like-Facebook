@@ -15,13 +15,17 @@ class ApiUrl {
   static String comments(String postId) => '/posts/$postId/comments';
   static String savePost(String postId) => '/posts/$postId/save';
   static String reportPost(String postId) => '/posts/$postId/report';
-  static String commentReplies(String commentId) => '/comments/$commentId/replies';
+  static String commentReplies(String commentId) =>
+      '/comments/$commentId/replies';
   static String likeComment(String commentId) => '/comments/$commentId/like';
-  static String unlikeComment(String commentId) => '/comments/$commentId/unlike';
-  static String sharePost(String postId, String userId) => '/posts/$postId/share/$userId';
+  static String unlikeComment(String commentId) =>
+      '/comments/$commentId/unlike';
+  static String sharePost(String postId, String userId) =>
+      '/posts/$postId/share/$userId';
   static const String updateSettings = '/users/update-settings';
   static const String updateProfile = '/users/update-profile';
   static const String uploadPhoto = '/users/upload-photo';
   static const String searchUsers = '/users/search';
   static String userPosts(String userId) => '/users/$userId/posts';
+  static String blockUser(String userId) => '/users/$userId/block';
 }
