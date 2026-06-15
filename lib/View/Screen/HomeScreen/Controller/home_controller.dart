@@ -27,6 +27,7 @@ class HomeController extends GetxController {
   var userFollowing = <String, List<FollowerModel>>{}.obs;
   var sharedFollowers = <String, Set<String>>{}.obs;
   var blockedUsers = <FollowerModel>[].obs;
+  var isLoadingBlockedUsers = false.obs;
   var isLoading = false.obs;
   var isLoadingComments = false.obs;
   var selectedIndex = 0.obs;
@@ -55,10 +56,44 @@ class HomeController extends GetxController {
     commentsScrollController.addListener(_commentsScrollListener);
     if (!Get.testMode) {
       fetchPosts();
+      fetchBlockedUsers();
     } else {
       loadMockPosts();
     }
     loadMockFollowers();
+  }
+
+  Future<void> fetchBlockedUsers() async {
+    isLoadingBlockedUsers.value = true;
+    try {
+      final response = await Get.find<ApiClient>().get(ApiUrl.blockedUsersList);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        if (responseData.containsKey('data') && responseData['data'] is List) {
+          final List<dynamic> data = responseData['data'];
+          final List<FollowerModel> users = data.map((json) {
+            // Assuming API returns { id, name, avatar } or similar
+            return FollowerModel(
+              id:
+                  json['id']?.toString() ??
+                  DateTime.now().millisecondsSinceEpoch.toString(),
+              name: json['name'] ?? 'Unknown',
+              avatarUrl:
+                  json['avatar'] ??
+                  json['photo'] ??
+                  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+            );
+          }).toList();
+          blockedUsers.assignAll(users);
+        }
+      } else {
+        ApiCheck.checkApi(response);
+      }
+    } catch (e) {
+      print('Error fetching blocked users: $e');
+    } finally {
+      isLoadingBlockedUsers.value = false;
+    }
   }
 
   @override
