@@ -28,6 +28,7 @@ class HomeController extends GetxController {
   var sharedFollowers = <String, Set<String>>{}.obs;
   var blockedUsers = <FollowerModel>[].obs;
   var isLoadingBlockedUsers = false.obs;
+  var unblockingUserIds = <String>{}.obs;
   var isLoading = false.obs;
   var isLoadingComments = false.obs;
   var selectedIndex = 0.obs;
@@ -1102,9 +1103,13 @@ class HomeController extends GetxController {
   }
 
   Future<bool> unblockUser(String userId, String userName) async {
+    // Mark user as being unblocked
+    unblockingUserIds.add(userId);
+    unblockingUserIds.refresh();
+
     try {
       final response = await Get.find<ApiClient>().post(
-        ApiUrl.blockUser(userId),
+        ApiUrl.unblockUser(userId),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -1121,6 +1126,10 @@ class HomeController extends GetxController {
     } catch (e) {
       ToastMessage.showToast(message: 'Connection error: $e');
       return false;
+    } finally {
+      // Remove user from unblocking set
+      unblockingUserIds.remove(userId);
+      unblockingUserIds.refresh();
     }
   }
 

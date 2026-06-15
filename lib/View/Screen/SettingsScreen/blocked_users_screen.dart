@@ -15,8 +15,56 @@ class BlockedUsersScreen extends StatefulWidget {
 class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
   final HomeController homeController = Get.find<HomeController>();
 
-  Future<void> _unblockUser(String userId, String userName) async {
-    await homeController.unblockUser(userId, userName);
+  Future<void> _showUnblockConfirmation(String userId, String userName) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            "Unblock User",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppColors.textLight,
+            ),
+          ),
+          content: Text(
+            "Are you sure you want to unblock $userName?",
+            style: const TextStyle(color: AppColors.textLight, fontSize: 15),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(
+                StaticString.no.tr,
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(
+                StaticString.yes.tr,
+                style: const TextStyle(
+                  color: Colors.blueAccent,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await homeController.unblockUser(userId, userName);
+    }
   }
 
   Future<void> _refreshBlockedUsers() async {
@@ -120,6 +168,10 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
               ),
               itemBuilder: (context, index) {
                 final user = blockedUsers[index];
+                final isUnblocking = homeController.unblockingUserIds.contains(
+                  user.id,
+                );
+
                 return Row(
                   children: [
                     // Avatar
@@ -166,7 +218,9 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
 
                     // Unblock button
                     ElevatedButton(
-                      onPressed: () => _unblockUser(user.id, user.name),
+                      onPressed: isUnblocking
+                          ? null
+                          : () => _showUnblockConfirmation(user.id, user.name),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFF0F2F5),
                         foregroundColor: Colors.black87,
@@ -179,13 +233,22 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text(
-                        "Unblock",
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      child: isUnblocking
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                color: Colors.black87,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              "Unblock",
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   ],
                 );
