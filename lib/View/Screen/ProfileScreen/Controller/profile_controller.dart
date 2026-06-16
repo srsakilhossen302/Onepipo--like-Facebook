@@ -17,6 +17,7 @@ class ProfileController extends GetxController {
   late String userId;
   var userPosts = <PostModel>[].obs;
   var isFollowing = false.obs;
+  var isPending = false.obs;
   final isLoadingPosts = false.obs;
   final isLoadingMore = false.obs;
 
@@ -135,11 +136,24 @@ class ProfileController extends GetxController {
         userLocation.value = authorData['location'].toString();
       }
     }
+
+    // Parse follow relationship status
+    isFollowing.value = profile != null
+        ? (profile['is_following'] ?? authorData['is_following'] ?? isFollowing.value)
+        : (authorData['is_following'] ?? isFollowing.value);
+
+    isPending.value = profile != null
+        ? (profile['pending_following'] ?? authorData['pending_following'] ?? isPending.value)
+        : (authorData['pending_following'] ?? isPending.value);
   }
 
   void updateFollowStatus() {
-    isFollowing.value = (homeController.userFollowing['Shahriar'] ?? [])
+    final hasLocalFollowing = (homeController.userFollowing['Shahriar'] ?? [])
         .any((u) => u.name.toLowerCase() == userName.toLowerCase());
+    if (hasLocalFollowing) {
+      isFollowing.value = true;
+      isPending.value = false;
+    }
   }
 
   void loadUserPosts() {
@@ -244,6 +258,14 @@ class ProfileController extends GetxController {
   void toggleFollow() {
     homeController.toggleFollowUser(userName);
     updateFollowStatus();
+  }
+
+  Future<void> followUser() async {
+    isPending.value = true;
+    final success = await homeController.sendFollowRequest(userId);
+    if (!success) {
+      isPending.value = false;
+    }
   }
 
   void blockUser(BuildContext context) {

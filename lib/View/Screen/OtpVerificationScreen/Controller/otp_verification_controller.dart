@@ -127,6 +127,9 @@ class OtpVerificationController extends GetxController {
       return;
     }
 
+    // Dismiss keyboard to avoid transition layout issues
+    FocusManager.instance.primaryFocus?.unfocus();
+
     isLoading.value = true;
 
     try {
@@ -150,10 +153,17 @@ class OtpVerificationController extends GetxController {
           final data = responseData['data'] as Map<String, dynamic>;
           if (data.containsKey('token')) {
             token = data['token']?.toString();
+          } else if (data.containsKey('access_token')) {
+            token = data['access_token']?.toString();
+          } else if (data.containsKey('accessToken')) {
+            token = data['accessToken']?.toString();
           }
         }
         if (token == null && responseData.containsKey('token')) {
           token = responseData['token']?.toString();
+        }
+        if (token == null && responseData.containsKey('access_token')) {
+          token = responseData['access_token']?.toString();
         }
         if (token == null && responseData['data'] is List && (responseData['data'] as List).isNotEmpty) {
           token = responseData['data'][0].toString();

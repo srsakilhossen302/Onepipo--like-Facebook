@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:get/get.dart';
 import '../helper/shared_prefe/shared_prefe.dart';
 import '../Utils/AppConst/app_const.dart';
 import '../Utils/StaticString/static_string.dart';
 import '../Utils/ToastMessage/toast_message.dart';
+
+import '../Core/AppRoute/app_route.dart';
 
 class ApiCheck {
   static void checkApi(http.Response response) {
@@ -17,6 +20,11 @@ class ApiCheck {
         message: 'Please login again to continue.',
         isError: true,
       );
+      
+      // Dismiss keyboard to prevent layout transition crash
+      FocusManager.instance.primaryFocus?.unfocus();
+      
+      Get.offAllNamed(AppRoute.loginScreen);
     } else if (response.statusCode != 200 && response.statusCode != 201) {
       String errorMessage = 'Something went wrong.';
       try {

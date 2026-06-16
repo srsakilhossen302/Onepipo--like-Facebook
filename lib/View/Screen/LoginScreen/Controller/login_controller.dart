@@ -63,6 +63,9 @@ class LoginController extends GetxController {
       return;
     }
 
+    // Dismiss keyboard to avoid transition layout issues
+    FocusManager.instance.primaryFocus?.unfocus();
+
     isLoading.value = true;
 
     try {
@@ -105,9 +108,15 @@ class LoginController extends GetxController {
         if (token == null) {
           if (responseData.containsKey('token')) {
             token = responseData['token']?.toString();
+          } else if (responseData.containsKey('access_token')) {
+            token = responseData['access_token']?.toString();
           } else if (responseData['data'] is Map) {
             final data = responseData['data'] as Map<String, dynamic>;
-            if (data['authorisation'] is Map) {
+            if (data.containsKey('access_token')) {
+              token = data['access_token']?.toString();
+            } else if (data.containsKey('accessToken')) {
+              token = data['accessToken']?.toString();
+            } else if (data['authorisation'] is Map) {
               final auth = data['authorisation'] as Map<String, dynamic>;
               if (auth.containsKey('token')) {
                 token = auth['token']?.toString();

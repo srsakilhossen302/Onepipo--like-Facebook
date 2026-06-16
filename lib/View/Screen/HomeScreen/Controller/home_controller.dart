@@ -1241,6 +1241,26 @@ class HomeController extends GetxController {
     );
   }
 
+  Future<bool> sendFollowRequest(String userId) async {
+    try {
+      final response = await Get.find<ApiClient>().post(
+        ApiUrl.sendFollowRequest(userId),
+        body: {},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ToastMessage.showToast(message: "Follow request sent successfully");
+        return true;
+      } else {
+        ApiCheck.checkApi(response);
+        return false;
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Connection error: $e');
+      return false;
+    }
+  }
+
   Future<bool> blockUser(String userId, String userName) async {
     try {
       final response = await Get.find<ApiClient>().post(

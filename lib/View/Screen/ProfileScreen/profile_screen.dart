@@ -62,6 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // Find posts authored by this user
         final userPosts = controller.userPosts;
         final isFollowingUser = controller.isFollowing.value;
+        final isPendingUser = controller.isPending.value;
         
         // Find the user's avatar from their posts or observables
         String userAvatarUrl = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150";
@@ -312,21 +313,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       width: double.infinity,
                       height: 44,
                       child: ElevatedButton(
-                        onPressed: () => controller.toggleFollow(),
+                        onPressed: () {
+                          if (isFollowingUser) {
+                            controller.toggleFollow();
+                          } else if (!isPendingUser) {
+                            controller.followUser();
+                          }
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: isFollowingUser
                               ? const Color(0xFFE4E6EB)
-                              : Colors.blueAccent,
+                              : (isPendingUser ? const Color(0xFFF0F2F5) : Colors.blueAccent),
                           foregroundColor: isFollowingUser
                               ? Colors.black87
-                              : Colors.white,
+                              : (isPendingUser ? Colors.grey[700] : Colors.white),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                         child: Text(
-                          isFollowingUser ? StaticString.following.tr : StaticString.follow.tr,
+                          isFollowingUser 
+                              ? StaticString.following.tr 
+                              : (isPendingUser ? "Pending" : StaticString.follow.tr),
                           style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,

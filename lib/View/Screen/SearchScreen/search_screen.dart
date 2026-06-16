@@ -20,6 +20,7 @@ class SuggestedUser {
   final String? initials;
   final Color? avatarBgColor;
   bool isFollowing;
+  bool isPending;
   final Map<String, dynamic> rawJson;
 
   SuggestedUser({
@@ -30,6 +31,7 @@ class SuggestedUser {
     this.initials,
     this.avatarBgColor,
     this.isFollowing = false,
+    this.isPending = false,
     required this.rawJson,
   });
 
@@ -37,8 +39,16 @@ class SuggestedUser {
     final name = json['name'] ?? json['username'] ?? 'Anonymous';
     final rawUsername = json['username'] ?? '';
     final usernameWithAt = rawUsername.startsWith('@') ? rawUsername : '@$rawUsername';
-    final isFollowing = (Get.find<HomeController>().userFollowing['Shahriar'] ?? [])
-        .any((u) => u.name.toLowerCase() == name.toLowerCase());
+    
+    final profile = json['profile'] as Map<String, dynamic>?;
+    final isFollowing = profile != null
+        ? (profile['is_following'] ?? json['is_following'] ?? false)
+        : (json['is_following'] ?? (Get.find<HomeController>().userFollowing['Shahriar'] ?? [])
+            .any((u) => u.name.toLowerCase() == name.toLowerCase()));
+
+    final isPending = profile != null
+        ? (profile['pending_following'] ?? json['pending_following'] ?? false)
+        : (json['pending_following'] ?? false);
 
     // Generate initials for placeholder avatar
     String? initials;
@@ -65,6 +75,7 @@ class SuggestedUser {
       initials: initials,
       avatarBgColor: bgColor,
       isFollowing: isFollowing,
+      isPending: isPending,
       rawJson: json,
     );
   }
@@ -206,6 +217,22 @@ class _SearchScreenState extends State<SearchScreen> {
     });
     // Toggle follow in HomeController to keep global state in sync
     Get.find<HomeController>().toggleFollowUser(user.name);
+  }
+
+  Future<void> _followUser(SuggestedUser user) async {
+    if (mounted) {
+      setState(() {
+        user.isPending = true;
+      });
+    }
+    final success = await Get.find<HomeController>().sendFollowRequest(user.id);
+    if (!success) {
+      if (mounted) {
+        setState(() {
+          user.isPending = false;
+        });
+      }
+    }
   }
 
   @override
@@ -388,14 +415,20 @@ class _SearchScreenState extends State<SearchScreen> {
                                 width: 96,
                                 height: 34,
                                 child: ElevatedButton(
-                                  onPressed: () => _toggleFollow(user),
+                                  onPressed: () {
+                                    if (user.isFollowing) {
+                                      _toggleFollow(user);
+                                    } else if (!user.isPending) {
+                                      _followUser(user);
+                                    }
+                                  },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: user.isFollowing 
                                         ? const Color(0xFFE4E6EB) 
-                                        : const Color(0xFF1877F2),
+                                        : (user.isPending ? const Color(0xFFF0F2F5) : const Color(0xFF1877F2)),
                                     foregroundColor: user.isFollowing 
                                         ? const Color(0xFF050505) 
-                                        : Colors.white,
+                                        : (user.isPending ? Colors.grey[700] : Colors.white),
                                     elevation: 0,
                                     padding: EdgeInsets.zero,
                                     shape: RoundedRectangleBorder(
@@ -403,7 +436,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                     ),
                                   ),
                                   child: Text(
-                                    user.isFollowing ? StaticString.following.tr : StaticString.follow.tr,
+                                    user.isFollowing 
+                                        ? StaticString.following.tr 
+                                        : (user.isPending ? "Pending" : StaticString.follow.tr),
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
