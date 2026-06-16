@@ -494,12 +494,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSettingsTile(
               icon: Icons.bookmark_outline_rounded,
               title: StaticString.savePosts.tr,
-              onTap: () {},
+              onTap: () => Get.toNamed(AppRoute.savedPosts),
             ),
             _buildSettingsTile(
               icon: Icons.archive_outlined,
               title: StaticString.archivedPosts.tr,
-              onTap: () {},
+              onTap: () => Get.toNamed(AppRoute.archivedPosts),
             ),
 
             // Privacy Section

@@ -22,12 +22,16 @@ class FollowerModel {
 
 class HomeController extends GetxController {
   var posts = <PostModel>[].obs;
+  var savedPosts = <PostModel>[].obs;
+  var archivedPosts = <PostModel>[].obs;
   var followers = <FollowerModel>[].obs;
   var userFollowers = <String, List<FollowerModel>>{}.obs;
   var userFollowing = <String, List<FollowerModel>>{}.obs;
   var sharedFollowers = <String, Set<String>>{}.obs;
   var blockedUsers = <FollowerModel>[].obs;
   var isLoadingBlockedUsers = false.obs;
+  var isLoadingSavedPosts = false.obs;
+  var isLoadingArchivedPosts = false.obs;
   var unblockingUserIds = <String>{}.obs;
   var isLoading = false.obs;
   var isLoadingComments = false.obs;
@@ -58,6 +62,8 @@ class HomeController extends GetxController {
     if (!Get.testMode) {
       fetchPosts();
       fetchBlockedUsers();
+      fetchSavedPosts();
+      fetchArchivedPosts();
     } else {
       loadMockPosts();
     }
@@ -94,6 +100,75 @@ class HomeController extends GetxController {
       print('Error fetching blocked users: $e');
     } finally {
       isLoadingBlockedUsers.value = false;
+    }
+  }
+
+  Future<void> fetchSavedPosts() async {
+    isLoadingSavedPosts.value = true;
+    try {
+      final response = await Get.find<ApiClient>().get(ApiUrl.savedPosts);
+      print('Saved Posts API Response: ${response.body}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        if (responseData.containsKey('data') && responseData['data'] is List) {
+          final List<dynamic> data = responseData['data'];
+          savedPosts.value = data
+              .map((json) => PostModel.fromJson(json))
+              .toList();
+
+          // Add any missing saved posts to main posts list
+          final existingPostIds = posts.map((p) => p.id).toSet();
+          for (final savedPost in savedPosts) {
+            if (!existingPostIds.contains(savedPost.id)) {
+              posts.add(savedPost);
+            }
+          }
+
+          // Update isSaved in main posts list
+          final savedPostIds = savedPosts.map((p) => p.id).toSet();
+          for (int i = 0; i < posts.length; i++) {
+            posts[i].isSaved = savedPostIds.contains(posts[i].id);
+          }
+          posts.refresh();
+        }
+      } else {
+        ApiCheck.checkApi(response);
+      }
+    } catch (e) {
+      print('Error fetching saved posts: $e');
+    } finally {
+      isLoadingSavedPosts.value = false;
+    }
+  }
+
+  Future<void> fetchArchivedPosts() async {
+    isLoadingArchivedPosts.value = true;
+    try {
+      final response = await Get.find<ApiClient>().get(ApiUrl.archivedPosts);
+      print('Archived Posts API Response: ${response.body}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        if (responseData.containsKey('data') && responseData['data'] is List) {
+          final List<dynamic> data = responseData['data'];
+          archivedPosts.value = data
+              .map((json) => PostModel.fromJson(json))
+              .toList();
+
+          // Add any missing archived posts to main posts list
+          final existingPostIds = posts.map((p) => p.id).toSet();
+          for (final archivedPost in archivedPosts) {
+            if (!existingPostIds.contains(archivedPost.id)) {
+              posts.add(archivedPost);
+            }
+          }
+        }
+      } else {
+        ApiCheck.checkApi(response);
+      }
+    } catch (e) {
+      print('Error fetching archived posts: $e');
+    } finally {
+      isLoadingArchivedPosts.value = false;
     }
   }
 
@@ -335,10 +410,24 @@ class HomeController extends GetxController {
     posts[index] = post;
     posts.refresh();
 
+    // Update savedPosts list locally
+    if (post.isSaved) {
+      // Add to savedPosts if not already there
+      if (!savedPosts.any((p) => p.id == post.id)) {
+        savedPosts.add(post);
+        savedPosts.refresh();
+      }
+    } else {
+      // Remove from savedPosts
+      savedPosts.removeWhere((p) => p.id == post.id);
+      savedPosts.refresh();
+    }
+
     try {
       final response = await Get.find<ApiClient>().post(
         ApiUrl.savePost(post.id),
       );
+      print('Save Post API Response: ${response.body}');
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         // Revert on failure
@@ -346,8 +435,53 @@ class HomeController extends GetxController {
         posts[index] = post;
         posts.refresh();
 
+        // Revert savedPosts list
+        if (originalIsSaved) {
+          if (!savedPosts.any((p) => p.id == post.id)) {
+            savedPosts.add(post);
+          }
+        } else {
+          savedPosts.removeWhere((p) => p.id == post.id);
+        }
+        savedPosts.refresh();
+
         ApiCheck.checkApi(response);
       } else {
+        // Parse API response to confirm saved state
+        try {
+          final responseData = jsonDecode(response.body);
+          bool savedFromApi = post.isSaved;
+          // Check message to confirm if it was saved or deleted (unsaved)
+          final message =
+              responseData['message']?.toString().toLowerCase() ?? '';
+          if (message.contains('deleted') || message.contains('removed')) {
+            savedFromApi = false;
+          } else if (message.contains('saved') || message.contains('added')) {
+            savedFromApi = true;
+          } else if (responseData['data'] != null) {
+            savedFromApi =
+                responseData['data']['is_saved'] ??
+                responseData['data']['saved'] ??
+                post.isSaved;
+          }
+
+          post.isSaved = savedFromApi;
+          posts[index] = post;
+          posts.refresh();
+
+          // Update savedPosts list based on API response
+          if (post.isSaved) {
+            if (!savedPosts.any((p) => p.id == post.id)) {
+              savedPosts.add(post);
+            }
+          } else {
+            savedPosts.removeWhere((p) => p.id == post.id);
+          }
+          savedPosts.refresh();
+        } catch (e) {
+          print('Error parsing save response: $e');
+        }
+
         ToastMessage.showToast(
           message: post.isSaved
               ? 'Successful save this post'
@@ -360,6 +494,37 @@ class HomeController extends GetxController {
       posts[index] = post;
       posts.refresh();
 
+      // Revert savedPosts list
+      if (originalIsSaved) {
+        if (!savedPosts.any((p) => p.id == post.id)) {
+          savedPosts.add(post);
+        }
+      } else {
+        savedPosts.removeWhere((p) => p.id == post.id);
+      }
+      savedPosts.refresh();
+
+      ToastMessage.showToast(message: 'Connection error: $e');
+    }
+  }
+
+  Future<void> toggleArchive(int index) async {
+    if (index < 0 || index >= posts.length) return;
+
+    final post = posts[index];
+    // We don't have an isArchived field in PostModel, so we'll just update the list optimistically
+    try {
+      final response = await Get.find<ApiClient>().post(
+        ApiUrl.archivePost(post.id),
+      );
+      print('Archive Post API Response: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ToastMessage.showToast(message: 'Post archived successfully!');
+      } else {
+        ApiCheck.checkApi(response);
+      }
+    } catch (e) {
       ToastMessage.showToast(message: 'Connection error: $e');
     }
   }
@@ -875,6 +1040,13 @@ class HomeController extends GetxController {
           final List<PostModel> fetchedPosts = data
               .map((json) => PostModel.fromJson(json))
               .toList();
+
+          // Update isSaved flags based on savedPosts list
+          final savedPostIds = savedPosts.map((p) => p.id).toSet();
+          for (var post in fetchedPosts) {
+            post.isSaved = savedPostIds.contains(post.id);
+          }
+
           posts.assignAll(fetchedPosts);
         }
       } else {
@@ -903,6 +1075,13 @@ class HomeController extends GetxController {
             final List<PostModel> fetchedPosts = data
                 .map((json) => PostModel.fromJson(json))
                 .toList();
+
+            // Update isSaved flags based on savedPosts list
+            final savedPostIds = savedPosts.map((p) => p.id).toSet();
+            for (var post in fetchedPosts) {
+              post.isSaved = savedPostIds.contains(post.id);
+            }
+
             posts.addAll(fetchedPosts);
             _currentPage++;
           }

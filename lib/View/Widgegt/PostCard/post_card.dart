@@ -8,29 +8,33 @@ import '../../../Utils/ToastMessage/toast_message.dart';
 import '../../../helper/network_img/network_img.dart';
 import '../../../Core/AppRoute/app_route.dart';
 import '../../Screen/HomeScreen/Controller/home_controller.dart';
+import '../../Screen/HomeScreen/Model/post_model.dart';
 import 'comment_bottom_sheet.dart';
 
 class PostCard extends StatelessWidget {
   final int postIndex;
   final bool isClickable;
   final VoidCallback? onCommentTap;
+  final List<PostModel>? postList;
 
   const PostCard({
     super.key,
     required this.postIndex,
     this.isClickable = true,
     this.onCommentTap,
+    this.postList,
   });
 
   @override
   Widget build(BuildContext context) {
     final HomeController controller = Get.find<HomeController>();
+    final posts = postList ?? controller.posts;
 
     return Obx(() {
-      if (postIndex < 0 || postIndex >= controller.posts.length) {
+      if (postIndex < 0 || postIndex >= posts.length) {
         return const SizedBox.shrink();
       }
-      final post = controller.posts[postIndex];
+      final post = posts[postIndex];
 
       return Container(
         color: Colors.white,
@@ -40,7 +44,8 @@ class PostCard extends StatelessWidget {
           children: [
             InkWell(
               onTap: isClickable
-                  ? () => Get.toNamed(AppRoute.postDetails, arguments: postIndex)
+                  ? () =>
+                        Get.toNamed(AppRoute.postDetails, arguments: postIndex)
                   : null,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,11 +60,14 @@ class PostCard extends StatelessWidget {
                             if (post.userName.toLowerCase() == 'shahriar') {
                               Get.toNamed(AppRoute.myProfile);
                             } else {
-                              Get.toNamed(AppRoute.profile, arguments: {
-                                'userId': post.postUserId,
-                                'userName': post.userName,
-                                'author': post.authorRaw,
-                              });
+                              Get.toNamed(
+                                AppRoute.profile,
+                                arguments: {
+                                  'userId': post.postUserId,
+                                  'userName': post.userName,
+                                  'author': post.authorRaw,
+                                },
+                              );
                             }
                           },
                           child: NetworkImg(
@@ -76,14 +84,18 @@ class PostCard extends StatelessWidget {
                             children: [
                               GestureDetector(
                                 onTap: () {
-                                  if (post.userName.toLowerCase() == 'shahriar') {
+                                  if (post.userName.toLowerCase() ==
+                                      'shahriar') {
                                     Get.toNamed(AppRoute.myProfile);
                                   } else {
-                                    Get.toNamed(AppRoute.profile, arguments: {
-                                      'userId': post.postUserId,
-                                      'userName': post.userName,
-                                      'author': post.authorRaw,
-                                    });
+                                    Get.toNamed(
+                                      AppRoute.profile,
+                                      arguments: {
+                                        'userId': post.postUserId,
+                                        'userName': post.userName,
+                                        'author': post.authorRaw,
+                                      },
+                                    );
                                   }
                                 },
                                 child: RichText(
@@ -95,7 +107,9 @@ class PostCard extends StatelessWidget {
                                     children: [
                                       TextSpan(
                                         text: post.userName,
-                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                       if (post.groupName != null) ...[
                                         const TextSpan(
@@ -113,7 +127,8 @@ class PostCard extends StatelessWidget {
                                           ),
                                         ),
                                       ],
-                                      if (post.taggedFriends != null && post.taggedFriends!.isNotEmpty) ...[
+                                      if (post.taggedFriends != null &&
+                                          post.taggedFriends!.isNotEmpty) ...[
                                         TextSpan(
                                           text: " ${StaticString.isWith.tr} ",
                                           style: TextStyle(
@@ -154,9 +169,14 @@ class PostCard extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 6),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: post.badgeText == StaticString.solution
+                                      color:
+                                          post.badgeText ==
+                                              StaticString.solution
                                           ? const Color(0xFF00A86B)
                                           : const Color(0xFFC62828),
                                       borderRadius: BorderRadius.circular(12),
@@ -176,16 +196,26 @@ class PostCard extends StatelessWidget {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.more_vert, color: AppColors.textLight),
-                          onPressed: () => _showPostOptionsBottomSheet(context, controller, postIndex),
+                          icon: const Icon(
+                            Icons.more_vert,
+                            color: AppColors.textLight,
+                          ),
+                          onPressed: () => _showPostOptionsBottomSheet(
+                            context,
+                            controller,
+                            postIndex,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  
+
                   // Post Content Text
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0,
+                      vertical: 4.0,
+                    ),
                     child: Text(
                       post.contentText,
                       style: const TextStyle(
@@ -196,7 +226,7 @@ class PostCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  
+
                   // Post Image (if any)
                   if (post.contentImageUrl != null) ...[
                     post.contentImageUrl!.startsWith('http')
@@ -215,17 +245,22 @@ class PostCard extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // Bottom Actions: Like, Comment, Share
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 6.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 4.0,
+                vertical: 6.0,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   _buildActionButton(
                     iconAsset: 'assets/icons/Like-icons.svg',
                     label: '${post.likesCount}',
-                    color: post.isLiked ? Colors.blueAccent : const Color(0xFF04070D),
+                    color: post.isLiked
+                        ? Colors.blueAccent
+                        : const Color(0xFF04070D),
                     onTap: () => controller.toggleLike(postIndex),
                   ),
                   const SizedBox(width: 24),
@@ -241,7 +276,8 @@ class PostCard extends StatelessWidget {
                           context: context,
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
-                          builder: (context) => CommentBottomSheet(postIndex: postIndex),
+                          builder: (context) =>
+                              CommentBottomSheet(postIndex: postIndex),
                         );
                       }
                     },
@@ -251,7 +287,8 @@ class PostCard extends StatelessWidget {
                     iconAsset: 'assets/icons/ShareFat.svg',
                     label: '${post.sharesCount}',
                     color: const Color(0xFF04070D),
-                    onTap: () => _showShareBottomSheet(context, controller, postIndex),
+                    onTap: () =>
+                        _showShareBottomSheet(context, controller, postIndex),
                   ),
                 ],
               ),
@@ -297,7 +334,11 @@ class PostCard extends StatelessWidget {
     );
   }
 
-  void _showShareBottomSheet(BuildContext context, HomeController controller, int index) {
+  void _showShareBottomSheet(
+    BuildContext context,
+    HomeController controller,
+    int index,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -324,7 +365,12 @@ class PostCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Padding(
-              padding: const EdgeInsets.only(left: 16.0, right: 8.0, top: 4.0, bottom: 8.0),
+              padding: const EdgeInsets.only(
+                left: 16.0,
+                right: 8.0,
+                top: 4.0,
+                bottom: 8.0,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -383,9 +429,15 @@ class PostCard extends StatelessWidget {
                   itemCount: controller.followers.length,
                   itemBuilder: (context, fIndex) {
                     final follower = controller.followers[fIndex];
-                    final isSent = controller.isFollowerShared(post.id, follower.id);
+                    final isSent = controller.isFollowerShared(
+                      post.id,
+                      follower.id,
+                    );
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       child: Row(
                         children: [
                           NetworkImg(
@@ -411,7 +463,10 @@ class PostCard extends StatelessWidget {
                             child: ElevatedButton(
                               onPressed: isSent
                                   ? null
-                                  : () => controller.shareWithFollower(index, follower.id),
+                                  : () => controller.shareWithFollower(
+                                      index,
+                                      follower.id,
+                                    ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: isSent
                                     ? Colors.grey[200]
@@ -449,7 +504,11 @@ class PostCard extends StatelessWidget {
     );
   }
 
-  void _showPostOptionsBottomSheet(BuildContext context, HomeController controller, int index) {
+  void _showPostOptionsBottomSheet(
+    BuildContext context,
+    HomeController controller,
+    int index,
+  ) {
     final post = controller.posts[index];
     final bool isMyPost = post.userName.toLowerCase() == 'shahriar';
 
@@ -482,7 +541,7 @@ class PostCard extends StatelessWidget {
                 // Archive
                 ListTile(
                   leading: const Icon(
-                    Icons.bookmark_outline_rounded,
+                    Icons.archive_outlined,
                     color: Color(0xFF04070D),
                     size: 28,
                   ),
@@ -500,10 +559,14 @@ class PostCard extends StatelessWidget {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    ToastMessage.showToast(message: StaticString.postArchivedSuccess.tr);
+                    controller.toggleArchive(index);
                   },
                 ),
-                const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE)),
+                const Divider(
+                  height: 1,
+                  thickness: 0.5,
+                  color: Color(0xFFEEEEEE),
+                ),
                 // Edit
                 ListTile(
                   leading: const Icon(
@@ -528,12 +591,20 @@ class PostCard extends StatelessWidget {
                     Get.toNamed(AppRoute.createPost, arguments: index);
                   },
                 ),
-                const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE)),
+                const Divider(
+                  height: 1,
+                  thickness: 0.5,
+                  color: Color(0xFFEEEEEE),
+                ),
                 // Save
                 ListTile(
                   leading: Icon(
-                    post.isSaved ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
-                    color: post.isSaved ? Colors.blueAccent : const Color(0xFF04070D),
+                    post.isSaved
+                        ? Icons.bookmark_rounded
+                        : Icons.bookmark_outline_rounded,
+                    color: post.isSaved
+                        ? Colors.blueAccent
+                        : const Color(0xFF04070D),
                     size: 28,
                   ),
                   title: Text(
@@ -545,7 +616,9 @@ class PostCard extends StatelessWidget {
                     ),
                   ),
                   subtitle: Text(
-                    post.isSaved ? "Remove from saved posts" : StaticString.saveSubtitle.tr,
+                    post.isSaved
+                        ? "Remove from saved posts"
+                        : StaticString.saveSubtitle.tr,
                     style: TextStyle(color: Colors.grey[600], fontSize: 13),
                   ),
                   onTap: () {
@@ -553,7 +626,11 @@ class PostCard extends StatelessWidget {
                     controller.toggleSave(index);
                   },
                 ),
-                const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE)),
+                const Divider(
+                  height: 1,
+                  thickness: 0.5,
+                  color: Color(0xFFEEEEEE),
+                ),
                 // Delete
                 ListTile(
                   leading: const Icon(
@@ -576,14 +653,18 @@ class PostCard extends StatelessWidget {
                   onTap: () {
                     Navigator.pop(context);
                     controller.deletePost(index);
-                    ToastMessage.showToast(message: StaticString.postDeletedSuccess.tr);
+                    ToastMessage.showToast(
+                      message: StaticString.postDeletedSuccess.tr,
+                    );
                   },
                 ),
               ] else ...[
                 // Save
                 ListTile(
                   leading: Icon(
-                    post.isSaved ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+                    post.isSaved
+                        ? Icons.bookmark_rounded
+                        : Icons.bookmark_outline_rounded,
                     color: Colors.blueAccent,
                     size: 28,
                   ),
@@ -596,7 +677,9 @@ class PostCard extends StatelessWidget {
                     ),
                   ),
                   subtitle: Text(
-                    post.isSaved ? "Remove from saved posts" : StaticString.saveSubtitle.tr,
+                    post.isSaved
+                        ? "Remove from saved posts"
+                        : StaticString.saveSubtitle.tr,
                     style: TextStyle(color: Colors.grey[600], fontSize: 13),
                   ),
                   onTap: () {
@@ -641,9 +724,15 @@ class PostCard extends StatelessWidget {
   void _showReportBottomSheet(BuildContext context, int index) {
     final controller = Get.find<HomeController>();
     final reasons = [
-      "Spam", "Harassment", "Misinformation",
-      "Inappropriate", "Violence", "Nudity",
-      "Hate Speech", "Self-Harm", "Other"
+      "Spam",
+      "Harassment",
+      "Misinformation",
+      "Inappropriate",
+      "Violence",
+      "Nudity",
+      "Hate Speech",
+      "Self-Harm",
+      "Other",
     ];
     final selectedReason = "".obs;
     final textController = TextEditingController();
@@ -689,7 +778,11 @@ class PostCard extends StatelessWidget {
                   Positioned(
                     right: 0,
                     child: IconButton(
-                      icon: const Icon(Icons.close, color: Colors.black, size: 24),
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.black,
+                        size: 24,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
@@ -712,39 +805,46 @@ class PostCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Obx(() => Wrap(
-                      spacing: 8,
-                      runSpacing: 12,
-                      children: reasons.map((reason) {
-                        final isSelected = selectedReason.value == reason;
-                        return ChoiceChip(
-                          label: Text(
-                            reason,
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : Colors.black87,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 13,
+                    Obx(
+                      () => Wrap(
+                        spacing: 8,
+                        runSpacing: 12,
+                        children: reasons.map((reason) {
+                          final isSelected = selectedReason.value == reason;
+                          return ChoiceChip(
+                            label: Text(
+                              reason,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.black87,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 13,
+                              ),
                             ),
-                          ),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            if (selected) {
-                              selectedReason.value = reason;
-                            } else {
-                              selectedReason.value = "";
-                            }
-                          },
-                          selectedColor: Colors.blueAccent,
-                          backgroundColor: const Color(0xFFE5E7EB),
-                          checkmarkColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                            side: BorderSide.none,
-                          ),
-                        );
-                      }).toList(),
-                    )),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              if (selected) {
+                                selectedReason.value = reason;
+                              } else {
+                                selectedReason.value = "";
+                              }
+                            },
+                            selectedColor: Colors.blueAccent,
+                            backgroundColor: const Color(0xFFE5E7EB),
+                            checkmarkColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide.none,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
                     const SizedBox(height: 24),
                     TextField(
                       controller: textController,
@@ -757,7 +857,10 @@ class PostCard extends StatelessWidget {
                           borderSide: BorderSide(color: Colors.grey),
                         ),
                         focusedBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.blueAccent, width: 2),
+                          borderSide: BorderSide(
+                            color: Colors.blueAccent,
+                            width: 2,
+                          ),
                         ),
                       ),
                     ),
@@ -801,10 +904,7 @@ class PostCard extends StatelessWidget {
                   ),
                   child: const Text(
                     "Submit",
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

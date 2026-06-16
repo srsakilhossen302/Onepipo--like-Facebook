@@ -40,4 +40,11 @@ class ApiUrl {
   static String acceptFollowRequest(String id) => '/follow-requests/$id/accept';
   static String declineFollowRequest(String id) =>
       '/follow-requests/$id/decline';
+
+  // Saved Posts endpoint
+  static const String savedPosts = '/users/load/saved';
+
+  // Archive Posts endpoints
+  static String archivePost(String postId) => '/posts/$postId/archive';
+  static const String archivedPosts = '/users/load/archives';
 }

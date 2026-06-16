@@ -12,6 +12,8 @@ import '../../View/Screen/CreatePostScreen/group_selection_screen.dart';
 import '../../View/Screen/CreatePostScreen/tag_friends_screen.dart';
 import '../../View/Screen/SettingsScreen/change_password_screen.dart';
 import '../../View/Screen/SettingsScreen/blocked_users_screen.dart';
+import '../../View/Screen/SettingsScreen/saved_posts_screen.dart';
+import '../../View/Screen/SettingsScreen/archived_posts_screen.dart';
 import '../../View/Screen/NotificationScreen/notification_screen.dart';
 import '../../View/Screen/LoginScreen/login_screen.dart';
 import '../../View/Screen/LoginScreen/Controller/login_controller.dart';
@@ -36,6 +38,8 @@ class AppRoute {
   static const String changePassword = '/change_password';
   static const String blockedUsers = '/blocked_users';
   static const String notifications = '/notifications';
+  static const String savedPosts = '/saved_posts';
+  static const String archivedPosts = '/archived_posts';
 
   static String getSplashScreen() => splashScreen;
   static String getLoginScreen() => loginScreen;
@@ -52,6 +56,8 @@ class AppRoute {
   static String getChangePassword() => changePassword;
   static String getBlockedUsers() => blockedUsers;
   static String getNotifications() => notifications;
+  static String getSavedPosts() => savedPosts;
+  static String getArchivedPosts() => archivedPosts;
 
   static List<GetPage> routes = [
     GetPage(
@@ -99,5 +105,7 @@ class AppRoute {
     GetPage(name: changePassword, page: () => const ChangePasswordScreen()),
     GetPage(name: blockedUsers, page: () => const BlockedUsersScreen()),
     GetPage(name: notifications, page: () => const NotificationScreen()),
+    GetPage(name: savedPosts, page: () => const SavedPostsScreen()),
+    GetPage(name: archivedPosts, page: () => const ArchivedPostsScreen()),
   ];
 }

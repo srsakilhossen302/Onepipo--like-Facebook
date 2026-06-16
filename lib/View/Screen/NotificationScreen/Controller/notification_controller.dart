@@ -70,11 +70,13 @@ class NotificationItem {
       name ??= userJson['first_name'];
       name ??= userJson['user_name'];
       name ??= userJson['userName'];
+      name ??= userJson['username'];
     }
     // If still no name, try top-level fields
     name ??= json['name'];
     name ??= json['user_name'];
     name ??= json['userName'];
+    name ??= json['username'];
     name ??= 'Unknown';
 
     // Try to get avatar
@@ -84,11 +86,13 @@ class NotificationItem {
       avatar ??= userJson['avatar'];
       avatar ??= userJson['avatar_url'];
       avatar ??= userJson['avatarUrl'];
+      avatar ??= userJson['profile_image'];
     }
     avatar ??= json['photo'];
     avatar ??= json['avatar'];
     avatar ??= json['avatar_url'];
     avatar ??= json['avatarUrl'];
+    avatar ??= json['profile_image'];
     avatar ??=
         'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150';
 
@@ -96,11 +100,20 @@ class NotificationItem {
       id: json['id']?.toString() ?? '',
       userName: name,
       avatarUrl: avatar,
-      message: json['message'] ?? json['body'] ?? json['description'] ?? '',
+      message:
+          json['message'] ??
+          json['body'] ??
+          json['description'] ??
+          json['text'] ??
+          '',
       time:
           json['time'] ?? json['time_ago'] ?? json['created_at'] ?? 'Just now',
       type: type,
-      isUnread: json['is_unread'] ?? json['isUnread'] ?? json['read'] == false,
+      isUnread:
+          json['is_unread'] ??
+          json['isUnread'] ??
+          json['read'] == false ??
+          false,
       followRequestId: json['follow_request_id']?.toString(),
     );
   }
