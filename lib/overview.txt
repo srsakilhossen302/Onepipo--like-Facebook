@@ -1,0 +1,92 @@
+Onepipo
+Export
+v1.0.0
+Provide your bearer token in the Authorization header when making requests to protected resources.
+
+Example: Authorization: Bearer 123
+
+OnePipo API
+The social home for Africans everywhere. Our people. Our stories. Our platform.
+
+OnePipo is a social platform built for Africans across the continent and in the diaspora — a space where culture, community, and connection converge. This API powers every interaction on the platform, from authentication and user profiles to posts, social graph management, and real-time engagement.
+
+Base URL
+Environment	URL
+Production	https://onepipo.com
+Authentication
+OnePipo API uses Bearer Token authentication via Laravel Sanctum.
+
+Include your token in every protected request:
+
+Authorization: Bearer {your_token}
+Obtain a token via /api/v1/auth/login or /api/v1/auth/register. Tokens expire based on your account session policy.
+
+Two-factor authentication (2FA) is supported via OTP — request and verify codes through the /api/v1/auth/2fa/request and /api/v1/auth/2fa/verify endpoints.
+
+Core Modules
+Auth
+Registration, login, logout, OTP verification, password reset, and 2FA flows. Referral code and username validation are available as public misc endpoints.
+
+Users & Profiles
+User identity, profile management, avatar uploads, account settings, and device token registration for push notifications. Users can create and manage anonymous profiles for posting without revealing their identity.
+
+Social Graph
+Follow and unfollow users, send and manage follow requests (accept/decline/cancel), and view your followers. Block and unblock users to control who can interact with you.
+
+Feed & Posts
+Create, delete, and interact with posts. Supports likes, comments, nested replies, reposts, shares, saves (bookmarks), archives, and reports. Archived posts can be restored. Saved posts are accessible from the profile.
+
+Comments & Replies
+Threaded comments on posts with nested replies. Comments and replies support likes and unlikes independently.
+
+Search & Discovery
+Search for users and posts by keyword. Browse a specific user's posts via their profile.
+
+Notifications
+In-app notification management — list, mark as read, mark all read, and clear all.
+
+Countries
+Public endpoint listing available countries (used for registration and profile setup).
+
+Request Format
+All requests must include:
+
+Content-Type: application/json
+Accept: application/json
+For file uploads (e.g. profile photo):
+
+Content-Type: multipart/form-data
+Response Format
+All responses follow a consistent structure:
+
+{
+    "status": true,
+    "message": "Request successful",
+    "data": {}
+}
+Error responses:
+
+{
+    "status": false,
+    "message": "Error description",
+    "errors": {}
+}
+HTTP Status Codes
+Code	Meaning
+200	Success
+201	Created
+400	Bad Request
+401	Unauthenticated
+403	Forbidden
+404	Not Found
+422	Validation Error
+429	Too Many Requests
+500	Server Error
+Versioning
+The current API version is v1. All endpoints are prefixed with /api/v1/. Breaking changes will be released under new version prefixes.
+
+Support
+For API access, issues, or integration support:
+
+Email: api@onepipo.com
+Platform: onepipo.com

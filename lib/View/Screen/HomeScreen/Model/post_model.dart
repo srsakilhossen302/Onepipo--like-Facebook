@@ -104,12 +104,12 @@ class PostModel {
       timeAgo: json['time_ago'] ?? 'Just now',
       badgeText: json['type'] ?? '',
       contentText: json['description'] ?? '',
-      contentImageUrl: json['image'],
+      contentImageUrl: json['image'] ?? json['photo'],
       groupName: json['group_name'],
       taggedFriends: json['tagged_friends'] != null
           ? List<String>.from(json['tagged_friends'])
           : null,
-      likesCount: json['likes'] ?? 0,
+      likesCount: json['likes'] ?? json['likes_count'] ?? 0,
       commentsCount: json['comments_count'] ?? 0,
       sharesCount: json['shares_count'] ?? 0,
       isLiked: json['is_liked'] ?? false,

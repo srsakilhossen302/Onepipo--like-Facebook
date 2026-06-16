@@ -665,7 +665,9 @@ class PostCard extends StatelessWidget {
                     post.isSaved
                         ? Icons.bookmark_rounded
                         : Icons.bookmark_outline_rounded,
-                    color: Colors.blueAccent,
+                    color: post.isSaved
+                        ? Colors.blueAccent
+                        : const Color(0xFF04070D),
                     size: 28,
                   ),
                   title: Text(
