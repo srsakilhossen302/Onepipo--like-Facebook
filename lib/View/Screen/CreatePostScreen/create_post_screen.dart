@@ -8,6 +8,9 @@ import '../../../Utils/StaticString/static_string.dart';
 import '../../../Utils/ToastMessage/toast_message.dart';
 import '../HomeScreen/Controller/home_controller.dart';
 import '../HomeScreen/Model/post_model.dart';
+import '../../../helper/network_img/network_img.dart';
+import '../../../helper/shared_prefe/shared_prefe.dart';
+import '../ProfileScreen/Controller/my_profile_controller.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -88,29 +91,48 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
       return;
     }
 
-    bool success = false;
-    if (_editingPostIndex != null) {
-      success = await _homeController.updatePost(
-        _editingPostIndex!,
-        _textController.text,
-        _selectedPostType,
-        groupName: _selectedGroupName,
-        taggedFriends: _selectedTaggedFriends.isEmpty ? null : _selectedTaggedFriends,
-        contentImageUrl: _selectedImagePath,
-        list: _postList,
-      );
-    } else {
-      success = await _homeController.addNewPost(
-        _textController.text,
-        _selectedPostType,
-        groupName: _selectedGroupName,
-        taggedFriends: _selectedTaggedFriends.isEmpty ? null : _selectedTaggedFriends,
-        contentImageUrl: _selectedImagePath,
-      );
-    }
+    _homeController.isLoading.value = true;
+    try {
+      String? imageUrl = _selectedImagePath;
+      if (_selectedImagePath != null && !_selectedImagePath!.startsWith('http')) {
+        final myProfileController = Get.put(MyProfileController());
+        final uploadedUrl = await myProfileController.uploadPhoto(_selectedImagePath!);
+        if (uploadedUrl == null) {
+          ToastMessage.showToast(message: 'Failed to upload post image');
+          _homeController.isLoading.value = false;
+          return;
+        }
+        imageUrl = uploadedUrl;
+      }
 
-    if (success) {
-      Get.back();
+      bool success = false;
+      if (_editingPostIndex != null) {
+        success = await _homeController.updatePost(
+          _editingPostIndex!,
+          _textController.text,
+          _selectedPostType,
+          groupName: _selectedGroupName,
+          taggedFriends: _selectedTaggedFriends.isEmpty ? null : _selectedTaggedFriends,
+          contentImageUrl: imageUrl,
+          list: _postList,
+        );
+      } else {
+        success = await _homeController.addNewPost(
+          _textController.text,
+          _selectedPostType,
+          groupName: _selectedGroupName,
+          taggedFriends: _selectedTaggedFriends.isEmpty ? null : _selectedTaggedFriends,
+          contentImageUrl: imageUrl,
+        );
+      }
+
+      if (success) {
+        Get.back();
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Failed to publish post: $e');
+    } finally {
+      _homeController.isLoading.value = false;
     }
   }
 
@@ -191,6 +213,27 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   @override
   Widget build(BuildContext context) {
     final isPostEnabled = (_textController.text.trim().isNotEmpty || _selectedImagePath != null) && _wordCount <= 350;
+    final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
+    final userPhoto = sharedPrefHelper.getUserPhoto();
+    final userName = sharedPrefHelper.getUserName();
+    final userUsername = sharedPrefHelper.getUserUsername();
+
+    final profileController = Get.isRegistered<MyProfileController>()
+        ? Get.find<MyProfileController>()
+        : null;
+    final userUsernameVal = userUsername.isNotEmpty 
+        ? userUsername 
+        : (profileController?.currentUserUsername.value ?? '');
+    final userNameVal = userName.isNotEmpty 
+        ? userName 
+        : (profileController?.currentUserName.value ?? '');
+
+    final String userHandle = userUsernameVal.isNotEmpty
+        ? (userUsernameVal.startsWith('@') ? userUsernameVal : "@$userUsernameVal")
+        : (userNameVal.isNotEmpty
+            ? "@${userNameVal.toLowerCase().replaceAll(' ', '')}"
+            : "@user");
+    final displayName = userNameVal.isNotEmpty ? userNameVal : "User";
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -263,27 +306,37 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                             color: Color(0xFFF2F3F5),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
-                            Icons.person,
-                            color: Colors.grey,
-                            size: 26,
-                          ),
+                          child: userPhoto.isNotEmpty
+                              ? NetworkImg(
+                                  imageUrl: userPhoto,
+                                  width: 44,
+                                  height: 44,
+                                  borderRadius: BorderRadius.circular(22),
+                                )
+                              : const Icon(
+                                  Icons.person,
+                                  color: Colors.grey,
+                                  size: 26,
+                                ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              RichText(
-                                text: TextSpan(
+                              Text.rich(
+                                TextSpan(
                                   style: const TextStyle(
                                     fontSize: 15,
                                     color: AppColors.textLight,
                                   ),
                                   children: [
-                                    const TextSpan(
-                                      text: "Shahriar",
-                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    TextSpan(
+                                      text: displayName,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.textLight,
+                                      ),
                                     ),
                                     if (_selectedGroupName != null) ...[
                                       const TextSpan(
@@ -322,7 +375,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                "@shahriar_",
+                                userHandle,
                                 style: TextStyle(
                                   fontSize: 12.5,
                                   color: Colors.grey[600],

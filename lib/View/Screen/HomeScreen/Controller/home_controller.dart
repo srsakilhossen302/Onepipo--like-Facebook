@@ -7,6 +7,7 @@ import '../../../../Utils/ToastMessage/toast_message.dart';
 import '../../../../service/api_client.dart';
 import '../../../../service/api_url.dart';
 import '../../../../service/api_check.dart';
+import '../../../../helper/shared_prefe/shared_prefe.dart';
 
 class FollowerModel {
   final String id;
@@ -199,8 +200,6 @@ class HomeController extends GetxController {
     }
   }
 
-
-
   void _syncPostStateAcrossLists(PostModel updatedPost) {
     final idxInPosts = posts.indexWhere((p) => p.id == updatedPost.id);
     if (idxInPosts != -1) {
@@ -212,7 +211,9 @@ class HomeController extends GetxController {
       savedPosts[idxInSaved] = updatedPost;
       savedPosts.refresh();
     }
-    final idxInArchived = archivedPosts.indexWhere((p) => p.id == updatedPost.id);
+    final idxInArchived = archivedPosts.indexWhere(
+      (p) => p.id == updatedPost.id,
+    );
     if (idxInArchived != -1) {
       archivedPosts[idxInArchived] = updatedPost;
       archivedPosts.refresh();
@@ -235,7 +236,9 @@ class HomeController extends GetxController {
       post.likesCount++;
     }
     postList[index] = post;
-    if (postList is RxList) { (postList as RxList).refresh(); }
+    if (postList is RxList) {
+      (postList as RxList).refresh();
+    }
     _syncPostStateAcrossLists(post);
 
     try {
@@ -248,7 +251,9 @@ class HomeController extends GetxController {
         post.isLiked = originalIsLiked;
         post.likesCount = originalLikesCount;
         postList[index] = post;
-        if (postList is RxList) { (postList as RxList).refresh(); }
+        if (postList is RxList) {
+          (postList as RxList).refresh();
+        }
         _syncPostStateAcrossLists(post);
 
         ApiCheck.checkApi(response);
@@ -257,7 +262,9 @@ class HomeController extends GetxController {
       post.isLiked = originalIsLiked;
       post.likesCount = originalLikesCount;
       postList[index] = post;
-      if (postList is RxList) { (postList as RxList).refresh(); }
+      if (postList is RxList) {
+        (postList as RxList).refresh();
+      }
       _syncPostStateAcrossLists(post);
 
       ToastMessage.showToast(message: 'Connection error: $e');
@@ -273,7 +280,9 @@ class HomeController extends GetxController {
 
     post.isSaved = !post.isSaved;
     postList[index] = post;
-    if (postList is RxList) { (postList as RxList).refresh(); }
+    if (postList is RxList) {
+      (postList as RxList).refresh();
+    }
 
     if (post.isSaved) {
       if (!savedPosts.any((p) => p.id == post.id)) {
@@ -296,7 +305,9 @@ class HomeController extends GetxController {
       if (response.statusCode != 200 && response.statusCode != 201) {
         post.isSaved = originalIsSaved;
         postList[index] = post;
-        if (postList is RxList) { (postList as RxList).refresh(); }
+        if (postList is RxList) {
+          (postList as RxList).refresh();
+        }
 
         if (originalIsSaved) {
           if (!savedPosts.any((p) => p.id == post.id)) {
@@ -328,7 +339,9 @@ class HomeController extends GetxController {
 
           post.isSaved = savedFromApi;
           postList[index] = post;
-          if (postList is RxList) { (postList as RxList).refresh(); }
+          if (postList is RxList) {
+            (postList as RxList).refresh();
+          }
 
           if (post.isSaved) {
             if (!savedPosts.any((p) => p.id == post.id)) {
@@ -352,7 +365,9 @@ class HomeController extends GetxController {
     } catch (e) {
       post.isSaved = originalIsSaved;
       postList[index] = post;
-      if (postList is RxList) { (postList as RxList).refresh(); }
+      if (postList is RxList) {
+        (postList as RxList).refresh();
+      }
 
       if (originalIsSaved) {
         if (!savedPosts.any((p) => p.id == post.id)) {
@@ -442,7 +457,12 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<bool> reportPost(int index, String reason, String details, {List<PostModel>? list}) async {
+  Future<bool> reportPost(
+    int index,
+    String reason,
+    String details, {
+    List<PostModel>? list,
+  }) async {
     final postList = list ?? posts;
     if (index < 0 || index >= postList.length) return false;
 
@@ -466,7 +486,11 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> addComment(int index, String commentText, {List<PostModel>? list}) async {
+  Future<void> addComment(
+    int index,
+    String commentText, {
+    List<PostModel>? list,
+  }) async {
     final postList = list ?? posts;
     if (index < 0 || index >= postList.length || commentText.trim().isEmpty)
       return;
@@ -500,7 +524,9 @@ class HomeController extends GetxController {
         post.comments.add(newComment);
         post.commentsCount = post.comments.length;
         postList[index] = post;
-        if (postList is RxList) { (postList as RxList).refresh(); }
+        if (postList is RxList) {
+          (postList as RxList).refresh();
+        }
         _syncPostStateAcrossLists(post);
 
         ToastMessage.showToast(message: StaticString.commentAdded.tr);
@@ -512,7 +538,11 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> toggleLikeComment(int postIndex, int commentIndex, {List<PostModel>? list}) async {
+  Future<void> toggleLikeComment(
+    int postIndex,
+    int commentIndex, {
+    List<PostModel>? list,
+  }) async {
     final postList = list ?? posts;
     if (postIndex < 0 || postIndex >= postList.length) return;
     final post = postList[postIndex];
@@ -534,7 +564,9 @@ class HomeController extends GetxController {
       }
     }
     postList[postIndex] = post;
-    if (postList is RxList) { (postList as RxList).refresh(); }
+    if (postList is RxList) {
+      (postList as RxList).refresh();
+    }
     _syncPostStateAcrossLists(post);
 
     try {
@@ -552,7 +584,9 @@ class HomeController extends GetxController {
         comment.likesCount = originalLikesCount;
         comment.isDisliked = originalIsDisliked;
         postList[postIndex] = post;
-        if (postList is RxList) { (postList as RxList).refresh(); }
+        if (postList is RxList) {
+          (postList as RxList).refresh();
+        }
         _syncPostStateAcrossLists(post);
 
         ApiCheck.checkApi(response);
@@ -562,14 +596,20 @@ class HomeController extends GetxController {
       comment.likesCount = originalLikesCount;
       comment.isDisliked = originalIsDisliked;
       postList[postIndex] = post;
-      if (postList is RxList) { (postList as RxList).refresh(); }
+      if (postList is RxList) {
+        (postList as RxList).refresh();
+      }
       _syncPostStateAcrossLists(post);
 
       ToastMessage.showToast(message: 'Connection error: $e');
     }
   }
 
-  void toggleDislikeComment(int postIndex, int commentIndex, {List<PostModel>? list}) {
+  void toggleDislikeComment(
+    int postIndex,
+    int commentIndex, {
+    List<PostModel>? list,
+  }) {
     final postList = list ?? posts;
     if (postIndex < 0 || postIndex >= postList.length) return;
     final post = postList[postIndex];
@@ -586,7 +626,9 @@ class HomeController extends GetxController {
       }
     }
     postList[postIndex] = post;
-    if (postList is RxList) { (postList as RxList).refresh(); }
+    if (postList is RxList) {
+      (postList as RxList).refresh();
+    }
     _syncPostStateAcrossLists(post);
   }
 
@@ -597,7 +639,9 @@ class HomeController extends GetxController {
     List<PostModel>? list,
   }) async {
     final postList = list ?? posts;
-    if (postIndex < 0 || postIndex >= postList.length || replyText.trim().isEmpty)
+    if (postIndex < 0 ||
+        postIndex >= postList.length ||
+        replyText.trim().isEmpty)
       return;
 
     final post = postList[postIndex];
@@ -636,7 +680,9 @@ class HomeController extends GetxController {
         parentComment.repliesCount = parentComment.replies.length;
         post.commentsCount++;
         postList[postIndex] = post;
-        if (postList is RxList) { (postList as RxList).refresh(); }
+        if (postList is RxList) {
+          (postList as RxList).refresh();
+        }
         _syncPostStateAcrossLists(post);
 
         ToastMessage.showToast(message: StaticString.commentAdded.tr);
@@ -648,7 +694,11 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> fetchRepliesForComment(int postIndex, String commentId, {List<PostModel>? list}) async {
+  Future<void> fetchRepliesForComment(
+    int postIndex,
+    String commentId, {
+    List<PostModel>? list,
+  }) async {
     final postList = list ?? posts;
     if (postIndex < 0 || postIndex >= postList.length) return;
     final post = postList[postIndex];
@@ -672,7 +722,9 @@ class HomeController extends GetxController {
           parentComment.replies.addAll(fetchedReplies);
           parentComment.repliesCount = parentComment.replies.length;
           postList[postIndex] = post;
-          if (postList is RxList) { (postList as RxList).refresh(); }
+          if (postList is RxList) {
+            (postList as RxList).refresh();
+          }
           _syncPostStateAcrossLists(post);
         }
       } else {
@@ -716,7 +768,9 @@ class HomeController extends GetxController {
       }
     }
     postList[postIndex] = post;
-    if (postList is RxList) { (postList as RxList).refresh(); }
+    if (postList is RxList) {
+      (postList as RxList).refresh();
+    }
     _syncPostStateAcrossLists(post);
 
     try {
@@ -734,7 +788,9 @@ class HomeController extends GetxController {
         reply.likesCount = originalLikesCount;
         reply.isDisliked = originalIsDisliked;
         postList[postIndex] = post;
-        if (postList is RxList) { (postList as RxList).refresh(); }
+        if (postList is RxList) {
+          (postList as RxList).refresh();
+        }
         _syncPostStateAcrossLists(post);
 
         ApiCheck.checkApi(response);
@@ -744,7 +800,9 @@ class HomeController extends GetxController {
       reply.likesCount = originalLikesCount;
       reply.isDisliked = originalIsDisliked;
       postList[postIndex] = post;
-      if (postList is RxList) { (postList as RxList).refresh(); }
+      if (postList is RxList) {
+        (postList as RxList).refresh();
+      }
       _syncPostStateAcrossLists(post);
 
       ToastMessage.showToast(message: 'Connection error: $e');
@@ -779,7 +837,9 @@ class HomeController extends GetxController {
       }
     }
     postList[postIndex] = post;
-    if (postList is RxList) { (postList as RxList).refresh(); }
+    if (postList is RxList) {
+      (postList as RxList).refresh();
+    }
     _syncPostStateAcrossLists(post);
   }
 
@@ -797,7 +857,11 @@ class HomeController extends GetxController {
     );
   }
 
-  Future<void> shareWithFollower(int postIndex, String followerId, {List<PostModel>? list}) async {
+  Future<void> shareWithFollower(
+    int postIndex,
+    String followerId, {
+    List<PostModel>? list,
+  }) async {
     final postList = list ?? posts;
     if (postIndex < 0 || postIndex >= postList.length) return;
     final post = postList[postIndex];
@@ -812,7 +876,9 @@ class HomeController extends GetxController {
 
     post.sharesCount++;
     postList[postIndex] = post;
-    if (postList is RxList) { (postList as RxList).refresh(); }
+    if (postList is RxList) {
+      (postList as RxList).refresh();
+    }
     _syncPostStateAcrossLists(post);
 
     try {
@@ -827,7 +893,9 @@ class HomeController extends GetxController {
 
         post.sharesCount--;
         postList[postIndex] = post;
-        if (postList is RxList) { (postList as RxList).refresh(); }
+        if (postList is RxList) {
+          (postList as RxList).refresh();
+        }
         _syncPostStateAcrossLists(post);
 
         ApiCheck.checkApi(response);
@@ -839,7 +907,9 @@ class HomeController extends GetxController {
 
       post.sharesCount--;
       postList[postIndex] = post;
-      if (postList is RxList) { (postList as RxList).refresh(); }
+      if (postList is RxList) {
+        (postList as RxList).refresh();
+      }
       _syncPostStateAcrossLists(post);
 
       ToastMessage.showToast(message: 'Connection error: $e');
@@ -859,6 +929,7 @@ class HomeController extends GetxController {
   }) async {
     if (contentText.trim().isEmpty && contentImageUrl == null) return false;
 
+    final sharedPref = Get.find<SharedPreferenceHelper>();
     isLoading.value = true;
     try {
       final response = await Get.find<ApiClient>().post(
@@ -866,19 +937,18 @@ class HomeController extends GetxController {
         body: {
           "description": contentText,
           "type": badgeText,
-          "is_anonymous": "false",
+          "is_anonymous": false,
           "image": contentImageUrl ?? "",
           "action": "create",
-          "post_id": 0,
         },
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        final savedName = sharedPref.getUserName();
         final newPost = PostModel(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
-          userName: 'Shahriar',
-          userAvatarUrl:
-              'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+          userName: savedName.isNotEmpty ? savedName : 'User',
+          userAvatarUrl: sharedPref.getUserPhoto(),
           timeAgo: 'Just now',
           badgeText: badgeText,
           contentText: contentText,
@@ -929,7 +999,7 @@ class HomeController extends GetxController {
         body: {
           "description": contentText,
           "type": badgeText,
-          "is_anonymous": "false",
+          "is_anonymous": false,
           "image": contentImageUrl ?? "",
           "action": "edit",
           "post_id": int.tryParse(post.id) ?? 0,
@@ -943,7 +1013,9 @@ class HomeController extends GetxController {
         post.taggedFriends = taggedFriends;
         post.contentImageUrl = contentImageUrl;
         postList[index] = post;
-        if (postList is RxList) { (postList as RxList).refresh(); }
+        if (postList is RxList) {
+          (postList as RxList).refresh();
+        }
         _syncPostStateAcrossLists(post);
         ToastMessage.showToast(message: StaticString.postUpdatedSuccess.tr);
         return true;
@@ -1051,7 +1123,9 @@ class HomeController extends GetxController {
           post.comments.addAll(fetchedComments);
           post.commentsCount = post.comments.length;
           postList[index] = post;
-          if (postList is RxList) { (postList as RxList).refresh(); }
+          if (postList is RxList) {
+            (postList as RxList).refresh();
+          }
           _syncPostStateAcrossLists(post);
         }
       } else {
@@ -1064,7 +1138,10 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> fetchMoreCommentsForPost(int index, {List<PostModel>? list}) async {
+  Future<void> fetchMoreCommentsForPost(
+    int index, {
+    List<PostModel>? list,
+  }) async {
     final postList = list ?? posts;
     if (index < 0 || index >= postList.length) return;
 
@@ -1087,7 +1164,9 @@ class HomeController extends GetxController {
             post.comments.addAll(fetchedComments);
             post.commentsCount = post.comments.length;
             postList[index] = post;
-            if (postList is RxList) { (postList as RxList).refresh(); }
+            if (postList is RxList) {
+              (postList as RxList).refresh();
+            }
             _syncPostStateAcrossLists(post);
             _currentCommentsPage++;
           }
@@ -1276,7 +1355,9 @@ class HomeController extends GetxController {
     final originalIndex = index;
 
     postList.removeAt(index);
-    if (postList is RxList) { (postList as RxList).refresh(); }
+    if (postList is RxList) {
+      (postList as RxList).refresh();
+    }
 
     bool removedFromPosts = false;
     int indexInPosts = -1;
@@ -1315,7 +1396,9 @@ class HomeController extends GetxController {
         } else {
           postList.add(post);
         }
-        if (postList is RxList) { (postList as RxList).refresh(); }
+        if (postList is RxList) {
+          (postList as RxList).refresh();
+        }
 
         if (removedFromPosts && indexInPosts != -1) {
           if (indexInPosts <= posts.length) {
@@ -1341,7 +1424,9 @@ class HomeController extends GetxController {
       } else {
         postList.add(post);
       }
-      if (postList is RxList) { (postList as RxList).refresh(); }
+      if (postList is RxList) {
+        (postList as RxList).refresh();
+      }
 
       if (removedFromPosts && indexInPosts != -1) {
         if (indexInPosts <= posts.length) {
