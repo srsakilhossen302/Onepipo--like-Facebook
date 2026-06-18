@@ -272,6 +272,7 @@ class HomeController extends GetxController {
     try {
       final response = await Get.find<ApiClient>().post(
         ApiUrl.savePost(post.id),
+        body: {},
       );
       print('Save Post API Response: ${response.body}');
 
@@ -375,6 +376,7 @@ class HomeController extends GetxController {
     try {
       final response = await Get.find<ApiClient>().post(
         ApiUrl.archivePost(post.id),
+        body: {},
       );
       print('Archive Post API Response: ${response.body}');
 
