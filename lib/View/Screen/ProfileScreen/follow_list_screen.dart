@@ -6,6 +6,8 @@ import '../../../Utils/StaticString/static_string.dart';
 import 'Controller/follow_list_controller.dart';
 import 'profile_screen.dart';
 import '../HomeScreen/Controller/home_controller.dart';
+import '../../../Core/AppRoute/app_route.dart';
+import '../../../helper/shared_prefe/shared_prefe.dart';
 
 class FollowListScreen extends StatefulWidget {
   const FollowListScreen({super.key});
@@ -14,52 +16,72 @@ class FollowListScreen extends StatefulWidget {
   State<FollowListScreen> createState() => _FollowListScreenState();
 }
 
-class _FollowListScreenState extends State<FollowListScreen> with SingleTickerProviderStateMixin {
+class _FollowListScreenState extends State<FollowListScreen> {
   late final FollowListController controller;
-  late TabController _tabController;
   late final String userName;
-  late final int initialIndex;
 
   @override
   void initState() {
     super.initState();
     final args = Get.arguments as Map<String, dynamic>;
     userName = args['userName'] ?? 'Shahriar';
-    initialIndex = args['initialIndex'] ?? 0;
-    _tabController = TabController(length: 2, vsync: this, initialIndex: initialIndex);
     controller = FollowListController()..initUser(userName);
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
     super.dispose();
   }
 
-  void _onUserTap(String clickedUserName) {
-    if (clickedUserName.toLowerCase() == 'shahriar') {
-      Get.toNamed('/my_profile');
+  void _onUserTap(FollowerModel user) {
+    final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
+    final isMe = sharedPrefHelper.isMe(
+          userId: user.id,
+          userName: user.name,
+          authorRaw: user.rawJson,
+        ) ||
+        user.name.toLowerCase() == 'shahriar';
+
+    if (isMe) {
+      Get.toNamed(AppRoute.myProfile);
     } else {
-      Get.to(() => const ProfileScreen(), arguments: clickedUserName, preventDuplicates: false);
+      Get.toNamed(
+        AppRoute.profile,
+        arguments: {
+          'userId': user.id,
+          'userName': user.name,
+          'author':
+              user.rawJson ??
+              {'id': user.id, 'name': user.name, 'photo': user.avatarUrl},
+        },
+      );
     }
   }
 
-  Widget _buildUserList(List<FollowerModel> list, bool isFollowersTab) {
-    final isOwnProfile = userName.toLowerCase() == 'shahriar';
+  Widget _buildUserList(List<FollowerModel> list) {
+    final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
+    final loggedInUserName = sharedPrefHelper.getUserName();
+    final loggedInUserUsername = sharedPrefHelper.getUserUsername();
+    final isOwnProfile =
+        userName.toLowerCase() == loggedInUserName.toLowerCase() ||
+        userName.toLowerCase() == loggedInUserUsername.toLowerCase() ||
+        userName.toLowerCase() == 'shahriar';
+
+    if (controller.isLoadingFollowers.value) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.blueAccent),
+      );
+    }
 
     if (list.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.group_outlined,
-              size: 72,
-              color: Colors.grey[300],
-            ),
+            Icon(Icons.group_outlined, size: 72, color: Colors.grey[300]),
             const SizedBox(height: 16),
             Text(
-              isFollowersTab ? StaticString.noFollowersYet.tr : StaticString.notFollowingYet.tr,
+              StaticString.noFollowersYet.tr,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -74,10 +96,16 @@ class _FollowListScreenState extends State<FollowListScreen> with SingleTickerPr
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       itemCount: list.length,
-      separatorBuilder: (context, index) => const Divider(height: 24, thickness: 0.5, color: Color(0xFFEEEEEE)),
+      separatorBuilder: (context, index) =>
+          const Divider(height: 24, thickness: 0.5, color: Color(0xFFEEEEEE)),
       itemBuilder: (context, index) {
         final user = list[index];
-        final isMe = user.name.toLowerCase() == 'shahriar';
+        final isMe = sharedPrefHelper.isMe(
+              userId: user.id,
+              userName: user.name,
+              authorRaw: user.rawJson,
+            ) ||
+            user.name.toLowerCase() == 'shahriar';
 
         return Obx(() {
           // Dynamic status checks for lists
@@ -87,7 +115,7 @@ class _FollowListScreenState extends State<FollowListScreen> with SingleTickerPr
             children: [
               // Avatar
               GestureDetector(
-                onTap: () => _onUserTap(user.name),
+                onTap: () => _onUserTap(user),
                 child: Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
@@ -108,7 +136,7 @@ class _FollowListScreenState extends State<FollowListScreen> with SingleTickerPr
               // Name
               Expanded(
                 child: GestureDetector(
-                  onTap: () => _onUserTap(user.name),
+                  onTap: () => _onUserTap(user),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -136,57 +164,57 @@ class _FollowListScreenState extends State<FollowListScreen> with SingleTickerPr
               // Action button
               if (!isMe) ...[
                 if (isOwnProfile) ...[
-                  // My own profile: "Remove" on Followers, "Unfollow" on Following
-                  if (isFollowersTab)
-                    ElevatedButton(
-                      onPressed: () => controller.removeFollower(user.name),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFF0F2F5),
-                        foregroundColor: Colors.black87,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        StaticString.remove.tr,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                      ),
-                    )
-                  else
-                    ElevatedButton(
-                      onPressed: () => controller.unfollowUser(user.name),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFE4E6EB),
-                        foregroundColor: Colors.black87,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        StaticString.unfollow.tr,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                ] else ...[
-                  // Someone else's profile: Show "Follow" or "Following" based on our relation
+                  // My own profile: "Remove" on Followers
                   ElevatedButton(
-                    onPressed: () => controller.unfollowUser(user.name),
+                    onPressed: () => controller.removeFollower(user.name),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: amIFollowingThisUser ? const Color(0xFFE4E6EB) : Colors.blueAccent,
-                      foregroundColor: amIFollowingThisUser ? Colors.black87 : Colors.white,
+                      backgroundColor: const Color(0xFFF0F2F5),
+                      foregroundColor: Colors.black87,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
                     child: Text(
-                      amIFollowingThisUser ? StaticString.following.tr : StaticString.follow.tr,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                      StaticString.remove.tr,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  // Someone else's profile: Show "Follow" or "Following" based on our relation
+                  ElevatedButton(
+                    onPressed: () => controller.unfollowUser(user.name),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: amIFollowingThisUser
+                          ? const Color(0xFFE4E6EB)
+                          : Colors.blueAccent,
+                      foregroundColor: amIFollowingThisUser
+                          ? Colors.black87
+                          : Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      amIFollowingThisUser
+                          ? StaticString.following.tr
+                          : StaticString.follow.tr,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -215,40 +243,16 @@ class _FollowListScreenState extends State<FollowListScreen> with SingleTickerPr
           onPressed: () => Get.back(),
         ),
         title: Text(
-          userName == 'Shahriar' ? StaticString.myNetwork.tr : userName,
+          StaticString.followers.tr,
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: AppColors.textLight,
           ),
         ),
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: Colors.blueAccent,
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: Colors.blueAccent,
-          indicatorWeight: 3,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-          tabs: [
-            Obx(() {
-              final followersCount = controller.getFollowers().length;
-              return Tab(text: "$followersCount ${StaticString.followers.tr}");
-            }),
-            Obx(() {
-              final followingCount = controller.getFollowing().length;
-              return Tab(text: "$followingCount ${StaticString.following.tr}");
-            }),
-          ],
-        ),
+        centerTitle: true,
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          Obx(() => _buildUserList(controller.getFollowers(), true)),
-          Obx(() => _buildUserList(controller.getFollowing(), false)),
-        ],
-      ),
+      body: Obx(() => _buildUserList(controller.getFollowers())),
     );
   }
 }

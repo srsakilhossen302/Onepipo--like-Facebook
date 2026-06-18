@@ -10,6 +10,7 @@ import '../../../Core/AppRoute/app_route.dart';
 import '../../Screen/HomeScreen/Controller/home_controller.dart';
 import '../../Screen/HomeScreen/Model/post_model.dart';
 import 'comment_bottom_sheet.dart';
+import '../../../helper/shared_prefe/shared_prefe.dart';
 
 class PostCard extends StatelessWidget {
   final int postIndex;
@@ -57,7 +58,14 @@ class PostCard extends StatelessWidget {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            if (post.userName.toLowerCase() == 'shahriar') {
+                            final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
+                            final bool isMyPost = sharedPrefHelper.isMe(
+                                  userId: post.userId,
+                                  userName: post.userName,
+                                  authorRaw: post.authorRaw,
+                                ) ||
+                                sharedPrefHelper.isMe(userId: post.postUserId);
+                            if (isMyPost) {
                               Get.toNamed(AppRoute.myProfile);
                             } else {
                               Get.toNamed(
@@ -84,8 +92,14 @@ class PostCard extends StatelessWidget {
                             children: [
                               GestureDetector(
                                 onTap: () {
-                                  if (post.userName.toLowerCase() ==
-                                      'shahriar') {
+                                  final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
+                                  final bool isMyPost = sharedPrefHelper.isMe(
+                                        userId: post.userId,
+                                        userName: post.userName,
+                                        authorRaw: post.authorRaw,
+                                      ) ||
+                                      sharedPrefHelper.isMe(userId: post.postUserId);
+                                  if (isMyPost) {
                                     Get.toNamed(AppRoute.myProfile);
                                   } else {
                                     Get.toNamed(
@@ -510,7 +524,13 @@ class PostCard extends StatelessWidget {
     int index,
   ) {
     final post = controller.posts[index];
-    final bool isMyPost = post.userName.toLowerCase() == 'shahriar';
+    final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
+    final bool isMyPost = sharedPrefHelper.isMe(
+          userId: post.userId,
+          userName: post.userName,
+          authorRaw: post.authorRaw,
+        ) ||
+        sharedPrefHelper.isMe(userId: post.postUserId);
 
     showModalBottomSheet(
       context: context,

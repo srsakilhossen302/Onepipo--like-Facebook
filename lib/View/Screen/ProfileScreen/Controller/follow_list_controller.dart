@@ -1,16 +1,58 @@
+import 'dart:convert';
 import 'package:get/get.dart';
 import '../../HomeScreen/Controller/home_controller.dart';
+import '../../../../service/api_client.dart';
+import '../../../../service/api_url.dart';
 
 class FollowListController extends GetxController {
   final HomeController homeController = Get.find<HomeController>();
+  final ApiClient apiClient = Get.find<ApiClient>();
   late String userName;
+
+  var followers = <FollowerModel>[].obs;
+  var isLoadingFollowers = false.obs;
 
   void initUser(String name) {
     userName = name;
+    fetchFollowers();
+  }
+
+  Future<void> fetchFollowers() async {
+    isLoadingFollowers.value = true;
+    try {
+      final response = await apiClient.get(ApiUrl.followers);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final dynamic responseData = jsonDecode(response.body);
+        List<dynamic> dataList = [];
+        if (responseData is Map && responseData.containsKey('data') && responseData['data'] is List) {
+          dataList = responseData['data'];
+        } else if (responseData is List) {
+          dataList = responseData;
+        }
+
+        final List<FollowerModel> loaded = dataList.map((json) {
+          final id = (json['id'] ?? '').toString();
+          final name = json['name'] ?? json['username'] ?? json['user_name'] ?? 'Anonymous';
+          final photo = json['photo'] ?? json['photo_url'] ?? json['avatar'] ?? json['avatar_url'] ?? json['image'] ?? '';
+          return FollowerModel(
+            id: id,
+            name: name,
+            avatarUrl: photo,
+            rawJson: json is Map<String, dynamic> ? json : null,
+          );
+        }).toList();
+
+        followers.assignAll(loaded);
+      }
+    } catch (e) {
+      print('Error fetching followers: $e');
+    } finally {
+      isLoadingFollowers.value = false;
+    }
   }
 
   List<FollowerModel> getFollowers() {
-    return homeController.userFollowers[userName] ?? [];
+    return followers;
   }
 
   List<FollowerModel> getFollowing() {

@@ -84,6 +84,9 @@ class SharedPreferenceHelper {
     if (userData.containsKey('id') && userData['id'] != null) {
       await sharedPreferences.setString('logged_in_user_id', userData['id'].toString());
     }
+    if (userData.containsKey('username') && userData['username'] != null) {
+      await sharedPreferences.setString('user_username', userData['username'].toString());
+    }
     if (userData.containsKey('name') && userData['name'] != null) {
       await sharedPreferences.setString('user_name', userData['name'].toString());
     }
@@ -125,12 +128,60 @@ class SharedPreferenceHelper {
   }
 
   String getUserName() => sharedPreferences.getString('user_name') ?? '';
+  String getUserUsername() => sharedPreferences.getString('user_username') ?? '';
   String getUserPhoto() => sharedPreferences.getString('user_photo') ?? '';
   String getUserCover() => sharedPreferences.getString('user_cover') ?? '';
   bool getSmsNotifications() => sharedPreferences.getBool('sms_notifications') ?? false;
   bool getPushNotifications() => sharedPreferences.getBool('push_notifications') ?? true;
   bool getEmailNotifications() => sharedPreferences.getBool('email_notifications') ?? false;
   bool getIs2faEnabled() => sharedPreferences.getBool('is_2fa_enabled') ?? false;
+
+  bool isMe({
+    String? userId,
+    String? userName,
+    Map<String, dynamic>? authorRaw,
+  }) {
+    final loggedInUserId = sharedPreferences.getString('logged_in_user_id') ?? '';
+    final loggedInUserName = getUserName();
+    final loggedInUserUsername = getUserUsername();
+    final loggedInUserEmail = getUserEmail();
+
+    // 1. Check explicit ID
+    if (loggedInUserId.isNotEmpty && userId != null && userId.isNotEmpty && loggedInUserId == userId) {
+      return true;
+    }
+
+    // 2. Check Name/Username fallback
+    if (loggedInUserName.isNotEmpty && userName != null && userName.isNotEmpty && userName.toLowerCase() == loggedInUserName.toLowerCase()) {
+      return true;
+    }
+    if (loggedInUserUsername.isNotEmpty && userName != null && userName.isNotEmpty && userName.toLowerCase() == loggedInUserUsername.toLowerCase()) {
+      return true;
+    }
+
+    // 3. Check authorRaw map (id, name, username, email)
+    if (authorRaw != null) {
+      final authorId = authorRaw['id']?.toString() ?? '';
+      final authorName = authorRaw['name']?.toString() ?? '';
+      final authorUsername = authorRaw['username']?.toString() ?? '';
+      final authorEmail = authorRaw['email']?.toString() ?? '';
+
+      if (loggedInUserId.isNotEmpty && authorId.isNotEmpty && loggedInUserId == authorId) {
+        return true;
+      }
+      if (loggedInUserName.isNotEmpty && authorName.isNotEmpty && authorName.toLowerCase() == loggedInUserName.toLowerCase()) {
+        return true;
+      }
+      if (loggedInUserUsername.isNotEmpty && authorUsername.isNotEmpty && authorUsername.toLowerCase() == loggedInUserUsername.toLowerCase()) {
+        return true;
+      }
+      if (loggedInUserEmail.isNotEmpty && authorEmail.isNotEmpty && authorEmail.toLowerCase() == loggedInUserEmail.toLowerCase()) {
+        return true;
+      }
+    }
+
+    return false;
+  }
 
   // Get last login time
   DateTime? getLastLoginTime() {

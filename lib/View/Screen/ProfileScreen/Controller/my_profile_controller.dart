@@ -20,6 +20,7 @@ class MyProfileController extends GetxController {
   final HomeController homeController = Get.find<HomeController>();
   var currentUserName = 'Shahriar'.obs;
   String get userName => currentUserName.value;
+  var currentUserUsername = "".obs;
   var myUserId = "".obs;
   var userEmail = "".obs;
 
@@ -146,6 +147,9 @@ class MyProfileController extends GetxController {
           if (data['user'] is Map) {
             final user = data['user'] as Map<String, dynamic>;
             
+            if (user.containsKey('username') && user['username'] != null) {
+              currentUserUsername.value = user['username'].toString();
+            }
             if (user.containsKey('id')) {
               final idStr = user['id'].toString();
               myUserId.value = idStr;
@@ -198,6 +202,10 @@ class MyProfileController extends GetxController {
     final savedName = sharedPrefHelper.getUserName();
     if (savedName.isNotEmpty) {
       currentUserName.value = savedName;
+    }
+    final savedUsername = sharedPrefHelper.getUserUsername();
+    if (savedUsername.isNotEmpty) {
+      currentUserUsername.value = savedUsername;
     }
     profilePhotoUrl.value = sharedPrefHelper.getUserPhoto();
     coverPhotoUrl.value = sharedPrefHelper.getUserCover();

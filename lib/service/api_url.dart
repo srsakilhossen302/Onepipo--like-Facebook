@@ -31,6 +31,7 @@ class ApiUrl {
   static String unblockUser(String userId) => '/users/$userId/unblock';
   static const String blockedUsersList = '/users/blocked';
   static const String changePassword = '/users/change-password';
+  static const String followers = '/users/followers';
 
   // Notifications endpoints
   static const String notifications = '/notifications';

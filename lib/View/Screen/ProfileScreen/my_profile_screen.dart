@@ -241,7 +241,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     const SizedBox(height: 2),
                     // Handle
                     Text(
-                      "@${userName.toLowerCase()}",
+                      controller.currentUserUsername.value.isNotEmpty
+                          ? (controller.currentUserUsername.value.startsWith('@')
+                              ? controller.currentUserUsername.value
+                              : "@${controller.currentUserUsername.value}")
+                          : "@${userName.toLowerCase().replaceAll(' ', '')}",
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],

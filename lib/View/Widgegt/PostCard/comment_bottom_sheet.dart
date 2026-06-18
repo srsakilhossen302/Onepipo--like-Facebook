@@ -4,6 +4,7 @@ import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../../helper/network_img/network_img.dart';
 import '../../../Core/AppRoute/app_route.dart';
+import '../../../helper/shared_prefe/shared_prefe.dart';
 import '../../Screen/HomeScreen/Controller/home_controller.dart';
 import '../../Screen/HomeScreen/Model/post_model.dart';
 
@@ -78,18 +79,16 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
         ),
       );
     }
-    
+
     return Text(
       text,
-      style: const TextStyle(
-        fontSize: 13,
-        color: Color(0xFF04070D),
-      ),
+      style: const TextStyle(fontSize: 13, color: Color(0xFF04070D)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
@@ -114,17 +113,23 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
             const SizedBox(height: 12),
             // Header
             Obx(() {
-              if (widget.postIndex < 0 || widget.postIndex >= controller.posts.length) {
+              if (widget.postIndex < 0 ||
+                  widget.postIndex >= controller.posts.length) {
                 return const SizedBox.shrink();
               }
               final post = controller.posts[widget.postIndex];
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 4.0,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      StaticString.commentsCount.trParams({'count': post.comments.length.toString()}),
+                      StaticString.commentsCount.trParams({
+                        'count': post.comments.length.toString(),
+                      }),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -132,7 +137,11 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: Colors.grey, size: 22),
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.grey,
+                        size: 22,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -140,22 +149,19 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
               );
             }),
             const Divider(height: 1, thickness: 0.5),
-            
+
             // Comments List Area
             Expanded(
               child: Obx(() {
-                if (widget.postIndex < 0 || widget.postIndex >= controller.posts.length) {
-                  return Center(
-                    child: Text(StaticString.postNotFound.tr),
-                  );
+                if (widget.postIndex < 0 ||
+                    widget.postIndex >= controller.posts.length) {
+                  return Center(child: Text(StaticString.postNotFound.tr));
                 }
                 final post = controller.posts[widget.postIndex];
-                
+
                 if (controller.isLoadingComments.value) {
                   return const Center(
-                    child: CircularProgressIndicator(
-                      color: Colors.blueAccent,
-                    ),
+                    child: CircularProgressIndicator(color: Colors.blueAccent),
                   );
                 }
 
@@ -181,59 +187,104 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                           itemCount: post.comments.length,
                           itemBuilder: (context, cIndex) {
                             final comment = post.comments[cIndex];
-                            final isExpanded = expandedCommentIds.contains(comment.id);
+                            final isExpanded = expandedCommentIds.contains(
+                              comment.id,
+                            );
                             return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 10,
+                                horizontal: 16,
+                              ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       GestureDetector(
                                         onTap: () {
                                           Navigator.pop(context);
-                                          if (comment.userName.toLowerCase() == 'shahriar') {
+                                          final bool isMyComment =
+                                              sharedPrefHelper.isMe(
+                                            userId: comment.userId.isNotEmpty
+                                                ? comment.userId
+                                                : comment.postUserId,
+                                            userName: comment.userName,
+                                            authorRaw: comment.authorRaw,
+                                          );
+                                          if (isMyComment) {
                                             Get.toNamed(AppRoute.myProfile);
                                           } else {
-                                            Get.toNamed(AppRoute.profile, arguments: {
-                                              'userId': comment.postUserId,
-                                              'userName': comment.userName,
-                                              'author': comment.authorRaw,
-                                            });
+                                            Get.toNamed(
+                                              AppRoute.profile,
+                                              arguments: {
+                                                'userId':
+                                                    comment.userId.isNotEmpty
+                                                    ? comment.userId
+                                                    : comment.postUserId,
+                                                'userName': comment.userName,
+                                                'author': comment.authorRaw,
+                                              },
+                                            );
                                           }
                                         },
                                         child: NetworkImg(
                                           imageUrl: comment.userAvatarUrl,
                                           width: 36,
                                           height: 36,
-                                          borderRadius: BorderRadius.circular(18),
+                                          borderRadius: BorderRadius.circular(
+                                            18,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Row(
                                               children: [
                                                 GestureDetector(
                                                   onTap: () {
                                                     Navigator.pop(context);
-                                                    if (comment.userName.toLowerCase() == 'shahriar') {
-                                                      Get.toNamed(AppRoute.myProfile);
+                                                    final bool isMyComment =
+                                                        sharedPrefHelper.isMe(
+                                                      userId: comment.userId.isNotEmpty
+                                                          ? comment.userId
+                                                          : comment.postUserId,
+                                                      userName: comment.userName,
+                                                      authorRaw: comment.authorRaw,
+                                                    );
+                                                    if (isMyComment) {
+                                                      Get.toNamed(
+                                                        AppRoute.myProfile,
+                                                      );
                                                     } else {
-                                                      Get.toNamed(AppRoute.profile, arguments: {
-                                                        'userId': comment.postUserId,
-                                                        'userName': comment.userName,
-                                                        'author': comment.authorRaw,
-                                                      });
+                                                      Get.toNamed(
+                                                        AppRoute.profile,
+                                                        arguments: {
+                                                          'userId':
+                                                              comment
+                                                                  .userId
+                                                                  .isNotEmpty
+                                                              ? comment.userId
+                                                              : comment
+                                                                    .postUserId,
+                                                          'userName':
+                                                              comment.userName,
+                                                          'author':
+                                                              comment.authorRaw,
+                                                        },
+                                                      );
                                                     }
                                                   },
                                                   child: Text(
                                                     comment.userName,
                                                     style: const TextStyle(
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                       fontSize: 14,
                                                       color: Color(0xFF04070D),
                                                     ),
@@ -262,27 +313,38 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                               children: [
                                                 GestureDetector(
                                                   onTap: () {
-                                                    selectedReplyComment.value = comment;
-                                                    _commentFocusNode.requestFocus();
+                                                    selectedReplyComment.value =
+                                                        comment;
+                                                    _commentFocusNode
+                                                        .requestFocus();
                                                   },
                                                   child: Text(
                                                     StaticString.reply.tr,
                                                     style: TextStyle(
                                                       fontSize: 12,
-                                                      fontWeight: FontWeight.w600,
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                       color: Colors.grey[600],
                                                     ),
                                                   ),
                                                 ),
                                                 const Spacer(),
                                                 GestureDetector(
-                                                  onTap: () => controller.toggleLikeComment(widget.postIndex, cIndex),
+                                                  onTap: () => controller
+                                                      .toggleLikeComment(
+                                                        widget.postIndex,
+                                                        cIndex,
+                                                      ),
                                                   child: Icon(
                                                     comment.isLiked
-                                                        ? Icons.thumb_up_alt_rounded
-                                                        : Icons.thumb_up_off_alt_rounded,
+                                                        ? Icons
+                                                              .thumb_up_alt_rounded
+                                                        : Icons
+                                                              .thumb_up_off_alt_rounded,
                                                     size: 16,
-                                                    color: comment.isLiked ? Colors.blueAccent : Colors.grey[600],
+                                                    color: comment.isLiked
+                                                        ? Colors.blueAccent
+                                                        : Colors.grey[600],
                                                   ),
                                                 ),
                                                 const SizedBox(width: 4),
@@ -295,13 +357,21 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                                 ),
                                                 const SizedBox(width: 16),
                                                 GestureDetector(
-                                                  onTap: () => controller.toggleDislikeComment(widget.postIndex, cIndex),
+                                                  onTap: () => controller
+                                                      .toggleDislikeComment(
+                                                        widget.postIndex,
+                                                        cIndex,
+                                                      ),
                                                   child: Icon(
                                                     comment.isDisliked
-                                                        ? Icons.thumb_down_alt_rounded
-                                                        : Icons.thumb_down_off_alt_rounded,
+                                                        ? Icons
+                                                              .thumb_down_alt_rounded
+                                                        : Icons
+                                                              .thumb_down_off_alt_rounded,
                                                     size: 16,
-                                                    color: comment.isDisliked ? Colors.redAccent : Colors.grey[600],
+                                                    color: comment.isDisliked
+                                                        ? Colors.redAccent
+                                                        : Colors.grey[600],
                                                   ),
                                                 ),
                                               ],
@@ -311,9 +381,10 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                       ),
                                     ],
                                   ),
-                                  
+
                                   // Toggle Replies Expand/Collapse Button
-                                  if (comment.replies.isNotEmpty || comment.repliesCount > 0) ...[
+                                  if (comment.replies.isNotEmpty ||
+                                      comment.repliesCount > 0) ...[
                                     const SizedBox(height: 8),
                                     GestureDetector(
                                       onTap: () {
@@ -321,17 +392,26 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                           expandedCommentIds.remove(comment.id);
                                         } else {
                                           expandedCommentIds.add(comment.id);
-                                          controller.fetchRepliesForComment(widget.postIndex, comment.id);
+                                          controller.fetchRepliesForComment(
+                                            widget.postIndex,
+                                            comment.id,
+                                          );
                                         }
                                       },
                                       child: Padding(
-                                        padding: const EdgeInsets.only(left: 48, top: 4, bottom: 4),
+                                        padding: const EdgeInsets.only(
+                                          left: 48,
+                                          top: 4,
+                                          bottom: 4,
+                                        ),
                                         child: Row(
                                           children: [
                                             Icon(
                                               isExpanded
-                                                  ? Icons.keyboard_arrow_up_rounded
-                                                  : Icons.keyboard_arrow_down_rounded,
+                                                  ? Icons
+                                                        .keyboard_arrow_up_rounded
+                                                  : Icons
+                                                        .keyboard_arrow_down_rounded,
                                               size: 18,
                                               color: Colors.grey[600],
                                             ),
@@ -339,7 +419,13 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                             Text(
                                               isExpanded
                                                   ? StaticString.hideReplies.tr
-                                                  : StaticString.viewRepliesCount.trParams({'count': comment.repliesCount.toString()}),
+                                                  : StaticString
+                                                        .viewRepliesCount
+                                                        .trParams({
+                                                          'count': comment
+                                                              .repliesCount
+                                                              .toString(),
+                                                        }),
                                               style: TextStyle(
                                                 fontSize: 12.5,
                                                 fontWeight: FontWeight.w600,
@@ -353,111 +439,207 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                   ],
 
                                   // Replies list nested under this comment
-                                  if (comment.replies.isNotEmpty && isExpanded) ...[
+                                  if (comment.replies.isNotEmpty &&
+                                      isExpanded) ...[
                                     const SizedBox(height: 4),
                                     ListView.builder(
                                       shrinkWrap: true,
-                                      physics: const NeverScrollableScrollPhysics(),
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
                                       itemCount: comment.replies.length,
                                       itemBuilder: (context, rIndex) {
                                         final reply = comment.replies[rIndex];
                                         return Padding(
-                                          padding: const EdgeInsets.only(left: 48, top: 6, bottom: 6),
+                                          padding: const EdgeInsets.only(
+                                            left: 48,
+                                            top: 6,
+                                            bottom: 6,
+                                          ),
                                           child: Row(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               GestureDetector(
                                                 onTap: () {
                                                   Navigator.pop(context);
-                                                  if (reply.userName.toLowerCase() == 'shahriar') {
-                                                    Get.toNamed(AppRoute.myProfile);
+                                                  final bool isMyReply =
+                                                      sharedPrefHelper.isMe(
+                                                    userId: reply.userId.isNotEmpty
+                                                        ? reply.userId
+                                                        : reply.postUserId,
+                                                    userName: reply.userName,
+                                                    authorRaw: reply.authorRaw,
+                                                  );
+                                                  if (isMyReply) {
+                                                    Get.toNamed(
+                                                      AppRoute.myProfile,
+                                                    );
                                                   } else {
-                                                    Get.toNamed(AppRoute.profile, arguments: {
-                                                      'userId': reply.postUserId,
-                                                      'userName': reply.userName,
-                                                      'author': reply.authorRaw,
-                                                    });
+                                                    Get.toNamed(
+                                                      AppRoute.profile,
+                                                      arguments: {
+                                                        'userId':
+                                                            reply
+                                                                .userId
+                                                                .isNotEmpty
+                                                            ? reply.userId
+                                                            : reply.postUserId,
+                                                        'userName':
+                                                            reply.userName,
+                                                        'author':
+                                                            reply.authorRaw,
+                                                      },
+                                                    );
                                                   }
                                                 },
                                                 child: NetworkImg(
                                                   imageUrl: reply.userAvatarUrl,
                                                   width: 28,
                                                   height: 28,
-                                                  borderRadius: BorderRadius.circular(14),
+                                                  borderRadius:
+                                                      BorderRadius.circular(14),
                                                 ),
                                               ),
                                               const SizedBox(width: 8),
                                               Expanded(
                                                 child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
                                                   children: [
                                                     Row(
                                                       children: [
                                                         GestureDetector(
                                                           onTap: () {
-                                                            Navigator.pop(context);
-                                                            if (reply.userName.toLowerCase() == 'shahriar') {
-                                                              Get.toNamed(AppRoute.myProfile);
+                                                            Navigator.pop(
+                                                              context,
+                                                            );
+                                                            final bool isMyReply =
+                                                                sharedPrefHelper.isMe(
+                                                              userId: reply.userId.isNotEmpty
+                                                                  ? reply.userId
+                                                                  : reply.postUserId,
+                                                              userName: reply.userName,
+                                                              authorRaw: reply.authorRaw,
+                                                            );
+                                                            if (isMyReply) {
+                                                              Get.toNamed(
+                                                                AppRoute
+                                                                    .myProfile,
+                                                              );
                                                             } else {
-                                                              Get.toNamed(AppRoute.profile, arguments: {
-                                                                'userId': reply.postUserId,
-                                                                'userName': reply.userName,
-                                                                'author': reply.authorRaw,
-                                                              });
+                                                              Get.toNamed(
+                                                                AppRoute
+                                                                    .profile,
+                                                                arguments: {
+                                                                  'userId':
+                                                                      reply
+                                                                          .userId
+                                                                          .isNotEmpty
+                                                                      ? reply
+                                                                            .userId
+                                                                      : reply
+                                                                            .postUserId,
+                                                                  'userName': reply
+                                                                      .userName,
+                                                                  'author': reply
+                                                                      .authorRaw,
+                                                                },
+                                                              );
                                                             }
                                                           },
                                                           child: Text(
                                                             reply.userName,
-                                                            style: const TextStyle(
-                                                              fontWeight: FontWeight.bold,
-                                                              fontSize: 13,
-                                                              color: Color(0xFF04070D),
-                                                            ),
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  fontSize: 13,
+                                                                  color: Color(
+                                                                    0xFF04070D,
+                                                                  ),
+                                                                ),
                                                           ),
                                                         ),
-                                                        const SizedBox(width: 6),
+                                                        const SizedBox(
+                                                          width: 6,
+                                                        ),
                                                         Text(
                                                           reply.timeAgo,
                                                           style: TextStyle(
                                                             fontSize: 11,
-                                                            color: Colors.grey[500],
+                                                            color: Colors
+                                                                .grey[500],
                                                           ),
                                                         ),
                                                       ],
                                                     ),
                                                     const SizedBox(height: 2),
-                                                    _buildCommentText(reply.text, comment.userName),
+                                                    _buildCommentText(
+                                                      reply.text,
+                                                      comment.userName,
+                                                    ),
                                                     const SizedBox(height: 4),
                                                     Row(
                                                       children: [
                                                         const Spacer(),
                                                         GestureDetector(
-                                                          onTap: () => controller.toggleLikeCommentReply(widget.postIndex, comment.id, reply.id),
+                                                          onTap: () => controller
+                                                              .toggleLikeCommentReply(
+                                                                widget
+                                                                    .postIndex,
+                                                                comment.id,
+                                                                reply.id,
+                                                              ),
                                                           child: Icon(
                                                             reply.isLiked
-                                                                ? Icons.thumb_up_alt_rounded
-                                                                : Icons.thumb_up_off_alt_rounded,
+                                                                ? Icons
+                                                                      .thumb_up_alt_rounded
+                                                                : Icons
+                                                                      .thumb_up_off_alt_rounded,
                                                             size: 14,
-                                                            color: reply.isLiked ? Colors.blueAccent : Colors.grey[600],
+                                                            color: reply.isLiked
+                                                                ? Colors
+                                                                      .blueAccent
+                                                                : Colors
+                                                                      .grey[600],
                                                           ),
                                                         ),
-                                                        const SizedBox(width: 4),
+                                                        const SizedBox(
+                                                          width: 4,
+                                                        ),
                                                         Text(
                                                           '${reply.likesCount}',
                                                           style: TextStyle(
                                                             fontSize: 11,
-                                                            color: Colors.grey[600],
+                                                            color: Colors
+                                                                .grey[600],
                                                           ),
                                                         ),
-                                                        const SizedBox(width: 12),
+                                                        const SizedBox(
+                                                          width: 12,
+                                                        ),
                                                         GestureDetector(
-                                                          onTap: () => controller.toggleDislikeCommentReply(widget.postIndex, comment.id, reply.id),
+                                                          onTap: () => controller
+                                                              .toggleDislikeCommentReply(
+                                                                widget
+                                                                    .postIndex,
+                                                                comment.id,
+                                                                reply.id,
+                                                              ),
                                                           child: Icon(
                                                             reply.isDisliked
-                                                                ? Icons.thumb_down_alt_rounded
-                                                                : Icons.thumb_down_off_alt_rounded,
+                                                                ? Icons
+                                                                      .thumb_down_alt_rounded
+                                                                : Icons
+                                                                      .thumb_down_off_alt_rounded,
                                                             size: 14,
-                                                            color: reply.isDisliked ? Colors.redAccent : Colors.grey[600],
+                                                            color:
+                                                                reply.isDisliked
+                                                                ? Colors
+                                                                      .redAccent
+                                                                : Colors
+                                                                      .grey[600],
                                                           ),
                                                         ),
                                                       ],
@@ -490,18 +672,24 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                 );
               }),
             ),
-            
+
             // Reply Target Indicator Bar
             Obx(() {
-              if (selectedReplyComment.value == null) return const SizedBox.shrink();
+              if (selectedReplyComment.value == null)
+                return const SizedBox.shrink();
               return Container(
                 color: const Color(0xFFF9FAFB),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      StaticString.replyingToUser.trParams({'name': selectedReplyComment.value!.userName}),
+                      StaticString.replyingToUser.trParams({
+                        'name': selectedReplyComment.value!.userName,
+                      }),
                       style: const TextStyle(
                         color: Colors.blueAccent,
                         fontSize: 13,
@@ -520,9 +708,9 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                 ),
               );
             }),
-            
+
             const Divider(height: 1, thickness: 0.5),
-            
+
             // Bottom Input Bar
             Obx(() {
               final isReplying = selectedReplyComment.value != null;
@@ -548,9 +736,16 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                           focusNode: _commentFocusNode,
                           decoration: InputDecoration(
                             hintText: isReplying
-                                ? StaticString.replyToUserHint.trParams({'name': replyUser})
-                                : StaticString.commentingAsUser.trParams({'name': 'shahriar'}),
-                            hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+                                ? StaticString.replyToUserHint.trParams({
+                                    'name': replyUser,
+                                  })
+                                : StaticString.commentingAsUser.trParams({
+                                    'name': sharedPrefHelper.getUserName(),
+                                  }),
+                            hintStyle: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 14,
+                            ),
                             border: InputBorder.none,
                           ),
                         ),
@@ -566,10 +761,15 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                               selectedReplyComment.value!.id,
                               _textController.text,
                             );
-                            expandedCommentIds.add(selectedReplyComment.value!.id);
+                            expandedCommentIds.add(
+                              selectedReplyComment.value!.id,
+                            );
                             selectedReplyComment.value = null;
                           } else {
-                            controller.addComment(widget.postIndex, _textController.text);
+                            controller.addComment(
+                              widget.postIndex,
+                              _textController.text,
+                            );
                           }
                           _textController.clear();
                           _commentFocusNode.unfocus();

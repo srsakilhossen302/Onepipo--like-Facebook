@@ -12,11 +12,13 @@ class FollowerModel {
   final String id;
   final String name;
   final String avatarUrl;
+  final Map<String, dynamic>? rawJson;
 
   FollowerModel({
     required this.id,
     required this.name,
     required this.avatarUrl,
+    this.rawJson,
   });
 }
 
@@ -64,10 +66,7 @@ class HomeController extends GetxController {
       fetchBlockedUsers();
       fetchSavedPosts();
       fetchArchivedPosts();
-    } else {
-      loadMockPosts();
     }
-    loadMockFollowers();
   }
 
   Future<void> fetchBlockedUsers() async {
@@ -200,160 +199,7 @@ class HomeController extends GetxController {
     }
   }
 
-  void loadMockFollowers() {
-    final owolabi = FollowerModel(
-      id: '1',
-      name: 'Owolabi Ridwan',
-      avatarUrl:
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-    );
-    final elena = FollowerModel(
-      id: '2',
-      name: 'Elena Gonzalez',
-      avatarUrl:
-          'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-    );
-    final africa = FollowerModel(
-      id: '3',
-      name: 'Africa',
-      avatarUrl:
-          'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150',
-    );
-    final ahmed = FollowerModel(
-      id: '4',
-      name: 'Ahmed Wahid',
-      avatarUrl:
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-    );
-    final shahriarModel = FollowerModel(
-      id: '5',
-      name: 'Shahriar',
-      avatarUrl:
-          'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-    );
 
-    // Set initial followers
-    userFollowers['Shahriar'] = [owolabi, elena, africa].obs;
-    userFollowers['Ahmed Wahid'] = [elena, shahriarModel].obs;
-    userFollowers['Elena Gonzalez'] = [owolabi, africa, shahriarModel].obs;
-    userFollowers['Africa'] = [elena, ahmed, shahriarModel].obs;
-
-    // Set initial following
-    userFollowing['Shahriar'] = [elena, ahmed].obs;
-    userFollowing['Ahmed Wahid'] = [elena, africa].obs;
-    userFollowing['Elena Gonzalez'] = [
-      owolabi,
-      africa,
-      ahmed,
-      shahriarModel,
-    ].obs;
-    userFollowing['Africa'] = [elena, ahmed].obs;
-
-    followers.assignAll([owolabi, elena, africa, ahmed]);
-  }
-
-  void loadMockPosts() {
-    posts.assignAll([
-      PostModel(
-        id: '1',
-        userName: 'Ahmed Wahid',
-        userAvatarUrl:
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-        timeAgo: '1h ago',
-        badgeText: StaticString.solution,
-        contentText:
-            'Are you ready to dive into this exciting journey? Let\'s get started by exploring the fundamentals together! 🚀 We\'ll cover everything you need to know to set a solid foundation for your adventure ahead. So, buckle up and let\'s embark on this learning experience!',
-        likesCount: 23,
-        commentsCount: 1,
-        sharesCount: 8,
-        isLiked: false,
-        comments: [
-          CommentModel(
-            id: '101',
-            userName: 'africa',
-            userAvatarUrl:
-                'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150',
-            timeAgo: '1h',
-            text: 'we need to free the children in Nigeria.',
-            likesCount: 0,
-            isLiked: false,
-            isDisliked: false,
-          ),
-        ],
-      ),
-      PostModel(
-        id: '2',
-        userName: 'Elena Gonzalez',
-        userAvatarUrl:
-            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
-        timeAgo: '1h ago',
-        badgeText: StaticString.problem,
-        contentText:
-            'Are you ready to dive into this exciting journey? Let\'s get started by exploring the fundamentals together',
-        contentImageUrl:
-            'https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800',
-        likesCount: 23,
-        commentsCount: 1,
-        sharesCount: 8,
-        isLiked: false,
-        comments: [
-          CommentModel(
-            id: '102',
-            userName: 'africa',
-            userAvatarUrl:
-                'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150',
-            timeAgo: '1h',
-            text: 'we need to free the children in Nigeria.',
-            likesCount: 0,
-            isLiked: false,
-            isDisliked: false,
-          ),
-        ],
-      ),
-      PostModel(
-        id: '3',
-        userName: 'Ahmed Wahid',
-        userAvatarUrl:
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-        timeAgo: '1h ago',
-        badgeText: StaticString.solution,
-        contentText:
-            'Are you ready to dive into this exciting journey? Let\'s get started by exploring the fundamentals together',
-        likesCount: 23,
-        commentsCount: 1,
-        sharesCount: 8,
-        isLiked: false,
-        comments: [
-          CommentModel(
-            id: '103',
-            userName: 'africa',
-            userAvatarUrl:
-                'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150',
-            timeAgo: '1h',
-            text: 'we need to free the children in Nigeria.',
-            likesCount: 0,
-            isLiked: false,
-            isDisliked: false,
-          ),
-        ],
-      ),
-      PostModel(
-        id: '4',
-        userName: 'Shahriar',
-        userAvatarUrl:
-            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-        timeAgo: '2h ago',
-        badgeText: StaticString.solution,
-        contentText:
-            'Excited to join Onepipo! Building the future of social networking with a clean and premium design system. Let\'s connect and build together! 🚀💻',
-        likesCount: 15,
-        commentsCount: 0,
-        sharesCount: 3,
-        isLiked: false,
-        comments: [],
-      ),
-    ]);
-  }
 
   Future<void> toggleLike(int index) async {
     if (index < 0 || index >= posts.length) return;
