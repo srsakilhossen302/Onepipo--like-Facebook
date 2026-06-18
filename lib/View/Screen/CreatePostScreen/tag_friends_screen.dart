@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../HomeScreen/Controller/home_controller.dart';
 import '../../../helper/network_img/network_img.dart';
+import '../../../service/api_client.dart';
+import '../../../service/api_url.dart';
 
 class TagFriendsScreen extends StatefulWidget {
   const TagFriendsScreen({super.key});
@@ -14,20 +17,24 @@ class TagFriendsScreen extends StatefulWidget {
 
 class _TagFriendsScreenState extends State<TagFriendsScreen> {
   final HomeController _homeController = Get.find<HomeController>();
+  final ApiClient _apiClient = Get.find<ApiClient>();
   final List<String> _selectedFriends = [];
+  List<FollowerModel> _allFollowers = [];
   List<FollowerModel> _filteredFriends = [];
   final TextEditingController _searchController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _filteredFriends = List.from(_homeController.followers);
     _searchController.addListener(_filterFriends);
 
     // Preload selected friends from arguments
     if (Get.arguments != null && Get.arguments is List<String>) {
       _selectedFriends.addAll(Get.arguments as List<String>);
     }
+
+    _fetchFollowers();
   }
 
   @override
@@ -37,13 +44,54 @@ class _TagFriendsScreenState extends State<TagFriendsScreen> {
     super.dispose();
   }
 
+  Future<void> _fetchFollowers() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final response = await _apiClient.get(ApiUrl.followers);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final dynamic responseData = jsonDecode(response.body);
+        List<dynamic> dataList = [];
+        if (responseData is Map && responseData.containsKey('data') && responseData['data'] is List) {
+          dataList = responseData['data'];
+        } else if (responseData is List) {
+          dataList = responseData;
+        }
+
+        final List<FollowerModel> loaded = dataList.map((json) {
+          final id = (json['id'] ?? '').toString();
+          final name = json['name'] ?? json['username'] ?? json['user_name'] ?? 'Anonymous';
+          final photo = json['photo'] ?? json['photo_url'] ?? json['avatar'] ?? json['avatar_url'] ?? json['image'] ?? '';
+          return FollowerModel(
+            id: id,
+            name: name,
+            avatarUrl: photo,
+            rawJson: json is Map<String, dynamic> ? json : null,
+          );
+        }).toList();
+
+        setState(() {
+          _allFollowers = loaded;
+          _filteredFriends = loaded;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching followers in TagFriendsScreen: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   void _filterFriends() {
     final query = _searchController.text.toLowerCase().trim();
     setState(() {
       if (query.isEmpty) {
-        _filteredFriends = List.from(_homeController.followers);
+        _filteredFriends = List.from(_allFollowers);
       } else {
-        _filteredFriends = _homeController.followers
+        _filteredFriends = _allFollowers
             .where((f) => f.name.toLowerCase().contains(query))
             .toList();
       }
@@ -122,20 +170,26 @@ class _TagFriendsScreenState extends State<TagFriendsScreen> {
               ),
             ),
 
-            // Friends List
+            // Followers List
             Expanded(
-              child: _filteredFriends.isEmpty
-                  ? Center(
-                      child: Text(
-                        StaticString.noFriendsFound.tr,
-                        style: TextStyle(
-                          color: Colors.grey[500],
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1877F2)),
                       ),
                     )
-                  : ListView.separated(
+                  : _filteredFriends.isEmpty
+                      ? Center(
+                          child: Text(
+                            StaticString.noFriendsFound.tr,
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        )
+                      : ListView.separated(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       itemCount: _filteredFriends.length,
                       separatorBuilder: (context, index) => const Divider(

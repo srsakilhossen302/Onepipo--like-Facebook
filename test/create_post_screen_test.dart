@@ -16,6 +16,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:onepipo/helper/shared_prefe/shared_prefe.dart';
 
 class MockApiClient extends ApiClient {
+  bool _isSaved = false;
+
   @override
   Future<http.Response> get(
     String uri, {
@@ -56,6 +58,11 @@ class MockApiClient extends ApiClient {
         '{"status":"success","data":{"id":5,"name":"Shahriar","username":"shahriar","photo":""}}',
         200,
       );
+    } else if (uri == '/users/followers') {
+      return http.Response(
+        '{"status":"success","data":[{"id":"1","name":"Owolabi Ridwan","username":"owolabi","photo":"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"},{"id":"2","name":"Elena Gonzalez","username":"elena","photo":"https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150"}]}',
+        200,
+      );
     } else if (uri.startsWith('/users/search')) {
       return http.Response(
         '{"status":"success","data":[{"id":"1","name":"Owolabi Ridwan","username":"owolabi","photo":"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"}]}',
@@ -90,8 +97,10 @@ class MockApiClient extends ApiClient {
       if (uri.contains('999')) {
         return http.Response('{"error":"server error"}', 500);
       }
+      _isSaved = !_isSaved;
+      final msg = _isSaved ? "Post saved successfully" : "Post removed from saved";
       return http.Response(
-        '{"status":"success","message":"Post saved successfully"}',
+        '{"status":"success","message":"$msg"}',
         200,
       );
     } else if (RegExp(r'^\/posts\/[^/]+\/report$').hasMatch(uri)) {
@@ -149,7 +158,11 @@ void main() {
       return true;
     });
 
-    SharedPreferences.setMockInitialValues({});
+    SharedPreferences.setMockInitialValues({
+      'user_name': 'Shahriar',
+      'user_username': 'shahriar_',
+      'user_photo': 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+    });
     final sharedPreferences = await SharedPreferences.getInstance();
     Get.put<SharedPreferences>(sharedPreferences, permanent: true);
     Get.put<SharedPreferenceHelper>(SharedPreferenceHelper(sharedPreferences: Get.find()), permanent: true);
@@ -204,6 +217,21 @@ void main() {
 
     // Ahmed Wahid's is index 0, Shahriar's is index 3 in mock posts
     const editingIndex = 3; 
+    
+    // Populate controller.posts with 4 mock posts
+    final mockPosts = List.generate(4, (index) => PostModel(
+      id: 'post_$index',
+      userName: index == 3 ? 'Shahriar' : 'User $index',
+      userAvatarUrl: '',
+      timeAgo: 'Just now',
+      badgeText: 'problem',
+      contentText: 'Post content $index',
+      groupName: index == 3 ? 'Tech Enthusiasts' : null,
+      taggedFriends: index == 3 ? ['Elena Gonzalez'] : null,
+      comments: [],
+    ));
+    controller.posts.assignAll(mockPosts);
+
     final originalPost = controller.posts[editingIndex];
 
     await tester.pumpWidget(
@@ -258,32 +286,20 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
-    // Verify groups list is displayed
+    // Verify groups list is empty/vacant
     expect(find.text('Select Group'), findsOneWidget);
-    expect(find.text('Flutter Developers'), findsOneWidget);
-    expect(find.text('Onepipo Community'), findsOneWidget);
-
-    // Filter list
-    await tester.enterText(find.byType(TextField), 'Tech');
-    await tester.pump();
-
-    expect(find.text('Flutter Developers'), findsNothing);
-    expect(find.text('Tech Enthusiasts'), findsOneWidget);
-
-    // Select group
-    await tester.tap(find.text('Tech Enthusiasts'));
-    await tester.pump();
+    expect(find.text('No groups found'), findsOneWidget);
 
     // Tap Next
     await tester.tap(find.widgetWithText(ElevatedButton, 'Next'));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
-    // Verify it popped and returned the correct group name
-    expect(returnedGroup, 'Tech Enthusiasts');
+    // Verify it popped and returned null (since no group selected/available)
+    expect(returnedGroup, isNull);
   });
 
-  testWidgets('TagFriendsScreen lists, selects friends', (WidgetTester tester) async {
+  testWidgets('TagFriendsScreen lists, selects followers', (WidgetTester tester) async {
     await tester.pumpWidget(
       GetMaterialApp(
         translations: AppTranslator(),
@@ -299,8 +315,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
-    // Verify friends list
-    expect(find.text('Tag Friends'), findsOneWidget);
+    // Verify followers list
+    expect(find.text('Tag Followers'), findsOneWidget);
     expect(find.text('Owolabi Ridwan'), findsOneWidget);
     expect(find.text('Elena Gonzalez'), findsOneWidget);
 
@@ -316,7 +332,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
 
-    // Verify selected friends are returned
+    // Verify selected friends/followers are returned
     expect(returnedFriends, isNotNull);
     expect(returnedFriends, contains('Owolabi Ridwan'));
     expect(returnedFriends, contains('Elena Gonzalez'));

@@ -11,15 +11,7 @@ class GroupSelectionScreen extends StatefulWidget {
 }
 
 class _GroupSelectionScreenState extends State<GroupSelectionScreen> {
-  final List<String> _allGroups = [
-    'Flutter Developers',
-    'Onepipo Community',
-    'Tech Enthusiasts',
-    'Dhaka University Friends',
-    'Creative Designers',
-    'Freelancers Bangladesh',
-    'Social Network Admins',
-  ];
+  final List<String> _allGroups = [];
 
   List<String> _filteredGroups = [];
   String? _selectedGroupName;
