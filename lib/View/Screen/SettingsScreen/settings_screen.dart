@@ -13,6 +13,7 @@ import '../../../service/api_client.dart';
 import '../../../service/api_url.dart';
 import '../ProfileScreen/Controller/my_profile_controller.dart';
 import '../../../helper/network_img/network_img.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -30,6 +31,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
+  }
+
+  Future<void> _launchURL(String urlString) async {
+    final Uri url = Uri.parse(urlString);
+    try {
+      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+        ToastMessage.showToast(message: 'Could not launch $urlString');
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Error launching URL: $e');
+    }
   }
 
   Future<bool> _updateSettings(String value) async {
@@ -521,7 +533,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSettingsTile(
               icon: Icons.info_outline_rounded,
               title: StaticString.aboutAccount.tr,
-              onTap: () {},
+              onTap: () => _launchURL('https://onepipo.com/about'),
             ),
             _buildSettingsTile(
               icon: Icons.bookmark_outline_rounded,
@@ -570,12 +582,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSettingsTile(
               icon: Icons.shield_outlined,
               title: StaticString.privacyPolicy.tr,
-              onTap: () {},
+              onTap: () => _launchURL('https://onepipo.com/privacy-policy'),
             ),
             _buildSettingsTile(
               icon: Icons.description_outlined,
               title: StaticString.termsOfUse.tr,
-              onTap: () {},
+              onTap: () => _launchURL('https://onepipo.com/terms-of-use'),
             ),
 
             // Notifications Section
