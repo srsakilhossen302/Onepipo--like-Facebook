@@ -358,19 +358,58 @@ class HomeController extends GetxController {
     if (index < 0 || index >= posts.length) return;
 
     final post = posts[index];
-    // We don't have an isArchived field in PostModel, so we'll just update the list optimistically
+    final originalIndex = index;
+
+    // Optimistically remove from main list
+    posts.removeAt(index);
+    posts.refresh();
+
+    // Optimistically add to archives
+    bool addedToArchives = false;
+    if (!archivedPosts.any((p) => p.id == post.id)) {
+      archivedPosts.add(post);
+      archivedPosts.refresh();
+      addedToArchives = true;
+    }
+
     try {
       final response = await Get.find<ApiClient>().post(
         ApiUrl.archivePost(post.id),
       );
       print('Archive Post API Response: ${response.body}');
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        ToastMessage.showToast(message: 'Post archived successfully!');
-      } else {
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        // Revert on failure: insert post back to main list
+        if (originalIndex <= posts.length) {
+          posts.insert(originalIndex, post);
+        } else {
+          posts.add(post);
+        }
+        posts.refresh();
+
+        if (addedToArchives) {
+          archivedPosts.removeWhere((p) => p.id == post.id);
+          archivedPosts.refresh();
+        }
+
         ApiCheck.checkApi(response);
+      } else {
+        ToastMessage.showToast(message: 'Post archived successfully!');
       }
     } catch (e) {
+      // Revert on connection error
+      if (originalIndex <= posts.length) {
+        posts.insert(originalIndex, post);
+      } else {
+        posts.add(post);
+      }
+      posts.refresh();
+
+      if (addedToArchives) {
+        archivedPosts.removeWhere((p) => p.id == post.id);
+        archivedPosts.refresh();
+      }
+
       ToastMessage.showToast(message: 'Connection error: $e');
     }
   }
@@ -1178,9 +1217,47 @@ class HomeController extends GetxController {
     }
   }
 
-  void deletePost(int index) {
-    if (index >= 0 && index < posts.length) {
-      posts.removeAt(index);
+  Future<void> deletePost(int index) async {
+    if (index < 0 || index >= posts.length) return;
+
+    final post = posts[index];
+    final originalIndex = index;
+
+    // Optimistically remove from list
+    posts.removeAt(index);
+    posts.refresh();
+
+    try {
+      final response = await Get.find<ApiClient>().delete(
+        ApiUrl.deletePost(post.id),
+      );
+      print('Delete Post API Response: ${response.body}');
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        // Revert on failure
+        if (originalIndex <= posts.length) {
+          posts.insert(originalIndex, post);
+        } else {
+          posts.add(post);
+        }
+        posts.refresh();
+        ApiCheck.checkApi(response);
+      } else {
+        // Also remove from savedPosts and archivedPosts lists
+        savedPosts.removeWhere((p) => p.id == post.id);
+        savedPosts.refresh();
+        archivedPosts.removeWhere((p) => p.id == post.id);
+        archivedPosts.refresh();
+      }
+    } catch (e) {
+      // Revert on connection error
+      if (originalIndex <= posts.length) {
+        posts.insert(originalIndex, post);
+      } else {
+        posts.add(post);
+      }
+      posts.refresh();
+      ToastMessage.showToast(message: 'Connection error: $e');
     }
   }
 

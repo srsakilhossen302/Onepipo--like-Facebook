@@ -51,4 +51,5 @@ class ApiUrl {
   // Archive Posts endpoints
   static String archivePost(String postId) => '/posts/$postId/archive';
   static const String archivedPosts = '/users/load/archives';
+  static String deletePost(String postId) => '/posts/$postId';
 }
