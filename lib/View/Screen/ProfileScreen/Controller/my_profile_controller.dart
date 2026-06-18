@@ -25,6 +25,8 @@ class MyProfileController extends GetxController {
   var myPosts = <PostModel>[].obs;
   var coverPhotoPath = ''.obs;
   var profilePhotoPath = ''.obs;
+  var profilePhotoUrl = ''.obs;
+  var coverPhotoUrl = ''.obs;
 
   final countriesList = <CountryModel>[].obs;
   final isLoadingCountries = false.obs;
@@ -39,20 +41,121 @@ class MyProfileController extends GetxController {
 
   final ImagePicker _picker = ImagePicker();
 
+  Future<void> loginInBackground() async {
+    final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
+    final email = sharedPrefHelper.getUserEmail();
+    final password = sharedPrefHelper.getUserPassword();
+
+    if (email.isEmpty || password.isEmpty) return;
+
+    try {
+      final body = {
+        'credential': email,
+        'password': password,
+        'type': 'email',
+        'device_token': 'mock_device_token_xyz',
+        'device': 'Unknown Device',
+        'app_version': '1.0.0',
+      };
+
+      final response = await Get.find<ApiClient>().post(
+        ApiUrl.login,
+        body: body,
+        headers: {'no-auth': 'true'},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        String? token;
+        if (responseData['data'] is Map) {
+          final data = responseData['data'] as Map<String, dynamic>;
+          if (data.containsKey('token')) {
+            token = data['token']?.toString();
+          }
+        }
+        
+        // Fallback checks
+        if (token == null) {
+          if (responseData.containsKey('token')) {
+            token = responseData['token']?.toString();
+          } else if (responseData.containsKey('access_token')) {
+            token = responseData['access_token']?.toString();
+          } else if (responseData['data'] is Map) {
+            final data = responseData['data'] as Map<String, dynamic>;
+            if (data.containsKey('access_token')) {
+              token = data['access_token']?.toString();
+            } else if (data.containsKey('accessToken')) {
+              token = data['accessToken']?.toString();
+            } else if (data['authorisation'] is Map) {
+              final auth = data['authorisation'] as Map<String, dynamic>;
+              if (auth.containsKey('token')) {
+                token = auth['token']?.toString();
+              }
+            }
+          }
+        }
+        
+        if (token != null) {
+          await sharedPrefHelper.setString(AppConst.token, token);
+        }
+
+        if (responseData['data'] is Map) {
+          final data = responseData['data'] as Map<String, dynamic>;
+          if (data['user'] is Map) {
+            final user = data['user'] as Map<String, dynamic>;
+            
+            if (user.containsKey('id')) {
+              final idStr = user['id'].toString();
+              myUserId.value = idStr;
+              await sharedPrefHelper.setString('logged_in_user_id', idStr);
+            }
+            if (user.containsKey('email')) {
+              await sharedPrefHelper.setString('user_email', user['email'].toString());
+            }
+
+            if (user.containsKey('name')) {
+              currentUserName.value = user['name'].toString();
+            }
+
+            if (user.containsKey('photo')) {
+              profilePhotoUrl.value = user['photo'].toString();
+            }
+
+            if (user.containsKey('cover')) {
+              coverPhotoUrl.value = user['cover'].toString();
+            }
+            
+            loadMyPosts();
+            if (!Get.testMode) {
+              fetchMyPosts();
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print('Background login error: $e');
+    }
+  }
+
   @override
   void onInit() {
     super.onInit();
     scrollController.addListener(_scrollListener);
-    _getLoggedInUserId().then((id) {
-      if (id != null) {
-        myUserId.value = id;
-        loadMyPosts();
+    
+    // loginInBackground is awaited sequentially to avoid token invalidation race conditions
+    loginInBackground().then((_) {
+      _getLoggedInUserId().then((id) {
+        if (id != null) {
+          myUserId.value = id;
+          loadMyPosts();
+        }
+      });
+      fetchCountries();
+      if (!Get.testMode) {
+        fetchMyPosts();
       }
     });
-    fetchCountries();
-    if (!Get.testMode) {
-      fetchMyPosts();
-    }
+
     // React to changes in home controller posts to refresh user posts
     ever(homeController.posts, (_) => loadMyPosts());
   }

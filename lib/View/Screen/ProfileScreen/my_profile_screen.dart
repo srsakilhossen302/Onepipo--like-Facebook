@@ -19,12 +19,11 @@ class MyProfileScreen extends StatefulWidget {
 
 class _MyProfileScreenState extends State<MyProfileScreen> {
   final MyProfileController controller = Get.put(MyProfileController());
-  late final String userName = controller.userName;
+  String get userName => controller.userName;
 
   @override
   void initState() {
     super.initState();
-    controller.fetchMyPosts();
   }
 
   @override
@@ -55,15 +54,17 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     left: 0,
                     right: 0,
                     height: 180,
-                    child: controller.coverPhotoPath.value.isEmpty
-                        ? const NetworkImg(
-                            imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800", // ocean abstract cover
+                    child: controller.coverPhotoPath.value.isNotEmpty
+                        ? Image.file(
+                            File(controller.coverPhotoPath.value),
                             width: double.infinity,
                             height: 180,
                             fit: BoxFit.cover,
                           )
-                        : Image.file(
-                            File(controller.coverPhotoPath.value),
+                        : NetworkImg(
+                            imageUrl: controller.coverPhotoUrl.value.isNotEmpty
+                                ? controller.coverPhotoUrl.value
+                                : "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800",
                             width: double.infinity,
                             height: 180,
                             fit: BoxFit.cover,
@@ -162,19 +163,29 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                               ),
                             ],
                           ),
-                          child: controller.profilePhotoPath.value.isEmpty
-                              ? const Icon(
-                                  Icons.person,
-                                  color: Colors.grey,
-                                  size: 50,
-                                )
-                              : ClipRRect(
+                          child: controller.profilePhotoPath.value.isNotEmpty
+                              ? ClipRRect(
                                   borderRadius: BorderRadius.circular(44),
                                   child: Image.file(
                                     File(controller.profilePhotoPath.value),
                                     fit: BoxFit.cover,
                                   ),
-                                ),
+                                )
+                              : controller.profilePhotoUrl.value.isNotEmpty
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(44),
+                                      child: NetworkImg(
+                                        imageUrl: controller.profilePhotoUrl.value,
+                                        width: 88,
+                                        height: 88,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.person,
+                                      color: Colors.grey,
+                                      size: 50,
+                                    ),
                         ),
                         Positioned(
                           bottom: 0,

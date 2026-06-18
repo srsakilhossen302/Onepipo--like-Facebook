@@ -57,6 +57,28 @@ class SharedPreferenceHelper {
     return await sharedPreferences.remove(key);
   }
 
+  // Save user credentials (email and password)
+  Future<void> saveUserCredentials(String email, String password) async {
+    await sharedPreferences.setString('user_email', email);
+    await sharedPreferences.setString('user_password', password);
+  }
+
+  // Get saved email
+  String getUserEmail() {
+    return sharedPreferences.getString('user_email') ?? '';
+  }
+
+  // Get saved password
+  String getUserPassword() {
+    return sharedPreferences.getString('user_password') ?? '';
+  }
+
+  // Clear user credentials
+  Future<void> clearUserCredentials() async {
+    await sharedPreferences.remove('user_email');
+    await sharedPreferences.remove('user_password');
+  }
+
   // Clear Preferences
   Future<bool> clear() async {
     return await sharedPreferences.clear();

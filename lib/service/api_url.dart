@@ -37,9 +37,10 @@ class ApiUrl {
   static String markNotificationRead(String id) => '/notifications/$id/read';
   static const String markAllNotificationsRead = '/notifications/read-all';
   static const String clearAllNotifications = '/notifications/clear';
-  static String acceptFollowRequest(String id) => '/follow-requests/$id/accept';
-  static String declineFollowRequest(String id) =>
-      '/follow-requests/$id/decline';
+  static String acceptFollowRequest(String userId) =>
+      '/users/follow-requests/$userId/accept';
+  static String declineFollowRequest(String userId) =>
+      '/users/follow-requests/$userId/decline';
   static String sendFollowRequest(String userId) =>
       '/users/$userId/follow-request';
 

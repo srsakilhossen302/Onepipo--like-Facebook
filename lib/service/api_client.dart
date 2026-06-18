@@ -16,12 +16,14 @@ class ApiClient {
     };
 
     final token = _sharedPrefHelper.getString(AppConst.token);
-    if (token.isNotEmpty) {
+    final hasNoAuth = customHeaders != null && customHeaders.containsKey('no-auth');
+    if (token.isNotEmpty && !hasNoAuth) {
       headers[AppConst.authorization] = 'Bearer $token';
     }
 
     if (customHeaders != null) {
       headers.addAll(customHeaders);
+      headers.remove('no-auth');
     }
     return headers;
   }

@@ -31,6 +31,13 @@ class CreateAccountController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    referralController.clear();
+    fullNameController.clear();
+    usernameController.clear();
+    emailController.clear();
+    passwordController.clear();
+    confirmPasswordController.clear();
+    bioController.clear();
     fetchCountries();
   }
 
@@ -68,13 +75,6 @@ class CreateAccountController extends GetxController {
 
   @override
   void onClose() {
-    referralController.dispose();
-    fullNameController.dispose();
-    usernameController.dispose();
-    emailController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
-    bioController.dispose();
     super.onClose();
   }
 
@@ -209,6 +209,7 @@ class CreateAccountController extends GetxController {
         final usernameResponse = await apiClient.post(
           ApiUrl.validateUsername,
           body: {'username': username},
+          headers: {'no-auth': 'true'},
         );
 
         if (usernameResponse.statusCode != 200 && usernameResponse.statusCode != 201) {
@@ -226,6 +227,7 @@ class CreateAccountController extends GetxController {
               'referral_code': referralCode,
               'code': referralCode,
             },
+            headers: {'no-auth': 'true'},
           );
 
           if (referralResponse.statusCode != 200 && referralResponse.statusCode != 201) {
@@ -244,6 +246,7 @@ class CreateAccountController extends GetxController {
             'type': 'register',
             'device_token': deviceToken,
           },
+          headers: {'no-auth': 'true'},
         );
 
         isLoading.value = false;
@@ -291,6 +294,7 @@ class CreateAccountController extends GetxController {
         final response = await apiClient.post(
           ApiUrl.register,
           body: body,
+          headers: {'no-auth': 'true'},
         );
 
         isLoading.value = false;
@@ -305,13 +309,35 @@ class CreateAccountController extends GetxController {
               token = data['token']?.toString();
             }
           }
-          if (token == null && responseData.containsKey('token')) {
-            token = responseData['token']?.toString();
+          
+          // Fallback checks
+          if (token == null) {
+            if (responseData.containsKey('token')) {
+              token = responseData['token']?.toString();
+            } else if (responseData.containsKey('access_token')) {
+              token = responseData['access_token']?.toString();
+            } else if (responseData['data'] is Map) {
+              final data = responseData['data'] as Map<String, dynamic>;
+              if (data.containsKey('access_token')) {
+                token = data['access_token']?.toString();
+              } else if (data.containsKey('accessToken')) {
+                token = data['accessToken']?.toString();
+              } else if (data['authorisation'] is Map) {
+                final auth = data['authorisation'] as Map<String, dynamic>;
+                if (auth.containsKey('token')) {
+                  token = auth['token']?.toString();
+                }
+              }
+            }
           }
+          
           token ??= "mock_register_token_xyz";
-
           final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
           await sharedPrefHelper.setString(AppConst.token, token);
+          await sharedPrefHelper.saveUserCredentials(
+            emailController.text.trim(),
+            passwordController.text.trim(),
+          );
 
           ToastMessage.showToast(message: StaticString.registrationSuccess.tr);
           Get.offAllNamed(AppRoute.homeScreen);

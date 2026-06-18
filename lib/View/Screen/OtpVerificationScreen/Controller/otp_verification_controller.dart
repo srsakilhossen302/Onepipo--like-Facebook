@@ -99,6 +99,7 @@ class OtpVerificationController extends GetxController {
           'type': 'register',
           'device_token': deviceToken,
         },
+        headers: {'no-auth': 'true'},
       );
 
       isLoading.value = false;
@@ -141,6 +142,7 @@ class OtpVerificationController extends GetxController {
           'credential': email.value,
           'device_token': deviceToken,
         },
+        headers: {'no-auth': 'true'},
       );
 
       isLoading.value = false;

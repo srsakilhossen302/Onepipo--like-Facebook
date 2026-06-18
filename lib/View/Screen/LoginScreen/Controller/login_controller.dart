@@ -25,9 +25,14 @@ class LoginController extends GetxController {
   final _apiClient = Get.find<ApiClient>();
 
   @override
+  void onInit() {
+    super.onInit();
+    emailController.clear();
+    passwordController.clear();
+  }
+
+  @override
   void onClose() {
-    emailController.dispose();
-    passwordController.dispose();
     super.onClose();
   }
 
@@ -85,6 +90,7 @@ class LoginController extends GetxController {
       final response = await _apiClient.post(
         ApiUrl.login,
         body: body,
+        headers: {'no-auth': 'true'},
       );
 
       print("Login Response Status Code: ${response.statusCode}");
@@ -125,10 +131,9 @@ class LoginController extends GetxController {
           }
         }
         
-        // Fallback/Safety default if the token field is missing from response payload
         token ??= "mock_user_token_12345";
-
         await _sharedPrefHelper.setString(AppConst.token, token);
+        await _sharedPrefHelper.saveUserCredentials(email, password);
         
         ToastMessage.showToast(message: StaticString.loginSuccess.tr);
         Get.offAllNamed(AppRoute.homeScreen);

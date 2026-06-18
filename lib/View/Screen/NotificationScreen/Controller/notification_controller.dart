@@ -6,6 +6,7 @@ import '../../../../service/api_check.dart';
 import '../../../../Utils/ToastMessage/toast_message.dart';
 import '../../../../Utils/StaticString/static_string.dart';
 import '../../HomeScreen/Controller/home_controller.dart';
+import '../../../../helper/shared_prefe/shared_prefe.dart';
 
 enum NotificationType { like, followRequest, comment }
 
@@ -19,6 +20,7 @@ class NotificationItem {
   bool isUnread;
   String? actionStatus; // null, 'accepted', 'declined'
   final String? followRequestId;
+  final String? senderId;
 
   NotificationItem({
     required this.id,
@@ -30,6 +32,7 @@ class NotificationItem {
     this.isUnread = false,
     this.actionStatus,
     this.followRequestId,
+    this.senderId,
   });
 
   factory NotificationItem.fromJson(Map<String, dynamic> json) {
@@ -49,10 +52,11 @@ class NotificationItem {
         break;
     }
 
-    // Get user data - check 'author' first like PostModel, then 'user'
+    // Get user data - check 'author' first like PostModel, then 'user', then 'sender'
     Map<String, dynamic>? userJson =
         (json['author'] as Map<String, dynamic>?) ??
-        (json['user'] as Map<String, dynamic>?);
+        (json['user'] as Map<String, dynamic>?) ??
+        (json['sender'] as Map<String, dynamic>?);
     print('=== User JSON: $userJson');
     if (userJson != null) {
       print('=== User JSON Keys: ${userJson.keys}');
@@ -62,6 +66,7 @@ class NotificationItem {
     String? name;
     if (userJson != null) {
       name = userJson['name'];
+      name ??= userJson['full_name'];
       if (name == null &&
           userJson['first_name'] != null &&
           userJson['last_name'] != null) {
@@ -96,6 +101,17 @@ class NotificationItem {
     avatar ??=
         'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150';
 
+    final String? senderId = (userJson != null ? userJson['id'] : json['user_id'] ?? json['sender_id'])?.toString();
+
+    final sharedPref = Get.find<SharedPreferenceHelper>();
+    String? localAction = sharedPref.getString('notif_action_${json['id']}');
+    if (localAction.isEmpty) {
+      localAction = null;
+    }
+
+    final String? serverStatus = json['status']?.toString() ?? json['actionStatus']?.toString();
+    final String? actionStatus = localAction ?? ((serverStatus == 'pending') ? null : serverStatus);
+
     return NotificationItem(
       id: json['id']?.toString() ?? '',
       userName: name,
@@ -115,6 +131,8 @@ class NotificationItem {
           json['read'] == false ??
           false,
       followRequestId: json['follow_request_id']?.toString(),
+      senderId: senderId,
+      actionStatus: actionStatus,
     );
   }
 }
@@ -212,17 +230,21 @@ class NotificationController extends GetxController {
   }
 
   Future<void> acceptFollowRequest(NotificationItem item) async {
-    if (item.followRequestId == null) return;
+    final targetId = item.senderId ?? item.followRequestId;
+    if (targetId == null) return;
 
     loadingActions.add(item.id);
     loadingActions.refresh();
 
     try {
       final response = await Get.find<ApiClient>().post(
-        ApiUrl.acceptFollowRequest(item.followRequestId!),
+        ApiUrl.acceptFollowRequest(targetId),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        final sharedPref = Get.find<SharedPreferenceHelper>();
+        await sharedPref.setString('notif_action_${item.id}', 'accepted');
+
         final index = notifications.indexWhere((n) => n.id == item.id);
         if (index != -1) {
           notifications[index].actionStatus = 'accepted';
@@ -242,17 +264,21 @@ class NotificationController extends GetxController {
   }
 
   Future<void> declineFollowRequest(NotificationItem item) async {
-    if (item.followRequestId == null) return;
+    final targetId = item.senderId ?? item.followRequestId;
+    if (targetId == null) return;
 
     loadingActions.add(item.id);
     loadingActions.refresh();
 
     try {
       final response = await Get.find<ApiClient>().post(
-        ApiUrl.declineFollowRequest(item.followRequestId!),
+        ApiUrl.declineFollowRequest(targetId),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        final sharedPref = Get.find<SharedPreferenceHelper>();
+        await sharedPref.setString('notif_action_${item.id}', 'declined');
+
         final index = notifications.indexWhere((n) => n.id == item.id);
         if (index != -1) {
           notifications[index].actionStatus = 'declined';
