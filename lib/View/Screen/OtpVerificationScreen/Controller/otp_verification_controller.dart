@@ -4,6 +4,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 import '../../../../Utils/AppConst/app_const.dart';
 import '../../../../Utils/StaticString/static_string.dart';
 import '../../../../Utils/ToastMessage/toast_message.dart';
@@ -14,8 +15,7 @@ import '../../../../service/api_check.dart';
 import '../../CreateAccountScreen/Controller/create_account_controller.dart';
 
 class OtpVerificationController extends GetxController {
-  final otpControllers = List.generate(5, (_) => TextEditingController());
-  final focusNodes = List.generate(5, (_) => FocusNode());
+  final otpController = PinInputController();
   
   final timerSeconds = 59.obs;
   final canResend = false.obs;
@@ -38,12 +38,7 @@ class OtpVerificationController extends GetxController {
   @override
   void onClose() {
     _timer?.cancel();
-    for (var controller in otpControllers) {
-      controller.dispose();
-    }
-    for (var node in focusNodes) {
-      node.dispose();
-    }
+    otpController.dispose();
     super.onClose();
   }
 
@@ -80,14 +75,7 @@ class OtpVerificationController extends GetxController {
     if (!canResend.value) return;
     
     // Reset inputs
-    for (var controller in otpControllers) {
-      controller.clear();
-    }
-    
-    // Shift focus back to the first box
-    if (focusNodes.isNotEmpty) {
-      focusNodes[0].requestFocus();
-    }
+    otpController.clear();
     
     isLoading.value = true;
     try {
@@ -118,10 +106,7 @@ class OtpVerificationController extends GetxController {
 
   void verifyOtp() async {
     // Check if code is fully filled
-    String code = '';
-    for (var controller in otpControllers) {
-      code += controller.text.trim();
-    }
+    final code = otpController.text.trim();
 
     if (code.length < 5) {
       ToastMessage.showToast(message: StaticString.pleaseFillAllFields.tr);

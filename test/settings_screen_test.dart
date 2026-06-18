@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:onepipo/Language/translator.dart';
 import 'package:onepipo/View/Screen/SettingsScreen/settings_screen.dart';
@@ -256,6 +257,80 @@ void main() {
     // Verify auth token is deleted from SharedPreferences
     expect(prefHelper.getString('auth_token'), '');
   });
+
+  testWidgets('SettingsScreen Two-Factor Authentication onboarding flow test', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(800, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    // Mock the fluttertoast channel to capture the toast messages.
+    final List<MethodCall> methodCalls = [];
+    const channel = MethodChannel('PonnamKarthik/fluttertoast');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+      methodCalls.add(methodCall);
+      return true;
+    });
+
+    // Render SettingsScreen inside a GetMaterialApp
+    await tester.pumpWidget(
+      GetMaterialApp(
+        translations: AppTranslator(),
+        locale: const Locale('en', 'US'),
+        getPages: AppRoute.routes,
+        home: const SettingsScreen(),
+      ),
+    );
+
+    await tester.pump();
+
+    // Verify 2FA title is present
+    expect(find.text('Two-factor authentication'), findsOneWidget);
+
+    // Tap on the tile to start onboarding
+    await tester.tap(find.text('Two-factor authentication'));
+    await tester.pumpAndSettle();
+
+    // STEP 0: Intro
+    expect(find.text('Protect your account with an extra layer of security.'), findsOneWidget);
+    expect(find.text('Get started'), findsOneWidget);
+
+    // Tap Get started
+    await tester.tap(find.text('Get started'));
+    await tester.pumpAndSettle();
+
+    // STEP 1: Selection
+    expect(find.text('Enabling 2FA'), findsOneWidget);
+    expect(find.text('Enable'), findsOneWidget);
+
+    // Tap Enable
+    await tester.tap(find.text('Enable'));
+    await tester.pump(); // Start request API call
+    await tester.pumpAndSettle();
+
+    // STEP 2: OTP verification
+    expect(find.text('One-Time Password'), findsOneWidget);
+    expect(find.text('Submit'), findsOneWidget);
+
+    // Enter 5 digit OTP using MaterialPinField
+    final fields = find.byType(MaterialPinField);
+    expect(fields, findsOneWidget);
+    await tester.enterText(fields, '11111');
+    await tester.pump();
+
+    // Tap Submit
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Submit'));
+    await tester.pump(); // Start verify API call
+    await tester.pumpAndSettle();
+
+    // Verify success toast, popped to SettingsScreen, and 2FA enabled in pref helper
+    expect(methodCalls.last.arguments['msg'], 'Two-factor auth enabled');
+    expect(find.text('One-Time Password'), findsNothing);
+    expect(Get.find<SharedPreferenceHelper>().getIs2faEnabled(), isTrue);
+  });
 }
 
 class MockApiClient extends ApiClient {
@@ -307,6 +382,16 @@ class MockApiClient extends ApiClient {
     } else if (uri == '/users/change-password') {
       return http.Response(
         '{"status":"success","message":"Password updated successfully"}',
+        200,
+      );
+    } else if (uri == '/auth/2fa/request') {
+      return http.Response(
+        '{"status":"success","message":"2FA request successful"}',
+        200,
+      );
+    } else if (uri == '/auth/2fa/verify') {
+      return http.Response(
+        '{"status":"success","message":"2FA verification successful"}',
         200,
       );
     }

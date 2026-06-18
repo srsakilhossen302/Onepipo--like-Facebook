@@ -25,6 +25,12 @@ class MockApiClient extends ApiClient {
         '{"status":"success","data":[{"id":"1","name":"Owolabi Ridwan","username":"owolabi","photo":"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"}]}',
         200,
       );
+    } else if (uri.startsWith('/notifications')) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      return http.Response(
+        '{"status":"success","data":[]}',
+        200,
+      );
     }
     return http.Response('{"error":"not found"}', 404);
   }

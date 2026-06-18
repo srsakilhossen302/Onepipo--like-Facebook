@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:onepipo/View/Screen/OtpVerificationScreen/otp_verification_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:onepipo/Language/translator.dart';
@@ -139,9 +140,9 @@ void main() {
         widget.text.toPlainText().contains(mockEmail));
     expect(subtitleFinder, findsOneWidget);
 
-    // Verify 5 input fields are present
-    final pinInputsFinder = find.byType(TextField);
-    expect(pinInputsFinder, findsNWidgets(5));
+    // Verify MaterialPinField is present
+    final pinInputsFinder = find.byType(MaterialPinField);
+    expect(pinInputsFinder, findsOneWidget);
 
     // Verify submit button exists
     final submitButtonFinder = find.widgetWithText(ElevatedButton, 'Submit');
@@ -161,8 +162,7 @@ void main() {
     expect(methodCalls.last.arguments['msg'], 'Please fill in all fields');
 
     // Submit with partial inputs (2 digits)
-    await tester.enterText(pinInputsFinder.at(0), '1');
-    await tester.enterText(pinInputsFinder.at(1), '2');
+    await tester.enterText(pinInputsFinder, '12');
     await tester.tap(submitButtonFinder);
     await tester.pump();
     expect(methodCalls.last.arguments['msg'], 'Please fill in all fields');
@@ -189,11 +189,7 @@ void main() {
 
     // --- 5. SUCCESSFUL SUBMISSION AND NAVIGATION ---
     // Fill all 5 digits
-    await tester.enterText(pinInputsFinder.at(0), '1');
-    await tester.enterText(pinInputsFinder.at(1), '2');
-    await tester.enterText(pinInputsFinder.at(2), '3');
-    await tester.enterText(pinInputsFinder.at(3), '4');
-    await tester.enterText(pinInputsFinder.at(4), '5');
+    await tester.enterText(pinInputsFinder, '12345');
 
     await tester.tap(submitButtonFinder);
     await tester.pump();

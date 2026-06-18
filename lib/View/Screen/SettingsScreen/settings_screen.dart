@@ -632,25 +632,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
               trailing: _buildCustomSwitch(
                 value: controller.is2faEnabled.value,
                 onChanged: (val) async {
-                  controller.is2faEnabled.value = val;
-                  final success = await _updateSettings(
-                    val ? 'is_2fa_enabled:true' : 'is_2fa_enabled:false',
-                  );
-                  if (success) {
-                    ToastMessage.showToast(
-                      message: val
-                          ? StaticString.twoFactorAuthEnabled.tr
-                          : StaticString.twoFactorAuthDisabled.tr,
-                    );
+                  if (val) {
+                    Get.toNamed(AppRoute.twoFactorOnboarding);
                   } else {
-                    controller.is2faEnabled.value = !val;
-                    ToastMessage.showToast(
-                      message: 'Failed to update settings. Please try again.',
-                    );
+                    controller.is2faEnabled.value = false;
+                    final success = await _updateSettings('is_2fa_enabled:false');
+                    if (success) {
+                      Get.find<SharedPreferenceHelper>().setBool('is_2fa_enabled', false);
+                      ToastMessage.showToast(
+                        message: StaticString.twoFactorAuthDisabled.tr,
+                      );
+                    } else {
+                      controller.is2faEnabled.value = true;
+                      ToastMessage.showToast(
+                        message: 'Failed to update settings. Please try again.',
+                      );
+                    }
                   }
                 },
               ),
-              onTap: () {},
+              onTap: () {
+                if (!controller.is2faEnabled.value) {
+                  Get.toNamed(AppRoute.twoFactorOnboarding);
+                }
+              },
             )),
             _buildSettingsTile(
               iconAsset: 'assets/icons/Login history.svg',

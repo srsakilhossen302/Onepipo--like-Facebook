@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import 'Controller/otp_verification_controller.dart';
@@ -110,56 +111,34 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: const Color(0xFFE5E7EB), width: 1.0),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(5, (index) {
-                    return SizedBox(
-                      width: 40,
-                      child: TextField(
-                        controller: controller.otpControllers[index],
-                        focusNode: controller.focusNodes[index],
-                        keyboardType: TextInputType.number,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textLight,
-                        ),
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(1),
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        decoration: InputDecoration(
-                          contentPadding: const EdgeInsets.symmetric(vertical: 8.0),
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.grey[400]!,
-                              width: 1.5,
-                            ),
-                          ),
-                          focusedBorder: const UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xFF1877F2),
-                              width: 2.0,
-                            ),
-                          ),
-                        ),
-                        onChanged: (value) {
-                          if (value.isNotEmpty) {
-                            if (index < 4) {
-                              controller.focusNodes[index + 1].requestFocus();
-                            } else {
-                              controller.focusNodes[index].unfocus();
-                            }
-                          } else {
-                            if (index > 0) {
-                              controller.focusNodes[index - 1].requestFocus();
-                            }
-                          }
-                        },
-                      ),
-                    );
-                  }),
+                child: MaterialPinField(
+                  length: 5,
+                  keyboardType: TextInputType.number,
+                  pinController: controller.otpController,
+                  theme: MaterialPinTheme(
+                    shape: MaterialPinShape.underlined,
+                    cellSize: const Size(40, 50),
+                    spacing: 8,
+                    borderColor: Colors.grey[400]!,
+                    focusedBorderColor: const Color(0xFF1877F2),
+                    filledBorderColor: const Color(0xFF1877F2),
+                    followingBorderColor: Colors.grey[400]!,
+                    fillColor: Colors.transparent,
+                    focusedFillColor: Colors.transparent,
+                    filledFillColor: Colors.transparent,
+                    textStyle: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textLight,
+                    ),
+                    entryAnimation: MaterialPinAnimation.fade,
+                    animationDuration: const Duration(milliseconds: 200),
+                    animateCursor: !Get.testMode,
+                  ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  onChanged: (value) {},
                 ),
               ),
               const SizedBox(height: 24),

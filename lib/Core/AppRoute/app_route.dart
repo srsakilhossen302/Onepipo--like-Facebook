@@ -14,6 +14,7 @@ import '../../View/Screen/SettingsScreen/change_password_screen.dart';
 import '../../View/Screen/SettingsScreen/blocked_users_screen.dart';
 import '../../View/Screen/SettingsScreen/saved_posts_screen.dart';
 import '../../View/Screen/SettingsScreen/archived_posts_screen.dart';
+import '../../View/Screen/SettingsScreen/two_factor_setup_screen.dart';
 import '../../View/Screen/NotificationScreen/notification_screen.dart';
 import '../../View/Screen/LoginScreen/login_screen.dart';
 import '../../View/Screen/LoginScreen/Controller/login_controller.dart';
@@ -42,6 +43,7 @@ class AppRoute {
   static const String notifications = '/notifications';
   static const String savedPosts = '/saved_posts';
   static const String archivedPosts = '/archived_posts';
+  static const String twoFactorOnboarding = '/two_factor_onboarding';
 
   static String getSplashScreen() => splashScreen;
   static String getLoginScreen() => loginScreen;
@@ -60,6 +62,7 @@ class AppRoute {
   static String getNotifications() => notifications;
   static String getSavedPosts() => savedPosts;
   static String getArchivedPosts() => archivedPosts;
+  static String getTwoFactorOnboarding() => twoFactorOnboarding;
 
   static List<GetPage> routes = [
     GetPage(
@@ -110,5 +113,6 @@ class AppRoute {
     GetPage(name: notifications, page: () => const NotificationScreen()),
     GetPage(name: savedPosts, page: () => const SavedPostsScreen()),
     GetPage(name: archivedPosts, page: () => const ArchivedPostsScreen()),
+    GetPage(name: twoFactorOnboarding, page: () => const TwoFactorSetupScreen()),
   ];
 }
