@@ -9,12 +9,18 @@ import 'package:onepipo/Core/AppRoute/app_route.dart';
 import 'package:onepipo/helper/shared_prefe/shared_prefe.dart';
 import 'package:http/http.dart' as http;
 import 'package:onepipo/service/api_client.dart';
+import 'package:onepipo/View/Screen/HomeScreen/Controller/home_controller.dart';
 
 void main() {
-  setUp(() {
+  setUp(() async {
     Get.reset();
     Get.testMode = true;
+    SharedPreferences.setMockInitialValues({});
+    final sharedPreferences = await SharedPreferences.getInstance();
+    Get.put<SharedPreferences>(sharedPreferences, permanent: true);
+    Get.put<SharedPreferenceHelper>(SharedPreferenceHelper(sharedPreferences: sharedPreferences), permanent: true);
     Get.lazyPut<ApiClient>(() => MockApiClient(), fenix: true);
+    Get.lazyPut(() => HomeController(), fenix: true);
   });
 
   tearDown(() {
@@ -146,11 +152,6 @@ void main() {
       return true;
     });
 
-    // Mock SharedPreferences
-    SharedPreferences.setMockInitialValues({});
-    final sharedPreferences = await SharedPreferences.getInstance();
-    Get.put<SharedPreferences>(sharedPreferences, permanent: true);
-    Get.put<SharedPreferenceHelper>(SharedPreferenceHelper(sharedPreferences: Get.find()), permanent: true);
 
     // Render SettingsScreen inside a GetMaterialApp
     await tester.pumpWidget(
@@ -210,12 +211,9 @@ void main() {
       return true;
     });
 
-    // Mock SharedPreferences with initial auth token
-    SharedPreferences.setMockInitialValues({'auth_token': 'mock_user_token_12345'});
-    final sharedPreferences = await SharedPreferences.getInstance();
-    Get.put<SharedPreferences>(sharedPreferences, permanent: true);
-    final prefHelper = SharedPreferenceHelper(sharedPreferences: sharedPreferences);
-    Get.put<SharedPreferenceHelper>(prefHelper, permanent: true);
+    // Set initial auth token in mock SharedPreferenceHelper
+    final prefHelper = Get.find<SharedPreferenceHelper>();
+    await prefHelper.setString('auth_token', 'mock_user_token_12345');
 
     // Verify token exists initially
     expect(prefHelper.getString('auth_token'), 'mock_user_token_12345');
@@ -306,9 +304,9 @@ class MockApiClient extends ApiClient {
         '{"status":"success","message":"Profile updated successfully"}',
         200,
       );
-    } else if (uri == '/users/upload-photo') {
+    } else if (uri == '/users/change-password') {
       return http.Response(
-        '{"status":"success","data":["https://onepipo.com/uploads/mock_photo.png"]}',
+        '{"status":"success","message":"Password updated successfully"}',
         200,
       );
     }

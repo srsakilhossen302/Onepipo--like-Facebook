@@ -13,6 +13,21 @@ class ApiCheck {
   static void checkApi(http.Response response) {
     if (response.statusCode == 401) {
       final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
+      final currentToken = sharedPrefHelper.getString(AppConst.token);
+      
+      // Extract the token that was sent in the request headers
+      final authHeader = response.request?.headers['Authorization'] ?? response.request?.headers['authorization'] ?? '';
+      String sentToken = '';
+      if (authHeader.startsWith('Bearer ')) {
+        sentToken = authHeader.substring(7).trim();
+      }
+      
+      // If the token has changed in the meantime (e.g., via background login), do not log out
+      if (currentToken.isNotEmpty && sentToken.isNotEmpty && currentToken != sentToken) {
+        print("Prevented logout: Request was sent with an old token, but a new token is now active.");
+        return;
+      }
+
       sharedPrefHelper.removeKey(AppConst.token);
       
       ToastMessage.showSnackBar(

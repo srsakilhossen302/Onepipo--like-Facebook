@@ -47,12 +47,38 @@ class MyProfileController extends GetxController {
 
   final ImagePicker _picker = ImagePicker();
 
+  bool _isLoginInProgress = false;
+  Future<void>? _loginFuture;
+
   Future<void> loginInBackground() async {
+    if (_isLoginInProgress) {
+      if (_loginFuture != null) {
+        await _loginFuture;
+      }
+      return;
+    }
+    _isLoginInProgress = true;
+    _loginFuture = _performLoginInBackground();
+    await _loginFuture;
+    _loginFuture = null;
+    _isLoginInProgress = false;
+  }
+
+  Future<void> _performLoginInBackground() async {
     final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
     final email = sharedPrefHelper.getUserEmail();
     final password = sharedPrefHelper.getUserPassword();
 
-    if (email.isEmpty || password.isEmpty) return;
+    if (email.isEmpty || password.isEmpty) {
+      return;
+    }
+
+    // Cooldown of 2 minutes to prevent rapid duplicate background logins
+    final lastLogin = sharedPrefHelper.getLastLoginTime();
+    if (lastLogin != null && DateTime.now().difference(lastLogin) < const Duration(minutes: 2)) {
+      print('Skipping background login: last login/registration was less than 2 minutes ago.');
+      return;
+    }
 
     try {
       final body = {
@@ -103,10 +129,15 @@ class MyProfileController extends GetxController {
         
         if (token != null) {
           await sharedPrefHelper.setString(AppConst.token, token);
+          await sharedPrefHelper.saveLastLoginTime();
         }
 
         if (responseData['data'] is Map) {
           final data = responseData['data'] as Map<String, dynamic>;
+          final bool? is2fa = data['is_2fa_enabled'] as bool?;
+          if (data['user'] is Map) {
+            await sharedPrefHelper.saveUserProfile(data['user'] as Map<String, dynamic>, is2faEnabled: is2fa);
+          }
           
           if (data.containsKey('is_2fa_enabled')) {
             is2faEnabled.value = data['is_2fa_enabled'] as bool? ?? false;
@@ -118,12 +149,10 @@ class MyProfileController extends GetxController {
             if (user.containsKey('id')) {
               final idStr = user['id'].toString();
               myUserId.value = idStr;
-              await sharedPrefHelper.setString('logged_in_user_id', idStr);
             }
             if (user.containsKey('email')) {
               final emailStr = user['email'].toString();
               userEmail.value = emailStr;
-              await sharedPrefHelper.setString('user_email', emailStr);
             }
 
             if (user.containsKey('name')) {
@@ -150,11 +179,6 @@ class MyProfileController extends GetxController {
                 emailNotifications.value = userProfile['email_notifications'] as bool? ?? false;
               }
             }
-            
-            loadMyPosts();
-            if (!Get.testMode) {
-              fetchMyPosts();
-            }
           }
         }
       }
@@ -167,6 +191,24 @@ class MyProfileController extends GetxController {
   void onInit() {
     super.onInit();
     scrollController.addListener(_scrollListener);
+    
+    // Initialize profile details synchronously from SharedPreferences for instant UI display
+    final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
+    userEmail.value = sharedPrefHelper.getUserEmail();
+    final savedName = sharedPrefHelper.getUserName();
+    if (savedName.isNotEmpty) {
+      currentUserName.value = savedName;
+    }
+    profilePhotoUrl.value = sharedPrefHelper.getUserPhoto();
+    coverPhotoUrl.value = sharedPrefHelper.getUserCover();
+    smsNotifications.value = sharedPrefHelper.getSmsNotifications();
+    pushNotifications.value = sharedPrefHelper.getPushNotifications();
+    emailNotifications.value = sharedPrefHelper.getEmailNotifications();
+    is2faEnabled.value = sharedPrefHelper.getIs2faEnabled();
+    final savedId = sharedPrefHelper.getString('logged_in_user_id');
+    if (savedId.isNotEmpty) {
+      myUserId.value = savedId;
+    }
     
     // loginInBackground is awaited sequentially to avoid token invalidation race conditions
     loginInBackground().then((_) {
@@ -213,29 +255,6 @@ class MyProfileController extends GetxController {
     final savedId = sharedPrefHelper.getString('logged_in_user_id');
     if (savedId.isNotEmpty) {
       return savedId;
-    }
-
-    try {
-      final response = await Get.find<ApiClient>().get(ApiUrl.profile);
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final Map<String, dynamic> responseData = jsonDecode(response.body);
-        Map<String, dynamic>? data;
-        if (responseData.containsKey('data')) {
-          data = responseData['data'] is Map<String, dynamic> ? responseData['data'] : null;
-        } else {
-          data = responseData;
-        }
-        if (data != null && data.containsKey('id')) {
-          final idStr = data['id'].toString();
-          await sharedPrefHelper.setString('logged_in_user_id', idStr);
-          if (data.containsKey('name')) {
-            currentUserName.value = data['name'].toString();
-          }
-          return idStr;
-        }
-      }
-    } catch (e) {
-      print('Error getting logged in user ID: $e');
     }
     return '5'; // Mock fallback for testing
   }

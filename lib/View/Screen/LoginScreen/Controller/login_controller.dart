@@ -134,6 +134,16 @@ class LoginController extends GetxController {
         token ??= "mock_user_token_12345";
         await _sharedPrefHelper.setString(AppConst.token, token);
         await _sharedPrefHelper.saveUserCredentials(email, password);
+        await _sharedPrefHelper.saveLastLoginTime();
+
+        // Save full user profile details to local storage
+        if (responseData['data'] is Map) {
+          final data = responseData['data'] as Map<String, dynamic>;
+          final bool? is2fa = data['is_2fa_enabled'] as bool?;
+          if (data['user'] is Map) {
+            await _sharedPrefHelper.saveUserProfile(data['user'] as Map<String, dynamic>, is2faEnabled: is2fa);
+          }
+        }
         
         ToastMessage.showToast(message: StaticString.loginSuccess.tr);
         Get.offAllNamed(AppRoute.homeScreen);

@@ -338,6 +338,16 @@ class CreateAccountController extends GetxController {
             emailController.text.trim(),
             passwordController.text.trim(),
           );
+          await sharedPrefHelper.saveLastLoginTime();
+
+          // Save full user profile details to local storage
+          if (responseData['data'] is Map) {
+            final data = responseData['data'] as Map<String, dynamic>;
+            final bool? is2fa = data['is_2fa_enabled'] as bool?;
+            if (data['user'] is Map) {
+              await sharedPrefHelper.saveUserProfile(data['user'] as Map<String, dynamic>, is2faEnabled: is2fa);
+            }
+          }
 
           ToastMessage.showToast(message: StaticString.registrationSuccess.tr);
           Get.offAllNamed(AppRoute.homeScreen);

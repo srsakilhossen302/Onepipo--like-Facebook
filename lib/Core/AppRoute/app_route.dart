@@ -22,6 +22,8 @@ import '../../View/Screen/CreateAccountScreen/Controller/create_account_controll
 import '../../View/Screen/OtpVerificationScreen/otp_verification_screen.dart';
 import '../../View/Screen/OtpVerificationScreen/Controller/otp_verification_controller.dart';
 
+import '../../View/Screen/ProfileScreen/Controller/my_profile_controller.dart';
+
 class AppRoute {
   static const String splashScreen = '/splash_screen';
   static const String loginScreen = '/login';
@@ -93,6 +95,7 @@ class AppRoute {
       page: () => const HomeScreen(),
       binding: BindingsBuilder(() {
         Get.put<HomeController>(HomeController());
+        Get.put<MyProfileController>(MyProfileController());
       }),
     ),
     GetPage(name: createPost, page: () => const CreatePostScreen()),

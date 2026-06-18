@@ -30,22 +30,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    controller.loginInBackground();
   }
 
-  Future<void> _updateSettings(String value) async {
+  Future<bool> _updateSettings(String value) async {
     try {
       final response = await Get.find<ApiClient>().post(
         ApiUrl.updateSettings,
         body: {'value': value},
       );
-      if (response.statusCode != 200 && response.statusCode != 201) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return true;
+      } else {
         print(
           'Failed to update settings: ${response.statusCode} - ${response.body}',
         );
+        return false;
       }
     } catch (e) {
       print('Error updating settings: $e');
+      return false;
     }
   }
 
@@ -140,10 +143,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildCustomSwitch({
     required bool value,
-    required ValueChanged<bool> onChanged,
+    required ValueChanged<bool>? onChanged,
   }) {
     return GestureDetector(
-      onTap: () => onChanged(!value),
+      onTap: onChanged != null ? () => onChanged(!value) : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         width: 72,
@@ -583,19 +586,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: StaticString.receiveAppNotifications.tr,
               trailing: _buildCustomSwitch(
                 value: controller.pushNotifications.value,
-                onChanged: (val) {
-                  controller.pushNotifications.value = val;
-                  _updateSettings(
-                    val
-                        ? 'push_notifications:true'
-                        : 'push_notifications:false',
-                  );
-                  ToastMessage.showToast(
-                    message: val
-                        ? StaticString.pushNotificationsEnabled.tr
-                        : StaticString.pushNotificationsDisabled.tr,
-                  );
-                },
+                onChanged: null,
               ),
               onTap: () {},
             )),
@@ -605,19 +596,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: StaticString.receiveEmailUpdates.tr,
               trailing: _buildCustomSwitch(
                 value: controller.emailNotifications.value,
-                onChanged: (val) {
-                  controller.emailNotifications.value = val;
-                  _updateSettings(
-                    val
-                        ? 'email_notifications:true'
-                        : 'email_notifications:false',
-                  );
-                  ToastMessage.showToast(
-                    message: val
-                        ? StaticString.emailNotificationsEnabled.tr
-                        : StaticString.emailNotificationsDisabled.tr,
-                  );
-                },
+                onChanged: null,
               ),
               onTap: () {},
             )),
@@ -627,17 +606,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: StaticString.receiveSmsAlerts.tr,
               trailing: _buildCustomSwitch(
                 value: controller.smsNotifications.value,
-                onChanged: (val) {
-                  controller.smsNotifications.value = val;
-                  _updateSettings(
-                    val ? 'sms_notifications:true' : 'sms_notifications:false',
-                  );
-                  ToastMessage.showToast(
-                    message: val
-                        ? StaticString.smsNotificationsEnabled.tr
-                        : StaticString.smsNotificationsDisabled.tr,
-                  );
-                },
+                onChanged: null,
               ),
               onTap: () {},
             )),
@@ -650,16 +619,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: StaticString.extraSecurityDesc.tr,
               trailing: _buildCustomSwitch(
                 value: controller.is2faEnabled.value,
-                onChanged: (val) {
+                onChanged: (val) async {
                   controller.is2faEnabled.value = val;
-                  _updateSettings(
-                    val ? 'two_factor_auth:true' : 'two_factor_auth:false',
+                  final success = await _updateSettings(
+                    val ? 'is_2fa_enabled:true' : 'is_2fa_enabled:false',
                   );
-                  ToastMessage.showToast(
-                    message: val
-                        ? StaticString.twoFactorAuthEnabled.tr
-                        : StaticString.twoFactorAuthDisabled.tr,
-                  );
+                  if (success) {
+                    ToastMessage.showToast(
+                      message: val
+                          ? StaticString.twoFactorAuthEnabled.tr
+                          : StaticString.twoFactorAuthDisabled.tr,
+                    );
+                  } else {
+                    controller.is2faEnabled.value = !val;
+                    ToastMessage.showToast(
+                      message: 'Failed to update settings. Please try again.',
+                    );
+                  }
                 },
               ),
               onTap: () {},
