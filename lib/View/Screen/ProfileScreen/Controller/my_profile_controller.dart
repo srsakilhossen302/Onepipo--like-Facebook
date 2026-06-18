@@ -455,6 +455,8 @@ class MyProfileController extends GetxController {
               return data[0].toString();
             } else if (data is String) {
               return data;
+            } else if (data is Map) {
+              return (data['profile_img'] ?? data['cover_img'] ?? data['url'] ?? data['photo'] ?? data['image'])?.toString();
             }
           }
           return 'https://onepipo.com/uploads/mock_photo.png';
@@ -489,6 +491,8 @@ class MyProfileController extends GetxController {
             url = data[0].toString();
           } else if (data is String) {
             url = data;
+          } else if (data is Map) {
+            url = (data['profile_img'] ?? data['cover_img'] ?? data['url'] ?? data['photo'] ?? data['image'])?.toString();
           }
         }
         ToastMessage.showToast(message: 'Photo uploaded successfully');

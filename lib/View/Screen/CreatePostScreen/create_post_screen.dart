@@ -93,18 +93,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
     _homeController.isLoading.value = true;
     try {
-      String? imageUrl = _selectedImagePath;
-      if (_selectedImagePath != null && !_selectedImagePath!.startsWith('http')) {
-        final myProfileController = Get.put(MyProfileController());
-        final uploadedUrl = await myProfileController.uploadPhoto(_selectedImagePath!);
-        if (uploadedUrl == null) {
-          ToastMessage.showToast(message: 'Failed to upload post image');
-          _homeController.isLoading.value = false;
-          return;
-        }
-        imageUrl = uploadedUrl;
-      }
-
       bool success = false;
       if (_editingPostIndex != null) {
         success = await _homeController.updatePost(
@@ -113,7 +101,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           _selectedPostType,
           groupName: _selectedGroupName,
           taggedFriends: _selectedTaggedFriends.isEmpty ? null : _selectedTaggedFriends,
-          contentImageUrl: imageUrl,
+          contentImageUrl: _selectedImagePath,
           list: _postList,
         );
       } else {
@@ -122,7 +110,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           _selectedPostType,
           groupName: _selectedGroupName,
           taggedFriends: _selectedTaggedFriends.isEmpty ? null : _selectedTaggedFriends,
-          contentImageUrl: imageUrl,
+          contentImageUrl: _selectedImagePath,
         );
       }
 
@@ -212,7 +200,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isPostEnabled = (_textController.text.trim().isNotEmpty || _selectedImagePath != null) && _wordCount <= 350;
     final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
     final userPhoto = sharedPrefHelper.getUserPhoto();
     final userName = sharedPrefHelper.getUserName();

@@ -932,35 +932,54 @@ class HomeController extends GetxController {
     final sharedPref = Get.find<SharedPreferenceHelper>();
     isLoading.value = true;
     try {
-      final response = await Get.find<ApiClient>().post(
-        ApiUrl.createPost,
-        body: {
-          "description": contentText,
-          "type": badgeText,
-          "is_anonymous": false,
-          "image": contentImageUrl ?? "",
-          "action": "create",
-        },
-      );
+      final bool isLocalImage = contentImageUrl != null && !contentImageUrl.startsWith('http');
+      final response = isLocalImage
+          ? await Get.find<ApiClient>().postMultipart(
+              ApiUrl.createPost,
+              'image',
+              contentImageUrl,
+              fields: {
+                "description": contentText,
+                "type": badgeText,
+                "is_anonymous": "0",
+                "action": "create",
+              },
+            )
+          : await Get.find<ApiClient>().post(
+              ApiUrl.createPost,
+              body: {
+                "description": contentText,
+                "type": badgeText,
+                "is_anonymous": false,
+                "action": "create",
+                if (contentImageUrl != null) "image": contentImageUrl,
+              },
+            );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final savedName = sharedPref.getUserName();
-        final newPost = PostModel(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          userName: savedName.isNotEmpty ? savedName : 'User',
-          userAvatarUrl: sharedPref.getUserPhoto(),
-          timeAgo: 'Just now',
-          badgeText: badgeText,
-          contentText: contentText,
-          contentImageUrl: contentImageUrl,
-          groupName: groupName,
-          taggedFriends: taggedFriends,
-          likesCount: 0,
-          commentsCount: 0,
-          sharesCount: 0,
-          isLiked: false,
-          comments: [],
-        );
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        PostModel newPost;
+        if (responseData.containsKey('data') && responseData['data'] is Map<String, dynamic>) {
+          newPost = PostModel.fromJson(responseData['data']);
+        } else {
+          final savedName = sharedPref.getUserName();
+          newPost = PostModel(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            userName: savedName.isNotEmpty ? savedName : 'User',
+            userAvatarUrl: sharedPref.getUserPhoto(),
+            timeAgo: 'Just now',
+            badgeText: badgeText,
+            contentText: contentText,
+            contentImageUrl: contentImageUrl,
+            groupName: groupName,
+            taggedFriends: taggedFriends,
+            likesCount: 0,
+            commentsCount: 0,
+            sharesCount: 0,
+            isLiked: false,
+            comments: [],
+          );
+        }
 
         posts.insert(0, newPost);
         posts.refresh();
@@ -994,17 +1013,31 @@ class HomeController extends GetxController {
     isLoading.value = true;
     try {
       final post = postList[index];
-      final response = await Get.find<ApiClient>().post(
-        ApiUrl.createPost,
-        body: {
-          "description": contentText,
-          "type": badgeText,
-          "is_anonymous": false,
-          "image": contentImageUrl ?? "",
-          "action": "edit",
-          "post_id": int.tryParse(post.id) ?? 0,
-        },
-      );
+      final bool isLocalImage = contentImageUrl != null && !contentImageUrl.startsWith('http');
+      final response = isLocalImage
+          ? await Get.find<ApiClient>().postMultipart(
+              ApiUrl.createPost,
+              'image',
+              contentImageUrl,
+              fields: {
+                "description": contentText,
+                "type": badgeText,
+                "is_anonymous": "0",
+                "action": "edit",
+                "post_id": post.id,
+              },
+            )
+          : await Get.find<ApiClient>().post(
+              ApiUrl.createPost,
+              body: {
+                "description": contentText,
+                "type": badgeText,
+                "is_anonymous": false,
+                "image": contentImageUrl ?? "",
+                "action": "edit",
+                "post_id": int.tryParse(post.id) ?? 0,
+              },
+            );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         post.contentText = contentText;
