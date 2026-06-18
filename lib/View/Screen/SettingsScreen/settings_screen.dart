@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -10,6 +11,8 @@ import '../../../Utils/AppConst/app_const.dart';
 import '../../../helper/shared_prefe/shared_prefe.dart';
 import '../../../service/api_client.dart';
 import '../../../service/api_url.dart';
+import '../ProfileScreen/Controller/my_profile_controller.dart';
+import '../../../helper/network_img/network_img.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -19,12 +22,16 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  final MyProfileController controller = Get.put(MyProfileController());
+
   // Toggle states
-  bool _pushNotifications = true;
-  bool _emailNotifications = false;
-  bool _smsNotifications = false;
-  bool _twoFactorAuth = false;
   bool _anonymousMode = false;
+
+  @override
+  void initState() {
+    super.initState();
+    controller.loginInBackground();
+  }
 
   Future<void> _updateSettings(String value) async {
     try {
@@ -402,7 +409,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Profile Card Section
-            InkWell(
+            Obx(() => InkWell(
               onTap: () {},
               child: Container(
                 padding: const EdgeInsets.symmetric(
@@ -418,20 +425,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         color: Color(0xFFF2F3F5),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
-                        Icons.person,
-                        color: Colors.grey,
-                        size: 48,
-                      ),
+                      child: controller.profilePhotoPath.value.isNotEmpty
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(40),
+                              child: Image.file(
+                                File(controller.profilePhotoPath.value),
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : controller.profilePhotoUrl.value.isNotEmpty
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(40),
+                                  child: NetworkImg(
+                                    imageUrl: controller.profilePhotoUrl.value,
+                                    width: 80,
+                                    height: 80,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )
+                              : const Icon(
+                                  Icons.person,
+                                  color: Colors.grey,
+                                  size: 48,
+                                ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            "Shahriar",
-                            style: TextStyle(
+                          Text(
+                            controller.userName,
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textLight,
@@ -439,7 +464,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            "krabbi505@gmail.com",
+                            controller.userEmail.value.isNotEmpty
+                                ? controller.userEmail.value
+                                : "krabbi505@gmail.com",
                             style: TextStyle(
                               fontSize: 13,
                               color: Colors.grey[600],
@@ -456,7 +483,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ],
                 ),
               ),
-            ),
+            )),
             const Divider(height: 1, thickness: 0.5, color: Color(0xFFEEEEEE)),
 
             // Account Section
@@ -467,13 +494,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: StaticString.changePassword.tr,
               onTap: () => Get.toNamed(AppRoute.changePassword),
             ),
-            _buildSettingsTile(
+            Obx(() => _buildSettingsTile(
               iconAsset: 'assets/icons/Email.svg',
               title: StaticString.email.tr,
-              subtitle: "krabbi505@gmail.com",
+              subtitle: controller.userEmail.value.isNotEmpty
+                  ? controller.userEmail.value
+                  : "krabbi505@gmail.com",
               trailing: const SizedBox.shrink(),
               onTap: () {},
-            ),
+            )),
             _buildSettingsTile(
               iconAsset: 'assets/icons/Phone.svg',
               title: StaticString.phone.tr,
@@ -548,16 +577,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             // Notifications Section
             _buildSectionHeader(StaticString.notifications.tr),
-            _buildSettingsTile(
+            Obx(() => _buildSettingsTile(
               icon: Icons.notifications_none_rounded,
               title: StaticString.pushNotifications.tr,
               subtitle: StaticString.receiveAppNotifications.tr,
               trailing: _buildCustomSwitch(
-                value: _pushNotifications,
+                value: controller.pushNotifications.value,
                 onChanged: (val) {
-                  setState(() {
-                    _pushNotifications = val;
-                  });
+                  controller.pushNotifications.value = val;
                   _updateSettings(
                     val
                         ? 'push_notifications:true'
@@ -571,17 +598,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               onTap: () {},
-            ),
-            _buildSettingsTile(
+            )),
+            Obx(() => _buildSettingsTile(
               iconAsset: 'assets/icons/Email notifications.svg',
               title: StaticString.emailNotifications.tr,
               subtitle: StaticString.receiveEmailUpdates.tr,
               trailing: _buildCustomSwitch(
-                value: _emailNotifications,
+                value: controller.emailNotifications.value,
                 onChanged: (val) {
-                  setState(() {
-                    _emailNotifications = val;
-                  });
+                  controller.emailNotifications.value = val;
                   _updateSettings(
                     val
                         ? 'email_notifications:true'
@@ -595,17 +620,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               onTap: () {},
-            ),
-            _buildSettingsTile(
+            )),
+            Obx(() => _buildSettingsTile(
               iconAsset: 'assets/icons/SMS notifications.svg',
               title: StaticString.smsNotifications.tr,
               subtitle: StaticString.receiveSmsAlerts.tr,
               trailing: _buildCustomSwitch(
-                value: _smsNotifications,
+                value: controller.smsNotifications.value,
                 onChanged: (val) {
-                  setState(() {
-                    _smsNotifications = val;
-                  });
+                  controller.smsNotifications.value = val;
                   _updateSettings(
                     val ? 'sms_notifications:true' : 'sms_notifications:false',
                   );
@@ -617,20 +640,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               onTap: () {},
-            ),
+            )),
 
             // Security Section
             _buildSectionHeader(StaticString.security.tr),
-            _buildSettingsTile(
+            Obx(() => _buildSettingsTile(
               iconAsset: 'assets/icons/Two-factor authentication.svg',
               title: StaticString.twoFactorAuth.tr,
               subtitle: StaticString.extraSecurityDesc.tr,
               trailing: _buildCustomSwitch(
-                value: _twoFactorAuth,
+                value: controller.is2faEnabled.value,
                 onChanged: (val) {
-                  setState(() {
-                    _twoFactorAuth = val;
-                  });
+                  controller.is2faEnabled.value = val;
                   _updateSettings(
                     val ? 'two_factor_auth:true' : 'two_factor_auth:false',
                   );
@@ -642,7 +663,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               onTap: () {},
-            ),
+            )),
             _buildSettingsTile(
               iconAsset: 'assets/icons/Login history.svg',
               title: StaticString.loginHistories.tr,

@@ -21,6 +21,12 @@ class MyProfileController extends GetxController {
   var currentUserName = 'Shahriar'.obs;
   String get userName => currentUserName.value;
   var myUserId = "".obs;
+  var userEmail = "".obs;
+
+  var smsNotifications = false.obs;
+  var pushNotifications = true.obs;
+  var emailNotifications = false.obs;
+  var is2faEnabled = false.obs;
 
   var myPosts = <PostModel>[].obs;
   var coverPhotoPath = ''.obs;
@@ -101,6 +107,11 @@ class MyProfileController extends GetxController {
 
         if (responseData['data'] is Map) {
           final data = responseData['data'] as Map<String, dynamic>;
+          
+          if (data.containsKey('is_2fa_enabled')) {
+            is2faEnabled.value = data['is_2fa_enabled'] as bool? ?? false;
+          }
+
           if (data['user'] is Map) {
             final user = data['user'] as Map<String, dynamic>;
             
@@ -110,7 +121,9 @@ class MyProfileController extends GetxController {
               await sharedPrefHelper.setString('logged_in_user_id', idStr);
             }
             if (user.containsKey('email')) {
-              await sharedPrefHelper.setString('user_email', user['email'].toString());
+              final emailStr = user['email'].toString();
+              userEmail.value = emailStr;
+              await sharedPrefHelper.setString('user_email', emailStr);
             }
 
             if (user.containsKey('name')) {
@@ -123,6 +136,19 @@ class MyProfileController extends GetxController {
 
             if (user.containsKey('cover')) {
               coverPhotoUrl.value = user['cover'].toString();
+            }
+
+            if (user['profile'] is Map) {
+              final userProfile = user['profile'] as Map<String, dynamic>;
+              if (userProfile.containsKey('sms_notifications')) {
+                smsNotifications.value = userProfile['sms_notifications'] as bool? ?? false;
+              }
+              if (userProfile.containsKey('push_notifications')) {
+                pushNotifications.value = userProfile['push_notifications'] as bool? ?? false;
+              }
+              if (userProfile.containsKey('email_notifications')) {
+                emailNotifications.value = userProfile['email_notifications'] as bool? ?? false;
+              }
             }
             
             loadMyPosts();
