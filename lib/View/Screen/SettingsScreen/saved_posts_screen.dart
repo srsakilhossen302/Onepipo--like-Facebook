@@ -4,7 +4,6 @@ import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../../View/Widgegt/PostCard/post_card.dart';
 import '../../../View/Widgegt/ShimmerLoading/shimmer_loading.dart';
-import '../../../Core/AppRoute/app_route.dart';
 import '../../Screen/HomeScreen/Controller/home_controller.dart';
 
 class SavedPostsScreen extends StatefulWidget {
@@ -100,19 +99,9 @@ class _SavedPostsScreenState extends State<SavedPostsScreen> {
             padding: const EdgeInsets.only(top: 8),
             itemCount: controller.savedPosts.length,
             itemBuilder: (context, index) {
-              // Find the index in the main posts list
-              final savedPost = controller.savedPosts[index];
-              final mainPostIndex = controller.posts.indexWhere(
-                (p) => p.id == savedPost.id,
-              );
-
-              if (mainPostIndex == -1) {
-                return const SizedBox.shrink();
-              }
-
               return PostCard(
-                postIndex: mainPostIndex,
-                postList: null, // Use main posts list since we found the index
+                postIndex: index,
+                postList: controller.savedPosts,
               );
             },
           ),

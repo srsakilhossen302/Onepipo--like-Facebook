@@ -7,6 +7,7 @@ import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../../Utils/ToastMessage/toast_message.dart';
 import '../HomeScreen/Controller/home_controller.dart';
+import '../HomeScreen/Model/post_model.dart';
 
 class CreatePostScreen extends StatefulWidget {
   const CreatePostScreen({super.key});
@@ -21,6 +22,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
   String _selectedPostType = 'solution'; // Default to match screenshot
   int _wordCount = 0;
   int? _editingPostIndex;
+  List<PostModel>? _postList;
 
   // Selection states
   String? _selectedImagePath;
@@ -34,9 +36,20 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     _textController.addListener(_updateWordCount);
     
     // Check if we are editing an existing post
-    if (Get.arguments != null && Get.arguments is int) {
-      _editingPostIndex = Get.arguments as int;
-      final post = _homeController.posts[_editingPostIndex!];
+    int? editingIndex;
+    if (Get.arguments != null) {
+      if (Get.arguments is int) {
+        editingIndex = Get.arguments as int;
+      } else if (Get.arguments is Map) {
+        editingIndex = Get.arguments['index'] as int?;
+        _postList = Get.arguments['list'] as List<PostModel>?;
+      }
+    }
+
+    if (editingIndex != null) {
+      _editingPostIndex = editingIndex;
+      final postList = _postList ?? _homeController.posts;
+      final post = postList[editingIndex];
       _textController.text = post.contentText;
       _selectedPostType = post.badgeText;
       _selectedImagePath = post.contentImageUrl;
@@ -84,6 +97,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
         groupName: _selectedGroupName,
         taggedFriends: _selectedTaggedFriends.isEmpty ? null : _selectedTaggedFriends,
         contentImageUrl: _selectedImagePath,
+        list: _postList,
       );
     } else {
       success = await _homeController.addNewPost(

@@ -46,7 +46,7 @@ class PostCard extends StatelessWidget {
             InkWell(
               onTap: isClickable
                   ? () =>
-                        Get.toNamed(AppRoute.postDetails, arguments: postIndex)
+                        Get.toNamed(AppRoute.postDetails, arguments: {'index': postIndex, 'list': postList})
                   : null,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,7 +275,7 @@ class PostCard extends StatelessWidget {
                     color: post.isLiked
                         ? Colors.blueAccent
                         : const Color(0xFF04070D),
-                    onTap: () => controller.toggleLike(postIndex),
+                    onTap: () => controller.toggleLike(postIndex, list: postList),
                   ),
                   const SizedBox(width: 24),
                   _buildActionButton(
@@ -291,7 +291,7 @@ class PostCard extends StatelessWidget {
                           isScrollControlled: true,
                           backgroundColor: Colors.transparent,
                           builder: (context) =>
-                              CommentBottomSheet(postIndex: postIndex),
+                              CommentBottomSheet(postIndex: postIndex, postList: postList),
                         );
                       }
                     },
@@ -353,6 +353,7 @@ class PostCard extends StatelessWidget {
     HomeController controller,
     int index,
   ) {
+    final posts = postList ?? controller.posts;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -437,7 +438,7 @@ class PostCard extends StatelessWidget {
                     ),
                   );
                 }
-                final post = controller.posts[index];
+                final post = posts[index];
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   itemCount: controller.followers.length,
@@ -477,10 +478,7 @@ class PostCard extends StatelessWidget {
                             child: ElevatedButton(
                               onPressed: isSent
                                   ? null
-                                  : () => controller.shareWithFollower(
-                                      index,
-                                      follower.id,
-                                    ),
+                                  : () => controller.shareWithFollower(index, follower.id, list: postList),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: isSent
                                     ? Colors.grey[200]
@@ -523,7 +521,8 @@ class PostCard extends StatelessWidget {
     HomeController controller,
     int index,
   ) {
-    final post = controller.posts[index];
+    final posts = postList ?? controller.posts;
+    final post = posts[index];
     final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
     final bool isMyPost = sharedPrefHelper.isMe(
           userId: post.userId,
@@ -566,7 +565,9 @@ class PostCard extends StatelessWidget {
                     size: 28,
                   ),
                   title: Text(
-                    StaticString.archive.tr,
+                    controller.archivedPosts.any((p) => p.id == post.id)
+                        ? (Get.locale?.languageCode == 'fr' ? 'Désarchiver' : 'Unarchive')
+                        : StaticString.archive.tr,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -574,12 +575,14 @@ class PostCard extends StatelessWidget {
                     ),
                   ),
                   subtitle: Text(
-                    StaticString.archiveSubtitle.tr,
+                    controller.archivedPosts.any((p) => p.id == post.id)
+                        ? (Get.locale?.languageCode == 'fr' ? 'Désarchiver ce message.' : 'Unarchive this post.')
+                        : StaticString.archiveSubtitle.tr,
                     style: TextStyle(color: Colors.grey[600], fontSize: 13),
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    controller.toggleArchive(index);
+                    controller.toggleArchive(index, list: postList);
                   },
                 ),
                 const Divider(
@@ -608,7 +611,7 @@ class PostCard extends StatelessWidget {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    Get.toNamed(AppRoute.createPost, arguments: index);
+                    Get.toNamed(AppRoute.createPost, arguments: {'index': index, 'list': postList});
                   },
                 ),
                 const Divider(
@@ -643,7 +646,7 @@ class PostCard extends StatelessWidget {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    controller.toggleSave(index);
+                    controller.toggleSave(index, list: postList);
                   },
                 ),
                 const Divider(
@@ -672,7 +675,7 @@ class PostCard extends StatelessWidget {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    controller.deletePost(index);
+                    controller.deletePost(index, list: postList);
                     ToastMessage.showToast(
                       message: StaticString.postDeletedSuccess.tr,
                     );
@@ -706,7 +709,7 @@ class PostCard extends StatelessWidget {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    controller.toggleSave(index);
+                    controller.toggleSave(index, list: postList);
                   },
                 ),
                 const Divider(height: 1, indent: 16, endIndent: 16),
@@ -910,11 +913,7 @@ class PostCard extends StatelessWidget {
                       return;
                     }
                     Navigator.pop(context);
-                    await controller.reportPost(
-                      index,
-                      selectedReason.value,
-                      textController.text,
-                    );
+                    await controller.reportPost(index, selectedReason.value, textController.text, list: postList);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blueAccent,

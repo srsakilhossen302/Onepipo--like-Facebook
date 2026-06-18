@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../../helper/network_img/network_img.dart';
 import '../../../Core/AppRoute/app_route.dart';
@@ -10,8 +9,9 @@ import '../../Screen/HomeScreen/Model/post_model.dart';
 
 class CommentBottomSheet extends StatefulWidget {
   final int postIndex;
+  final List<PostModel>? postList;
 
-  const CommentBottomSheet({super.key, required this.postIndex});
+  const CommentBottomSheet({super.key, required this.postIndex, this.postList});
 
   @override
   State<CommentBottomSheet> createState() => _CommentBottomSheetState();
@@ -24,12 +24,14 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
   final Rxn<CommentModel> selectedReplyComment = Rxn<CommentModel>();
   final RxSet<String> expandedCommentIds = <String>{}.obs;
 
+  List<PostModel> get posts => widget.postList ?? controller.posts;
+
   @override
   void initState() {
     super.initState();
     controller.activePostDetailsIndex.value = widget.postIndex;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.fetchCommentsForPost(widget.postIndex);
+      controller.fetchCommentsForPost(widget.postIndex, list: widget.postList);
     });
   }
 
@@ -114,10 +116,10 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
             // Header
             Obx(() {
               if (widget.postIndex < 0 ||
-                  widget.postIndex >= controller.posts.length) {
+                  widget.postIndex >= posts.length) {
                 return const SizedBox.shrink();
               }
-              final post = controller.posts[widget.postIndex];
+              final post = posts[widget.postIndex];
               return Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16.0,
@@ -154,10 +156,10 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
             Expanded(
               child: Obx(() {
                 if (widget.postIndex < 0 ||
-                    widget.postIndex >= controller.posts.length) {
+                    widget.postIndex >= posts.length) {
                   return Center(child: Text(StaticString.postNotFound.tr));
                 }
-                final post = controller.posts[widget.postIndex];
+                final post = posts[widget.postIndex];
 
                 if (controller.isLoadingComments.value) {
                   return const Center(
@@ -334,6 +336,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                                       .toggleLikeComment(
                                                         widget.postIndex,
                                                         cIndex,
+                                                        list: widget.postList,
                                                       ),
                                                   child: Icon(
                                                     comment.isLiked
@@ -361,6 +364,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                                       .toggleDislikeComment(
                                                         widget.postIndex,
                                                         cIndex,
+                                                        list: widget.postList,
                                                       ),
                                                   child: Icon(
                                                     comment.isDisliked
@@ -392,10 +396,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                           expandedCommentIds.remove(comment.id);
                                         } else {
                                           expandedCommentIds.add(comment.id);
-                                          controller.fetchRepliesForComment(
-                                            widget.postIndex,
-                                            comment.id,
-                                          );
+                                          controller.fetchRepliesForComment(widget.postIndex, comment.id, list: widget.postList);
                                         }
                                       },
                                       child: Padding(
@@ -584,13 +585,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                                       children: [
                                                         const Spacer(),
                                                         GestureDetector(
-                                                          onTap: () => controller
-                                                              .toggleLikeCommentReply(
-                                                                widget
-                                                                    .postIndex,
-                                                                comment.id,
-                                                                reply.id,
-                                                              ),
+                                                          onTap: () => controller.toggleLikeCommentReply(widget.postIndex, comment.id, reply.id, list: widget.postList),
                                                           child: Icon(
                                                             reply.isLiked
                                                                 ? Icons
@@ -620,13 +615,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                                           width: 12,
                                                         ),
                                                         GestureDetector(
-                                                          onTap: () => controller
-                                                              .toggleDislikeCommentReply(
-                                                                widget
-                                                                    .postIndex,
-                                                                comment.id,
-                                                                reply.id,
-                                                              ),
+                                                          onTap: () => controller.toggleDislikeCommentReply(widget.postIndex, comment.id, reply.id, list: widget.postList),
                                                           child: Icon(
                                                             reply.isDisliked
                                                                 ? Icons
@@ -760,6 +749,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                               widget.postIndex,
                               selectedReplyComment.value!.id,
                               _textController.text,
+                              list: widget.postList,
                             );
                             expandedCommentIds.add(
                               selectedReplyComment.value!.id,
@@ -769,6 +759,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                             controller.addComment(
                               widget.postIndex,
                               _textController.text,
+                              list: widget.postList,
                             );
                           }
                           _textController.clear();

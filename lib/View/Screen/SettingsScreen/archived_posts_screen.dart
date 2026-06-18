@@ -4,7 +4,6 @@ import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../../View/Widgegt/PostCard/post_card.dart';
 import '../../../View/Widgegt/ShimmerLoading/shimmer_loading.dart';
-import '../../../Core/AppRoute/app_route.dart';
 import '../../Screen/HomeScreen/Controller/home_controller.dart';
 
 class ArchivedPostsScreen extends StatefulWidget {
@@ -100,19 +99,9 @@ class _ArchivedPostsScreenState extends State<ArchivedPostsScreen> {
             padding: const EdgeInsets.only(top: 8),
             itemCount: controller.archivedPosts.length,
             itemBuilder: (context, index) {
-              // Find the index in the main posts list
-              final archivedPost = controller.archivedPosts[index];
-              final mainPostIndex = controller.posts.indexWhere(
-                (p) => p.id == archivedPost.id,
-              );
-
-              if (mainPostIndex == -1) {
-                return const SizedBox.shrink();
-              }
-
               return PostCard(
-                postIndex: mainPostIndex,
-                postList: null,
+                postIndex: index,
+                postList: controller.archivedPosts,
               );
             },
           ),

@@ -201,14 +201,32 @@ class HomeController extends GetxController {
 
 
 
-  Future<void> toggleLike(int index) async {
-    if (index < 0 || index >= posts.length) return;
+  void _syncPostStateAcrossLists(PostModel updatedPost) {
+    final idxInPosts = posts.indexWhere((p) => p.id == updatedPost.id);
+    if (idxInPosts != -1) {
+      posts[idxInPosts] = updatedPost;
+      posts.refresh();
+    }
+    final idxInSaved = savedPosts.indexWhere((p) => p.id == updatedPost.id);
+    if (idxInSaved != -1) {
+      savedPosts[idxInSaved] = updatedPost;
+      savedPosts.refresh();
+    }
+    final idxInArchived = archivedPosts.indexWhere((p) => p.id == updatedPost.id);
+    if (idxInArchived != -1) {
+      archivedPosts[idxInArchived] = updatedPost;
+      archivedPosts.refresh();
+    }
+  }
 
-    final post = posts[index];
+  Future<void> toggleLike(int index, {List<PostModel>? list}) async {
+    final postList = list ?? posts;
+    if (index < 0 || index >= postList.length) return;
+
+    final post = postList[index];
     final originalIsLiked = post.isLiked;
     final originalLikesCount = post.likesCount;
 
-    // Optimistically toggle state in UI
     if (post.isLiked) {
       post.isLiked = false;
       post.likesCount--;
@@ -216,8 +234,9 @@ class HomeController extends GetxController {
       post.isLiked = true;
       post.likesCount++;
     }
-    posts[index] = post;
-    posts.refresh();
+    postList[index] = post;
+    if (postList is RxList) { (postList as RxList).refresh(); }
+    _syncPostStateAcrossLists(post);
 
     try {
       final response = await Get.find<ApiClient>().post(
@@ -226,48 +245,46 @@ class HomeController extends GetxController {
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        // Revert on failure
         post.isLiked = originalIsLiked;
         post.likesCount = originalLikesCount;
-        posts[index] = post;
-        posts.refresh();
+        postList[index] = post;
+        if (postList is RxList) { (postList as RxList).refresh(); }
+        _syncPostStateAcrossLists(post);
 
         ApiCheck.checkApi(response);
       }
     } catch (e) {
-      // Revert on connection error
       post.isLiked = originalIsLiked;
       post.likesCount = originalLikesCount;
-      posts[index] = post;
-      posts.refresh();
+      postList[index] = post;
+      if (postList is RxList) { (postList as RxList).refresh(); }
+      _syncPostStateAcrossLists(post);
 
       ToastMessage.showToast(message: 'Connection error: $e');
     }
   }
 
-  Future<void> toggleSave(int index) async {
-    if (index < 0 || index >= posts.length) return;
+  Future<void> toggleSave(int index, {List<PostModel>? list}) async {
+    final postList = list ?? posts;
+    if (index < 0 || index >= postList.length) return;
 
-    final post = posts[index];
+    final post = postList[index];
     final originalIsSaved = post.isSaved;
 
-    // Optimistically toggle state in UI
     post.isSaved = !post.isSaved;
-    posts[index] = post;
-    posts.refresh();
+    postList[index] = post;
+    if (postList is RxList) { (postList as RxList).refresh(); }
 
-    // Update savedPosts list locally
     if (post.isSaved) {
-      // Add to savedPosts if not already there
       if (!savedPosts.any((p) => p.id == post.id)) {
         savedPosts.add(post);
         savedPosts.refresh();
       }
     } else {
-      // Remove from savedPosts
       savedPosts.removeWhere((p) => p.id == post.id);
       savedPosts.refresh();
     }
+    _syncPostStateAcrossLists(post);
 
     try {
       final response = await Get.find<ApiClient>().post(
@@ -277,12 +294,10 @@ class HomeController extends GetxController {
       print('Save Post API Response: ${response.body}');
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        // Revert on failure
         post.isSaved = originalIsSaved;
-        posts[index] = post;
-        posts.refresh();
+        postList[index] = post;
+        if (postList is RxList) { (postList as RxList).refresh(); }
 
-        // Revert savedPosts list
         if (originalIsSaved) {
           if (!savedPosts.any((p) => p.id == post.id)) {
             savedPosts.add(post);
@@ -291,14 +306,13 @@ class HomeController extends GetxController {
           savedPosts.removeWhere((p) => p.id == post.id);
         }
         savedPosts.refresh();
+        _syncPostStateAcrossLists(post);
 
         ApiCheck.checkApi(response);
       } else {
-        // Parse API response to confirm saved state
         try {
           final responseData = jsonDecode(response.body);
           bool savedFromApi = post.isSaved;
-          // Check message to confirm if it was saved or deleted (unsaved)
           final message =
               responseData['message']?.toString().toLowerCase() ?? '';
           if (message.contains('deleted') || message.contains('removed')) {
@@ -313,10 +327,9 @@ class HomeController extends GetxController {
           }
 
           post.isSaved = savedFromApi;
-          posts[index] = post;
-          posts.refresh();
+          postList[index] = post;
+          if (postList is RxList) { (postList as RxList).refresh(); }
 
-          // Update savedPosts list based on API response
           if (post.isSaved) {
             if (!savedPosts.any((p) => p.id == post.id)) {
               savedPosts.add(post);
@@ -325,6 +338,7 @@ class HomeController extends GetxController {
             savedPosts.removeWhere((p) => p.id == post.id);
           }
           savedPosts.refresh();
+          _syncPostStateAcrossLists(post);
         } catch (e) {
           print('Error parsing save response: $e');
         }
@@ -336,12 +350,10 @@ class HomeController extends GetxController {
         );
       }
     } catch (e) {
-      // Revert on connection error
       post.isSaved = originalIsSaved;
-      posts[index] = post;
-      posts.refresh();
+      postList[index] = post;
+      if (postList is RxList) { (postList as RxList).refresh(); }
 
-      // Revert savedPosts list
       if (originalIsSaved) {
         if (!savedPosts.any((p) => p.id == post.id)) {
           savedPosts.add(post);
@@ -350,27 +362,33 @@ class HomeController extends GetxController {
         savedPosts.removeWhere((p) => p.id == post.id);
       }
       savedPosts.refresh();
+      _syncPostStateAcrossLists(post);
 
       ToastMessage.showToast(message: 'Connection error: $e');
     }
   }
 
-  Future<void> toggleArchive(int index) async {
-    if (index < 0 || index >= posts.length) return;
+  Future<void> toggleArchive(int index, {List<PostModel>? list}) async {
+    final postList = list ?? posts;
+    if (index < 0 || index >= postList.length) return;
 
-    final post = posts[index];
-    final originalIndex = index;
+    final post = postList[index];
+    final wasArchived = archivedPosts.any((p) => p.id == post.id);
 
-    // Optimistically remove from main list
-    posts.removeAt(index);
-    posts.refresh();
-
-    // Optimistically add to archives
-    bool addedToArchives = false;
-    if (!archivedPosts.any((p) => p.id == post.id)) {
-      archivedPosts.add(post);
+    if (wasArchived) {
+      archivedPosts.removeWhere((p) => p.id == post.id);
       archivedPosts.refresh();
-      addedToArchives = true;
+      if (!posts.any((p) => p.id == post.id)) {
+        posts.insert(0, post);
+        posts.refresh();
+      }
+    } else {
+      posts.removeWhere((p) => p.id == post.id);
+      posts.refresh();
+      if (!archivedPosts.any((p) => p.id == post.id)) {
+        archivedPosts.add(post);
+        archivedPosts.refresh();
+      }
     }
 
     try {
@@ -381,45 +399,54 @@ class HomeController extends GetxController {
       print('Archive Post API Response: ${response.body}');
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        // Revert on failure: insert post back to main list
-        if (originalIndex <= posts.length) {
-          posts.insert(originalIndex, post);
+        if (wasArchived) {
+          if (!archivedPosts.any((p) => p.id == post.id)) {
+            archivedPosts.add(post);
+            archivedPosts.refresh();
+          }
+          posts.removeWhere((p) => p.id == post.id);
+          posts.refresh();
         } else {
-          posts.add(post);
-        }
-        posts.refresh();
-
-        if (addedToArchives) {
+          if (!posts.any((p) => p.id == post.id)) {
+            posts.insert(index, post);
+            posts.refresh();
+          }
           archivedPosts.removeWhere((p) => p.id == post.id);
           archivedPosts.refresh();
         }
-
         ApiCheck.checkApi(response);
       } else {
-        ToastMessage.showToast(message: 'Post archived successfully!');
+        ToastMessage.showToast(
+          message: wasArchived
+              ? 'Post unarchived successfully!'
+              : 'Post archived successfully!',
+        );
       }
     } catch (e) {
-      // Revert on connection error
-      if (originalIndex <= posts.length) {
-        posts.insert(originalIndex, post);
+      if (wasArchived) {
+        if (!archivedPosts.any((p) => p.id == post.id)) {
+          archivedPosts.add(post);
+          archivedPosts.refresh();
+        }
+        posts.removeWhere((p) => p.id == post.id);
+        posts.refresh();
       } else {
-        posts.add(post);
-      }
-      posts.refresh();
-
-      if (addedToArchives) {
+        if (!posts.any((p) => p.id == post.id)) {
+          posts.insert(index, post);
+          posts.refresh();
+        }
         archivedPosts.removeWhere((p) => p.id == post.id);
         archivedPosts.refresh();
       }
-
       ToastMessage.showToast(message: 'Connection error: $e');
     }
   }
 
-  Future<bool> reportPost(int index, String reason, String details) async {
-    if (index < 0 || index >= posts.length) return false;
+  Future<bool> reportPost(int index, String reason, String details, {List<PostModel>? list}) async {
+    final postList = list ?? posts;
+    if (index < 0 || index >= postList.length) return false;
 
-    final post = posts[index];
+    final post = postList[index];
     try {
       final response = await Get.find<ApiClient>().post(
         ApiUrl.reportPost(post.id),
@@ -439,11 +466,12 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> addComment(int index, String commentText) async {
-    if (index < 0 || index >= posts.length || commentText.trim().isEmpty)
+  Future<void> addComment(int index, String commentText, {List<PostModel>? list}) async {
+    final postList = list ?? posts;
+    if (index < 0 || index >= postList.length || commentText.trim().isEmpty)
       return;
 
-    final post = posts[index];
+    final post = postList[index];
     try {
       final response = await Get.find<ApiClient>().post(
         ApiUrl.comments(post.id),
@@ -471,8 +499,9 @@ class HomeController extends GetxController {
         }
         post.comments.add(newComment);
         post.commentsCount = post.comments.length;
-        posts[index] = post;
-        posts.refresh();
+        postList[index] = post;
+        if (postList is RxList) { (postList as RxList).refresh(); }
+        _syncPostStateAcrossLists(post);
 
         ToastMessage.showToast(message: StaticString.commentAdded.tr);
       } else {
@@ -483,9 +512,10 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> toggleLikeComment(int postIndex, int commentIndex) async {
-    if (postIndex < 0 || postIndex >= posts.length) return;
-    final post = posts[postIndex];
+  Future<void> toggleLikeComment(int postIndex, int commentIndex, {List<PostModel>? list}) async {
+    final postList = list ?? posts;
+    if (postIndex < 0 || postIndex >= postList.length) return;
+    final post = postList[postIndex];
     if (commentIndex < 0 || commentIndex >= post.comments.length) return;
     final comment = post.comments[commentIndex];
 
@@ -493,7 +523,6 @@ class HomeController extends GetxController {
     final originalLikesCount = comment.likesCount;
     final originalIsDisliked = comment.isDisliked;
 
-    // Optimistically toggle state in UI
     if (comment.isLiked) {
       comment.isLiked = false;
       comment.likesCount--;
@@ -504,8 +533,9 @@ class HomeController extends GetxController {
         comment.isDisliked = false;
       }
     }
-    posts[postIndex] = post;
-    posts.refresh();
+    postList[postIndex] = post;
+    if (postList is RxList) { (postList as RxList).refresh(); }
+    _syncPostStateAcrossLists(post);
 
     try {
       final endpoint = originalIsLiked
@@ -518,30 +548,31 @@ class HomeController extends GetxController {
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        // Revert on failure
         comment.isLiked = originalIsLiked;
         comment.likesCount = originalLikesCount;
         comment.isDisliked = originalIsDisliked;
-        posts[postIndex] = post;
-        posts.refresh();
+        postList[postIndex] = post;
+        if (postList is RxList) { (postList as RxList).refresh(); }
+        _syncPostStateAcrossLists(post);
 
         ApiCheck.checkApi(response);
       }
     } catch (e) {
-      // Revert on connection error
       comment.isLiked = originalIsLiked;
       comment.likesCount = originalLikesCount;
       comment.isDisliked = originalIsDisliked;
-      posts[postIndex] = post;
-      posts.refresh();
+      postList[postIndex] = post;
+      if (postList is RxList) { (postList as RxList).refresh(); }
+      _syncPostStateAcrossLists(post);
 
       ToastMessage.showToast(message: 'Connection error: $e');
     }
   }
 
-  void toggleDislikeComment(int postIndex, int commentIndex) {
-    if (postIndex < 0 || postIndex >= posts.length) return;
-    final post = posts[postIndex];
+  void toggleDislikeComment(int postIndex, int commentIndex, {List<PostModel>? list}) {
+    final postList = list ?? posts;
+    if (postIndex < 0 || postIndex >= postList.length) return;
+    final post = postList[postIndex];
     if (commentIndex < 0 || commentIndex >= post.comments.length) return;
     final comment = post.comments[commentIndex];
 
@@ -554,19 +585,22 @@ class HomeController extends GetxController {
         comment.likesCount--;
       }
     }
-    posts[postIndex] = post;
-    posts.refresh();
+    postList[postIndex] = post;
+    if (postList is RxList) { (postList as RxList).refresh(); }
+    _syncPostStateAcrossLists(post);
   }
 
   Future<void> addReply(
     int postIndex,
     String parentCommentId,
-    String replyText,
-  ) async {
-    if (postIndex < 0 || postIndex >= posts.length || replyText.trim().isEmpty)
+    String replyText, {
+    List<PostModel>? list,
+  }) async {
+    final postList = list ?? posts;
+    if (postIndex < 0 || postIndex >= postList.length || replyText.trim().isEmpty)
       return;
 
-    final post = posts[postIndex];
+    final post = postList[postIndex];
     final parentComment = post.comments.firstWhereOrNull(
       (c) => c.id == parentCommentId,
     );
@@ -601,8 +635,9 @@ class HomeController extends GetxController {
         parentComment.replies.add(newReply);
         parentComment.repliesCount = parentComment.replies.length;
         post.commentsCount++;
-        posts[postIndex] = post;
-        posts.refresh();
+        postList[postIndex] = post;
+        if (postList is RxList) { (postList as RxList).refresh(); }
+        _syncPostStateAcrossLists(post);
 
         ToastMessage.showToast(message: StaticString.commentAdded.tr);
       } else {
@@ -613,9 +648,10 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> fetchRepliesForComment(int postIndex, String commentId) async {
-    if (postIndex < 0 || postIndex >= posts.length) return;
-    final post = posts[postIndex];
+  Future<void> fetchRepliesForComment(int postIndex, String commentId, {List<PostModel>? list}) async {
+    final postList = list ?? posts;
+    if (postIndex < 0 || postIndex >= postList.length) return;
+    final post = postList[postIndex];
     final parentComment = post.comments.firstWhereOrNull(
       (c) => c.id == commentId,
     );
@@ -635,8 +671,9 @@ class HomeController extends GetxController {
           parentComment.replies.clear();
           parentComment.replies.addAll(fetchedReplies);
           parentComment.repliesCount = parentComment.replies.length;
-          posts[postIndex] = post;
-          posts.refresh();
+          postList[postIndex] = post;
+          if (postList is RxList) { (postList as RxList).refresh(); }
+          _syncPostStateAcrossLists(post);
         }
       } else {
         ApiCheck.checkApi(response);
@@ -649,10 +686,12 @@ class HomeController extends GetxController {
   Future<void> toggleLikeCommentReply(
     int postIndex,
     String parentCommentId,
-    String replyId,
-  ) async {
-    if (postIndex < 0 || postIndex >= posts.length) return;
-    final post = posts[postIndex];
+    String replyId, {
+    List<PostModel>? list,
+  }) async {
+    final postList = list ?? posts;
+    if (postIndex < 0 || postIndex >= postList.length) return;
+    final post = postList[postIndex];
     final parentComment = post.comments.firstWhereOrNull(
       (c) => c.id == parentCommentId,
     );
@@ -666,7 +705,6 @@ class HomeController extends GetxController {
     final originalLikesCount = reply.likesCount;
     final originalIsDisliked = reply.isDisliked;
 
-    // Optimistically toggle state in UI
     if (reply.isLiked) {
       reply.isLiked = false;
       reply.likesCount--;
@@ -677,8 +715,9 @@ class HomeController extends GetxController {
         reply.isDisliked = false;
       }
     }
-    posts[postIndex] = post;
-    posts.refresh();
+    postList[postIndex] = post;
+    if (postList is RxList) { (postList as RxList).refresh(); }
+    _syncPostStateAcrossLists(post);
 
     try {
       final endpoint = originalIsLiked
@@ -691,22 +730,22 @@ class HomeController extends GetxController {
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        // Revert on failure
         reply.isLiked = originalIsLiked;
         reply.likesCount = originalLikesCount;
         reply.isDisliked = originalIsDisliked;
-        posts[postIndex] = post;
-        posts.refresh();
+        postList[postIndex] = post;
+        if (postList is RxList) { (postList as RxList).refresh(); }
+        _syncPostStateAcrossLists(post);
 
         ApiCheck.checkApi(response);
       }
     } catch (e) {
-      // Revert on connection error
       reply.isLiked = originalIsLiked;
       reply.likesCount = originalLikesCount;
       reply.isDisliked = originalIsDisliked;
-      posts[postIndex] = post;
-      posts.refresh();
+      postList[postIndex] = post;
+      if (postList is RxList) { (postList as RxList).refresh(); }
+      _syncPostStateAcrossLists(post);
 
       ToastMessage.showToast(message: 'Connection error: $e');
     }
@@ -715,10 +754,12 @@ class HomeController extends GetxController {
   void toggleDislikeCommentReply(
     int postIndex,
     String parentCommentId,
-    String replyId,
-  ) {
-    if (postIndex < 0 || postIndex >= posts.length) return;
-    final post = posts[postIndex];
+    String replyId, {
+    List<PostModel>? list,
+  }) {
+    final postList = list ?? posts;
+    if (postIndex < 0 || postIndex >= postList.length) return;
+    final post = postList[postIndex];
     final parentComment = post.comments.firstWhereOrNull(
       (c) => c.id == parentCommentId,
     );
@@ -737,8 +778,9 @@ class HomeController extends GetxController {
         reply.likesCount--;
       }
     }
-    posts[postIndex] = post;
-    posts.refresh();
+    postList[postIndex] = post;
+    if (postList is RxList) { (postList as RxList).refresh(); }
+    _syncPostStateAcrossLists(post);
   }
 
   void sharePost(int index) {
@@ -755,9 +797,10 @@ class HomeController extends GetxController {
     );
   }
 
-  Future<void> shareWithFollower(int postIndex, String followerId) async {
-    if (postIndex < 0 || postIndex >= posts.length) return;
-    final post = posts[postIndex];
+  Future<void> shareWithFollower(int postIndex, String followerId, {List<PostModel>? list}) async {
+    final postList = list ?? posts;
+    if (postIndex < 0 || postIndex >= postList.length) return;
+    final post = postList[postIndex];
 
     var sentSet =
         Map<String, Set<String>>.from(sharedFollowers)[post.id] ?? <String>{};
@@ -768,8 +811,9 @@ class HomeController extends GetxController {
     sharedFollowers.refresh();
 
     post.sharesCount++;
-    posts[postIndex] = post;
-    posts.refresh();
+    postList[postIndex] = post;
+    if (postList is RxList) { (postList as RxList).refresh(); }
+    _syncPostStateAcrossLists(post);
 
     try {
       final response = await Get.find<ApiClient>().post(
@@ -777,26 +821,26 @@ class HomeController extends GetxController {
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        // Revert on failure
         final revertedSet = Set<String>.from(newSet)..remove(followerId);
         sharedFollowers[post.id] = revertedSet;
         sharedFollowers.refresh();
 
         post.sharesCount--;
-        posts[postIndex] = post;
-        posts.refresh();
+        postList[postIndex] = post;
+        if (postList is RxList) { (postList as RxList).refresh(); }
+        _syncPostStateAcrossLists(post);
 
         ApiCheck.checkApi(response);
       }
     } catch (e) {
-      // Revert on connection error
       final revertedSet = Set<String>.from(newSet)..remove(followerId);
       sharedFollowers[post.id] = revertedSet;
       sharedFollowers.refresh();
 
       post.sharesCount--;
-      posts[postIndex] = post;
-      posts.refresh();
+      postList[postIndex] = post;
+      if (postList is RxList) { (postList as RxList).refresh(); }
+      _syncPostStateAcrossLists(post);
 
       ToastMessage.showToast(message: 'Connection error: $e');
     }
@@ -872,12 +916,14 @@ class HomeController extends GetxController {
     String? groupName,
     List<String>? taggedFriends,
     String? contentImageUrl,
+    List<PostModel>? list,
   }) async {
-    if (index < 0 || index >= posts.length) return false;
+    final postList = list ?? posts;
+    if (index < 0 || index >= postList.length) return false;
 
     isLoading.value = true;
     try {
-      final post = posts[index];
+      final post = postList[index];
       final response = await Get.find<ApiClient>().post(
         ApiUrl.createPost,
         body: {
@@ -896,8 +942,9 @@ class HomeController extends GetxController {
         post.groupName = groupName;
         post.taggedFriends = taggedFriends;
         post.contentImageUrl = contentImageUrl;
-        posts[index] = post;
-        posts.refresh();
+        postList[index] = post;
+        if (postList is RxList) { (postList as RxList).refresh(); }
+        _syncPostStateAcrossLists(post);
         ToastMessage.showToast(message: StaticString.postUpdatedSuccess.tr);
         return true;
       } else {
@@ -928,7 +975,6 @@ class HomeController extends GetxController {
               .map((json) => PostModel.fromJson(json))
               .toList();
 
-          // Update isSaved flags based on savedPosts list
           final savedPostIds = savedPosts.map((p) => p.id).toSet();
           for (var post in fetchedPosts) {
             post.isSaved = savedPostIds.contains(post.id);
@@ -963,7 +1009,6 @@ class HomeController extends GetxController {
                 .map((json) => PostModel.fromJson(json))
                 .toList();
 
-            // Update isSaved flags based on savedPosts list
             final savedPostIds = savedPosts.map((p) => p.id).toSet();
             for (var post in fetchedPosts) {
               post.isSaved = savedPostIds.contains(post.id);
@@ -983,10 +1028,11 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> fetchCommentsForPost(int index) async {
-    if (index < 0 || index >= posts.length) return;
+  Future<void> fetchCommentsForPost(int index, {List<PostModel>? list}) async {
+    final postList = list ?? posts;
+    if (index < 0 || index >= postList.length) return;
 
-    final post = posts[index];
+    final post = postList[index];
     isLoadingComments.value = true;
     _currentCommentsPage = 1;
     _isMoreCommentsAvailable = true;
@@ -1004,8 +1050,9 @@ class HomeController extends GetxController {
           post.comments.clear();
           post.comments.addAll(fetchedComments);
           post.commentsCount = post.comments.length;
-          posts[index] = post;
-          posts.refresh();
+          postList[index] = post;
+          if (postList is RxList) { (postList as RxList).refresh(); }
+          _syncPostStateAcrossLists(post);
         }
       } else {
         ApiCheck.checkApi(response);
@@ -1017,10 +1064,11 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> fetchMoreCommentsForPost(int index) async {
-    if (index < 0 || index >= posts.length) return;
+  Future<void> fetchMoreCommentsForPost(int index, {List<PostModel>? list}) async {
+    final postList = list ?? posts;
+    if (index < 0 || index >= postList.length) return;
 
-    final post = posts[index];
+    final post = postList[index];
     isLoadingMoreComments.value = true;
     try {
       final response = await Get.find<ApiClient>().get(
@@ -1038,8 +1086,9 @@ class HomeController extends GetxController {
                 .toList();
             post.comments.addAll(fetchedComments);
             post.commentsCount = post.comments.length;
-            posts[index] = post;
-            posts.refresh();
+            postList[index] = post;
+            if (postList is RxList) { (postList as RxList).refresh(); }
+            _syncPostStateAcrossLists(post);
             _currentCommentsPage++;
           }
         }
@@ -1219,15 +1268,40 @@ class HomeController extends GetxController {
     }
   }
 
-  Future<void> deletePost(int index) async {
-    if (index < 0 || index >= posts.length) return;
+  Future<void> deletePost(int index, {List<PostModel>? list}) async {
+    final postList = list ?? posts;
+    if (index < 0 || index >= postList.length) return;
 
-    final post = posts[index];
+    final post = postList[index];
     final originalIndex = index;
 
-    // Optimistically remove from list
-    posts.removeAt(index);
-    posts.refresh();
+    postList.removeAt(index);
+    if (postList is RxList) { (postList as RxList).refresh(); }
+
+    bool removedFromPosts = false;
+    int indexInPosts = -1;
+    if (postList != posts) {
+      indexInPosts = posts.indexWhere((p) => p.id == post.id);
+      if (indexInPosts != -1) {
+        posts.removeAt(indexInPosts);
+        posts.refresh();
+        removedFromPosts = true;
+      }
+    }
+
+    bool removedFromSaved = false;
+    if (postList != savedPosts) {
+      removedFromSaved = savedPosts.any((p) => p.id == post.id);
+      savedPosts.removeWhere((p) => p.id == post.id);
+      savedPosts.refresh();
+    }
+
+    bool removedFromArchived = false;
+    if (postList != archivedPosts) {
+      removedFromArchived = archivedPosts.any((p) => p.id == post.id);
+      archivedPosts.removeWhere((p) => p.id == post.id);
+      archivedPosts.refresh();
+    }
 
     try {
       final response = await Get.find<ApiClient>().delete(
@@ -1236,29 +1310,55 @@ class HomeController extends GetxController {
       print('Delete Post API Response: ${response.body}');
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        // Revert on failure
-        if (originalIndex <= posts.length) {
-          posts.insert(originalIndex, post);
+        if (originalIndex <= postList.length) {
+          postList.insert(originalIndex, post);
+        } else {
+          postList.add(post);
+        }
+        if (postList is RxList) { (postList as RxList).refresh(); }
+
+        if (removedFromPosts && indexInPosts != -1) {
+          if (indexInPosts <= posts.length) {
+            posts.insert(indexInPosts, post);
+          } else {
+            posts.add(post);
+          }
+          posts.refresh();
+        }
+        if (removedFromSaved) {
+          savedPosts.add(post);
+          savedPosts.refresh();
+        }
+        if (removedFromArchived) {
+          archivedPosts.add(post);
+          archivedPosts.refresh();
+        }
+        ApiCheck.checkApi(response);
+      }
+    } catch (e) {
+      if (originalIndex <= postList.length) {
+        postList.insert(originalIndex, post);
+      } else {
+        postList.add(post);
+      }
+      if (postList is RxList) { (postList as RxList).refresh(); }
+
+      if (removedFromPosts && indexInPosts != -1) {
+        if (indexInPosts <= posts.length) {
+          posts.insert(indexInPosts, post);
         } else {
           posts.add(post);
         }
         posts.refresh();
-        ApiCheck.checkApi(response);
-      } else {
-        // Also remove from savedPosts and archivedPosts lists
-        savedPosts.removeWhere((p) => p.id == post.id);
+      }
+      if (removedFromSaved) {
+        savedPosts.add(post);
         savedPosts.refresh();
-        archivedPosts.removeWhere((p) => p.id == post.id);
+      }
+      if (removedFromArchived) {
+        archivedPosts.add(post);
         archivedPosts.refresh();
       }
-    } catch (e) {
-      // Revert on connection error
-      if (originalIndex <= posts.length) {
-        posts.insert(originalIndex, post);
-      } else {
-        posts.add(post);
-      }
-      posts.refresh();
       ToastMessage.showToast(message: 'Connection error: $e');
     }
   }

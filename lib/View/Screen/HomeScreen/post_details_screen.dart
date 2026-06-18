@@ -23,15 +23,25 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
   final Rxn<CommentModel> selectedReplyComment = Rxn<CommentModel>();
   final RxSet<String> expandedCommentIds = <String>{}.obs;
   late final int postIndex;
+  List<PostModel>? postList;
+
+  List<PostModel> get posts => postList ?? controller.posts;
 
   @override
   void initState() {
     super.initState();
-    postIndex = Get.arguments as int;
+    final args = Get.arguments;
+    if (args is Map) {
+      postIndex = args['index'] as int;
+      postList = args['list'] as List<PostModel>?;
+    } else {
+      postIndex = args as int;
+      postList = null;
+    }
     controller.activePostDetailsIndex.value = postIndex;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (postIndex >= 0 && postIndex < controller.posts.length) {
-        controller.fetchCommentsForPost(postIndex);
+      if (postIndex >= 0 && postIndex < posts.length) {
+        controller.fetchCommentsForPost(postIndex, list: postList);
       }
     });
   }
@@ -122,10 +132,10 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
           children: [
             Expanded(
               child: Obx(() {
-                if (postIndex < 0 || postIndex >= controller.posts.length) {
+                if (postIndex < 0 || postIndex >= posts.length) {
                   return Center(child: Text(StaticString.postNotFound.tr));
                 }
-                final post = controller.posts[postIndex];
+                final post = posts[postIndex];
                 return SingleChildScrollView(
                   controller: controller.commentsScrollController,
                   child: Column(
@@ -136,6 +146,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                         postIndex: postIndex,
                         isClickable: false,
                         onCommentTap: () => _commentFocusNode.requestFocus(),
+                        postList: postList,
                       ),
 
                       const Divider(height: 1, thickness: 0.5),
@@ -323,11 +334,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                                                 ),
                                                 const Spacer(),
                                                 GestureDetector(
-                                                  onTap: () => controller
-                                                      .toggleLikeComment(
-                                                        postIndex,
-                                                        cIndex,
-                                                      ),
+                                                  onTap: () => controller.toggleLikeComment(postIndex, cIndex, list: postList),
                                                   child: Icon(
                                                     comment.isLiked
                                                         ? Icons
@@ -350,11 +357,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                                                 ),
                                                 const SizedBox(width: 16),
                                                 GestureDetector(
-                                                  onTap: () => controller
-                                                      .toggleDislikeComment(
-                                                        postIndex,
-                                                        cIndex,
-                                                      ),
+                                                  onTap: () => controller.toggleDislikeComment(postIndex, cIndex, list: postList),
                                                   child: Icon(
                                                     comment.isDisliked
                                                         ? Icons
@@ -385,10 +388,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                                           expandedCommentIds.remove(comment.id);
                                         } else {
                                           expandedCommentIds.add(comment.id);
-                                          controller.fetchRepliesForComment(
-                                            postIndex,
-                                            comment.id,
-                                          );
+                                          controller.fetchRepliesForComment(postIndex, comment.id, list: postList);
                                         }
                                       },
                                       child: Padding(
@@ -573,12 +573,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                                                       children: [
                                                         const Spacer(),
                                                         GestureDetector(
-                                                          onTap: () => controller
-                                                              .toggleLikeCommentReply(
-                                                                postIndex,
-                                                                comment.id,
-                                                                reply.id,
-                                                              ),
+                                                          onTap: () => controller.toggleLikeCommentReply(postIndex, comment.id, reply.id, list: postList),
                                                           child: Icon(
                                                             reply.isLiked
                                                                 ? Icons
@@ -608,12 +603,7 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                                                           width: 12,
                                                         ),
                                                         GestureDetector(
-                                                          onTap: () => controller
-                                                              .toggleDislikeCommentReply(
-                                                                postIndex,
-                                                                comment.id,
-                                                                reply.id,
-                                                              ),
+                                                          onTap: () => controller.toggleDislikeCommentReply(postIndex, comment.id, reply.id, list: postList),
                                                           child: Icon(
                                                             reply.isDisliked
                                                                 ? Icons
@@ -743,20 +733,13 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
                       onTap: () {
                         if (_textController.text.trim().isNotEmpty) {
                           if (isReplying) {
-                            controller.addReply(
-                              postIndex,
-                              selectedReplyComment.value!.id,
-                              _textController.text,
-                            );
+                            controller.addReply(postIndex, selectedReplyComment.value!.id, _textController.text, list: postList);
                             expandedCommentIds.add(
                               selectedReplyComment.value!.id,
                             );
                             selectedReplyComment.value = null;
                           } else {
-                            controller.addComment(
-                              postIndex,
-                              _textController.text,
-                            );
+                            controller.addComment(postIndex, _textController.text, list: postList);
                           }
                           _textController.clear();
                           _commentFocusNode.unfocus();
