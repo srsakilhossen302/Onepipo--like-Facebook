@@ -73,8 +73,10 @@ class CustomBottomNavBar extends StatelessWidget {
                   Expanded(
                     child: _buildNavItem(
                       index: 3,
-                      iconAsset: 'assets/icons/Settings-icons.svg',
-                      label: 'Settings',
+                      iconData: currentIndex == 3
+                          ? Icons.person_rounded
+                          : Icons.person_outline_rounded,
+                      label: 'Me',
                       isActive: currentIndex == 3,
                     ),
                   ),
@@ -98,7 +100,8 @@ class CustomBottomNavBar extends StatelessWidget {
 
   Widget _buildNavItem({
     required int index,
-    required String iconAsset,
+    String? iconAsset,
+    IconData? iconData,
     required String label,
     required bool isActive,
   }) {
@@ -115,12 +118,19 @@ class CustomBottomNavBar extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SvgPicture.asset(
-                iconAsset,
-                width: 22,
-                height: 22,
-                colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-              ),
+              if (iconAsset != null)
+                SvgPicture.asset(
+                  iconAsset,
+                  width: 22,
+                  height: 22,
+                  colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+                )
+              else if (iconData != null)
+                Icon(
+                  iconData,
+                  size: 22,
+                  color: color,
+                ),
               const SizedBox(height: 5),
               Text(
                 label,

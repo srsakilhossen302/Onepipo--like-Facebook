@@ -9,6 +9,7 @@ import '../../Widgegt/PostCard/post_card.dart';
 import '../../Widgegt/ShimmerLoading/shimmer_loading.dart';
 import 'Controller/my_profile_controller.dart';
 import 'edit_profile_screen.dart';
+import '../SettingsScreen/settings_screen.dart';
 
 class MyProfileScreen extends StatefulWidget {
   const MyProfileScreen({super.key});
@@ -120,14 +121,17 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back_ios_new_rounded,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                          onPressed: () => Get.back(),
-                        ),
+                        if (ModalRoute.of(context)?.canPop ?? false)
+                          IconButton(
+                            icon: const Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                            onPressed: () => Get.back(),
+                          )
+                        else
+                          const SizedBox(width: 48, height: 48),
                         Text(
                           StaticString.profile.tr,
                           style: const TextStyle(
@@ -337,29 +341,61 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     ),
                     const SizedBox(height: 16),
                     
-                    // Edit Profile Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 44,
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Get.to(() => const EditProfileScreen());
-                        },
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFD0D5DD)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                    // Edit Profile and Settings Buttons side-by-side
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SizedBox(
+                            height: 40,
+                            child: OutlinedButton(
+                              onPressed: () {
+                                Get.to(() => const EditProfileScreen());
+                              },
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFFD0D5DD)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: EdgeInsets.zero,
+                              ),
+                              child: Text(
+                                StaticString.editProfile.tr,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                        child: Text(
-                          StaticString.editProfile.tr,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: SizedBox(
+                            height: 40,
+                            child: OutlinedButton(
+                              onPressed: () {
+                                Get.to(() => const SettingsScreen());
+                              },
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFFD0D5DD)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: EdgeInsets.zero,
+                              ),
+                              child: Text(
+                                StaticString.settings.tr,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
                     
                     const SizedBox(height: 24),

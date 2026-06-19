@@ -428,7 +428,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             // Profile Card Section
             Obx(() => InkWell(
-              onTap: () {},
+              onTap: () => Get.toNamed(AppRoute.myProfile),
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16.0,

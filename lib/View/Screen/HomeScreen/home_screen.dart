@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'feed_screen.dart';
 import '../NotificationScreen/notification_screen.dart';
 import '../SearchScreen/search_screen.dart';
-import '../SettingsScreen/settings_screen.dart';
+import '../ProfileScreen/my_profile_screen.dart';
 import '../../Widgegt/CustomBottomNavBar/custom_bottom_nav_bar.dart';
 import '../../../Core/AppRoute/app_route.dart';
 import 'Controller/home_controller.dart';
@@ -17,7 +17,7 @@ class HomeScreen extends GetView<HomeController> {
       const FeedScreen(),
       const NotificationScreen(),
       const SearchScreen(),
-      const SettingsScreen(),
+      const MyProfileScreen(),
     ];
 
     return Scaffold(

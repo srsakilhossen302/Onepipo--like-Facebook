@@ -8,6 +8,7 @@ import 'package:onepipo/Core/AppRoute/app_route.dart';
 import 'package:onepipo/helper/shared_prefe/shared_prefe.dart';
 import 'package:onepipo/View/Screen/CreateAccountScreen/Controller/create_account_controller.dart';
 import 'package:onepipo/View/Screen/OtpVerificationScreen/otp_verification_screen.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:http/http.dart' as http;
 import 'package:onepipo/service/api_client.dart';
 
@@ -115,15 +116,11 @@ void main() {
     expect(find.byType(OtpVerificationScreen), findsOneWidget);
     expect(find.text('One Time Password'), findsNWidgets(2));
 
-    // Verify 5 inputs on OTP Screen
-    final otpFields = find.byType(TextField);
-    expect(otpFields, findsNWidgets(5));
+    // Verify MaterialPinField on OTP Screen
+    final pinInputsFinder = find.byType(MaterialPinField);
+    expect(pinInputsFinder, findsOneWidget);
 
-    await tester.enterText(otpFields.at(0), '1');
-    await tester.enterText(otpFields.at(1), '2');
-    await tester.enterText(otpFields.at(2), '3');
-    await tester.enterText(otpFields.at(3), '4');
-    await tester.enterText(otpFields.at(4), '5');
+    await tester.enterText(pinInputsFinder, '12345');
 
     // Tap submit on OTP Screen
     final otpSubmitButton = find.widgetWithText(ElevatedButton, 'Submit');
