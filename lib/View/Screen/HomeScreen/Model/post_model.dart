@@ -36,8 +36,8 @@ class CommentModel {
         : <CommentModel>[];
     return CommentModel(
       id: (json['id'] ?? '').toString(),
-      userId: (author != null ? author['id'] : json['user_id'])?.toString() ?? '',
-      postUserId: (json['user_id'] ?? (author != null ? author['id'] : null))?.toString() ?? '',
+      userId: (author != null ? (author['user_id'] ?? author['id']) : json['user_id'])?.toString() ?? '',
+      postUserId: (json['user_id'] ?? (author != null ? (author['user_id'] ?? author['id']) : null))?.toString() ?? '',
       userName: (author != null ? author['name'] : null) ?? 'Anonymous',
       userAvatarUrl: (author != null ? author['photo'] : null) ?? '',
       timeAgo: json['time_ago'] ?? 'Just now',
@@ -97,8 +97,8 @@ class PostModel {
     final author = json['author'] as Map<String, dynamic>?;
     return PostModel(
       id: (json['id'] ?? '').toString(),
-      userId: (author != null ? author['id'] : json['user_id'])?.toString() ?? '5',
-      postUserId: (json['user_id'] ?? (author != null ? author['id'] : null))?.toString() ?? '5',
+      userId: (author != null ? (author['user_id'] ?? author['id']) : json['user_id'])?.toString() ?? '5',
+      postUserId: (json['user_id'] ?? (author != null ? (author['user_id'] ?? author['id']) : null))?.toString() ?? '5',
       userName: (author != null ? author['name'] : null) ?? 'Anonymous',
       userAvatarUrl: (author != null ? author['photo'] : null) ?? '',
       timeAgo: json['time_ago'] ?? 'Just now',

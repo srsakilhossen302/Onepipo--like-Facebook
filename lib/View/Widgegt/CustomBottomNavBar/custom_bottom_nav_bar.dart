@@ -86,7 +86,7 @@ class CustomBottomNavBar extends StatelessWidget {
           ),
           // Floating Center Button
           Positioned(
-            top: 2,
+            top: 12,
             left: 0,
             right: 0,
             child: Center(

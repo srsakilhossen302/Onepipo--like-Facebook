@@ -162,11 +162,15 @@ class SharedPreferenceHelper {
     // 3. Check authorRaw map (id, name, username, email)
     if (authorRaw != null) {
       final authorId = authorRaw['id']?.toString() ?? '';
+      final authorUserId = authorRaw['user_id']?.toString() ?? '';
       final authorName = authorRaw['name']?.toString() ?? '';
       final authorUsername = authorRaw['username']?.toString() ?? '';
       final authorEmail = authorRaw['email']?.toString() ?? '';
 
       if (loggedInUserId.isNotEmpty && authorId.isNotEmpty && loggedInUserId == authorId) {
+        return true;
+      }
+      if (loggedInUserId.isNotEmpty && authorUserId.isNotEmpty && loggedInUserId == authorUserId) {
         return true;
       }
       if (loggedInUserName.isNotEmpty && authorName.isNotEmpty && authorName.toLowerCase() == loggedInUserName.toLowerCase()) {
@@ -177,6 +181,20 @@ class SharedPreferenceHelper {
       }
       if (loggedInUserEmail.isNotEmpty && authorEmail.isNotEmpty && authorEmail.toLowerCase() == loggedInUserEmail.toLowerCase()) {
         return true;
+      }
+
+      // Check nested profile key if available
+      if (authorRaw['profile'] is Map) {
+        final profileMap = authorRaw['profile'] as Map<String, dynamic>;
+        final profileUserId = profileMap['user_id']?.toString() ?? '';
+        final profileUsername = profileMap['username']?.toString() ?? '';
+
+        if (loggedInUserId.isNotEmpty && profileUserId.isNotEmpty && loggedInUserId == profileUserId) {
+          return true;
+        }
+        if (loggedInUserUsername.isNotEmpty && profileUsername.isNotEmpty && profileUsername.toLowerCase() == loggedInUserUsername.toLowerCase()) {
+          return true;
+        }
       }
     }
 
