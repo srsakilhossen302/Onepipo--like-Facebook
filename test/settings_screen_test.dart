@@ -331,6 +331,79 @@ void main() {
     expect(find.text('One-Time Password'), findsNothing);
     expect(Get.find<SharedPreferenceHelper>().getIs2faEnabled(), isTrue);
   });
+
+  testWidgets('SettingsScreen notifications toggles and login history navigation test', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(800, 1800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    final List<MethodCall> methodCalls = [];
+    const channel = MethodChannel('PonnamKarthik/fluttertoast');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+      methodCalls.add(methodCall);
+      return true;
+    });
+
+    await tester.pumpWidget(
+      GetMaterialApp(
+        translations: AppTranslator(),
+        locale: const Locale('en', 'US'),
+        getPages: AppRoute.routes,
+        home: const SettingsScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // 1. Verify "Message notifications" tile is shown (renamed from SMS notifications)
+    expect(find.text('Message notifications'), findsOneWidget);
+    expect(find.text('Receive message updates'), findsOneWidget);
+
+    // 2. Test Login History Navigation and fetch logs
+    expect(find.text('Login histories'), findsOneWidget);
+    await tester.tap(find.text('Login histories'));
+    await tester.pumpAndSettle();
+
+    // Verify navigating to LoginHistoryScreen
+    expect(find.text('Logged in from Chrome on Windows'), findsOneWidget);
+
+    // Go back
+    await tester.tap(find.byIcon(Icons.arrow_back_ios_new_rounded));
+    await tester.pumpAndSettle();
+
+    // 3. Test Email Notifications toggle action
+    final emailTile = find.ancestor(
+      of: find.text('Email notifications'),
+      matching: find.byType(ListTile),
+    );
+    final emailSwitch = find.descendant(
+      of: emailTile,
+      matching: find.byType(GestureDetector),
+    ).last;
+    await tester.tap(emailSwitch);
+    await tester.pumpAndSettle();
+
+    // Verify success toast
+    expect(methodCalls.any((call) => call.arguments['msg'].toString().contains('Email notifications')), isTrue);
+
+    // 4. Test Message Notifications toggle action
+    final messageTile = find.ancestor(
+      of: find.text('Message notifications'),
+      matching: find.byType(ListTile),
+    );
+    final messageSwitch = find.descendant(
+      of: messageTile,
+      matching: find.byType(GestureDetector),
+    ).last;
+    await tester.tap(messageSwitch);
+    await tester.pumpAndSettle();
+
+    // Verify success toast
+    expect(methodCalls.any((call) => call.arguments['msg'].toString().contains('Message notifications')), isTrue);
+  });
 }
 
 class MockApiClient extends ApiClient {
@@ -352,6 +425,11 @@ class MockApiClient extends ApiClient {
     } else if (uri.startsWith('/users/search')) {
       return http.Response(
         '{"status":"success","data":[{"id":"1","name":"Owolabi Ridwan","username":"owolabi","photo":"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150"}]}',
+        200,
+      );
+    } else if (uri == '/notifications?filter=login') {
+      return http.Response(
+        '{"status":"success","data":[{"id":1,"message":"Logged in from Chrome on Windows","time":"Just now"}]}',
         200,
       );
     }
@@ -392,6 +470,11 @@ class MockApiClient extends ApiClient {
     } else if (uri == '/auth/2fa/verify') {
       return http.Response(
         '{"status":"success","message":"2FA verification successful"}',
+        200,
+      );
+    } else if (uri == '/notifications?filter=all') {
+      return http.Response(
+        '{"status":"success","message":"Message notifications settings updated successfully"}',
         200,
       );
     }

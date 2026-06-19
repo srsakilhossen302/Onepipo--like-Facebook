@@ -24,6 +24,7 @@ import '../../View/Screen/OtpVerificationScreen/otp_verification_screen.dart';
 import '../../View/Screen/OtpVerificationScreen/Controller/otp_verification_controller.dart';
 
 import '../../View/Screen/ProfileScreen/Controller/my_profile_controller.dart';
+import '../../View/Screen/SettingsScreen/login_history_screen.dart';
 
 class AppRoute {
   static const String splashScreen = '/splash_screen';
@@ -44,6 +45,7 @@ class AppRoute {
   static const String savedPosts = '/saved_posts';
   static const String archivedPosts = '/archived_posts';
   static const String twoFactorOnboarding = '/two_factor_onboarding';
+  static const String loginHistory = '/login_history';
 
   static String getSplashScreen() => splashScreen;
   static String getLoginScreen() => loginScreen;
@@ -63,6 +65,7 @@ class AppRoute {
   static String getSavedPosts() => savedPosts;
   static String getArchivedPosts() => archivedPosts;
   static String getTwoFactorOnboarding() => twoFactorOnboarding;
+  static String getLoginHistory() => loginHistory;
 
   static List<GetPage> routes = [
     GetPage(
@@ -114,5 +117,6 @@ class AppRoute {
     GetPage(name: savedPosts, page: () => const SavedPostsScreen()),
     GetPage(name: archivedPosts, page: () => const ArchivedPostsScreen()),
     GetPage(name: twoFactorOnboarding, page: () => const TwoFactorSetupScreen()),
+    GetPage(name: loginHistory, page: () => const LoginHistoryScreen()),
   ];
 }

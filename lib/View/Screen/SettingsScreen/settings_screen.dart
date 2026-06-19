@@ -44,11 +44,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<bool> _updateSettings(String value) async {
+  Future<bool> _updateSettings(String key, String value) async {
     try {
       final response = await Get.find<ApiClient>().post(
         ApiUrl.updateSettings,
-        body: {'value': value},
+        body: {
+          'key': key,
+          'value': value,
+        },
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
         return true;
@@ -347,7 +350,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     : null,
                 onTap: () {
                   AppTranslator.changeLanguage('en', 'US');
-                  _updateSettings('en');
+                  _updateSettings('locale', 'en');
                   ToastMessage.showToast(
                     message: StaticString.languageChangedSuccess.tr,
                   );
@@ -378,7 +381,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     : null,
                 onTap: () {
                   AppTranslator.changeLanguage('fr', 'FR');
-                  _updateSettings('fr');
+                  _updateSettings('locale', 'fr');
                   ToastMessage.showToast(
                     message: StaticString.languageChangedSuccess.tr,
                   );
@@ -564,9 +567,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   setState(() {
                     _anonymousMode = val;
                   });
-                  _updateSettings(
-                    val ? 'anonymous_mode:true' : 'anonymous_mode:false',
-                  );
+                  _updateSettings('anonymous', val ? '1' : '0');
                   ToastMessage.showToast(
                     message: val
                         ? StaticString.anonymousModeEnabled.tr
@@ -590,7 +591,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onTap: () => _launchURL('https://onepipo.com/terms-of-use'),
             ),
 
-            // Notifications Section
+             // Notifications Section
             _buildSectionHeader(StaticString.notifications.tr),
             Obx(() => _buildSettingsTile(
               icon: Icons.notifications_none_rounded,
@@ -600,7 +601,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 value: controller.pushNotifications.value,
                 onChanged: null,
               ),
-              onTap: () {},
+              onTap: () {
+                ToastMessage.showToast(message: 'Push notifications cannot be disabled');
+              },
             )),
             Obx(() => _buildSettingsTile(
               iconAsset: 'assets/icons/Email notifications.svg',
@@ -608,7 +611,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: StaticString.receiveEmailUpdates.tr,
               trailing: _buildCustomSwitch(
                 value: controller.emailNotifications.value,
-                onChanged: null,
+                onChanged: (val) async {
+                  controller.emailNotifications.value = val;
+                  final success = await _updateSettings('email_notification', val ? '1' : '0');
+                  if (success) {
+                    Get.find<SharedPreferenceHelper>().setBool('email_notifications', val);
+                    ToastMessage.showToast(
+                      message: val ? StaticString.emailNotificationsEnabled.tr : StaticString.emailNotificationsDisabled.tr,
+                    );
+                  } else {
+                    controller.emailNotifications.value = !val;
+                    ToastMessage.showToast(message: 'Failed to update email settings. Please try again.');
+                  }
+                },
               ),
               onTap: () {},
             )),
@@ -618,7 +633,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
               subtitle: StaticString.receiveSmsAlerts.tr,
               trailing: _buildCustomSwitch(
                 value: controller.smsNotifications.value,
-                onChanged: null,
+                onChanged: (val) async {
+                  controller.smsNotifications.value = val;
+                  try {
+                    final response = await Get.find<ApiClient>().post(
+                      '/notifications?filter=all',
+                      body: {'value': val ? 'true' : 'false'},
+                    );
+                    if (response.statusCode == 200 || response.statusCode == 201) {
+                      Get.find<SharedPreferenceHelper>().setBool('sms_notifications', val);
+                      ToastMessage.showToast(
+                        message: val ? StaticString.smsNotificationsEnabled.tr : StaticString.smsNotificationsDisabled.tr,
+                      );
+                    } else {
+                      controller.smsNotifications.value = !val;
+                      ToastMessage.showToast(message: 'Failed to update message settings. Please try again.');
+                    }
+                  } catch (e) {
+                    controller.smsNotifications.value = !val;
+                    ToastMessage.showToast(message: 'Connection error: $e');
+                  }
+                },
               ),
               onTap: () {},
             )),
@@ -633,10 +668,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 value: controller.is2faEnabled.value,
                 onChanged: (val) async {
                   if (val) {
-                    Get.toNamed(AppRoute.twoFactorOnboarding);
+                     Get.toNamed(AppRoute.twoFactorOnboarding);
                   } else {
                     controller.is2faEnabled.value = false;
-                    final success = await _updateSettings('is_2fa_enabled:false');
+                    final success = await _updateSettings('is_2fa_enabled', '0');
                     if (success) {
                       Get.find<SharedPreferenceHelper>().setBool('is_2fa_enabled', false);
                       ToastMessage.showToast(
@@ -661,7 +696,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               iconAsset: 'assets/icons/Login history.svg',
               title: StaticString.loginHistories.tr,
               subtitle: StaticString.viewLoginActivities.tr,
-              onTap: () {},
+              onTap: () {
+                Get.toNamed(AppRoute.loginHistory);
+              },
             ),
             const SizedBox(height: 24),
 

@@ -28,13 +28,26 @@ class ApiClient {
     return headers;
   }
 
+  // Helper to parse URIs dynamically supporting relative /ap/ endpoints
+  Uri _parseUrl(String uri) {
+    if (uri.startsWith('http://') || uri.startsWith('https://')) {
+      return Uri.parse(uri);
+    }
+    if (uri.startsWith('/ap/')) {
+      final base = ApiUrl.baseUrl;
+      final root = base.replaceAll('/api/v1', '');
+      return Uri.parse('$root$uri');
+    }
+    return Uri.parse('${ApiUrl.baseUrl}$uri');
+  }
+
   // GET request
   Future<http.Response> get(
     String uri, {
     Map<String, String>? headers,
   }) async {
     try {
-      final url = Uri.parse('${ApiUrl.baseUrl}$uri');
+      final url = _parseUrl(uri);
       print('--> GET $url');
       print('Headers: ${_getHeaders(headers)}');
       final response = await http.get(
@@ -57,7 +70,7 @@ class ApiClient {
     Map<String, String>? headers,
   }) async {
     try {
-      final url = Uri.parse('${ApiUrl.baseUrl}$uri');
+      final url = _parseUrl(uri);
       print('--> POST $url');
       print('Headers: ${_getHeaders(headers)}');
       print('Body: ${body is Map ? jsonEncode(body) : body}');
@@ -84,7 +97,7 @@ class ApiClient {
     Map<String, String>? headers,
   }) async {
     try {
-      final url = Uri.parse('${ApiUrl.baseUrl}$uri');
+      final url = _parseUrl(uri);
       print('--> POST MULTIPART $url');
       
       var request = http.MultipartRequest('POST', url);
@@ -130,7 +143,7 @@ class ApiClient {
     Map<String, String>? headers,
   }) async {
     try {
-      final url = Uri.parse('${ApiUrl.baseUrl}$uri');
+      final url = _parseUrl(uri);
       final response = await http.put(
         url,
         body: body is Map ? jsonEncode(body) : body,
@@ -149,7 +162,7 @@ class ApiClient {
     Map<String, String>? headers,
   }) async {
     try {
-      final url = Uri.parse('${ApiUrl.baseUrl}$uri');
+      final url = _parseUrl(uri);
       final response = await http.delete(
         url,
         body: body is Map ? jsonEncode(body) : body,
