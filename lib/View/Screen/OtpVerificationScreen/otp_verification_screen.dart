@@ -11,7 +11,8 @@ class OtpVerificationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final OtpVerificationController controller = Get.isRegistered<OtpVerificationController>()
+    final OtpVerificationController controller =
+        Get.isRegistered<OtpVerificationController>()
         ? Get.find<OtpVerificationController>()
         : Get.put(OtpVerificationController());
     return Scaffold(
@@ -31,11 +32,7 @@ class OtpVerificationScreen extends StatelessWidget {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.close,
-              color: Colors.black87,
-              size: 24,
-            ),
+            icon: const Icon(Icons.close, color: Colors.black87, size: 24),
             onPressed: () => Get.back(),
           ),
           const SizedBox(width: 8),
@@ -48,7 +45,7 @@ class OtpVerificationScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 30),
-              
+
               // Premium Circular Key Icon
               Center(
                 child: Container(
@@ -84,35 +81,43 @@ class OtpVerificationScreen extends StatelessWidget {
               const SizedBox(height: 12),
 
               // Subtitle with Bold Email Address
-              Obx(() => RichText(
-                textAlign: TextAlign.center,
-                text: TextSpan(
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                    height: 1.4,
-                  ),
-                  children: [
-                    TextSpan(text: "${StaticString.enterOtpSent.tr} "),
-                    TextSpan(
-                      text: controller.email.value,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
+              Obx(
+                () => RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                      height: 1.4,
                     ),
-                  ],
+                    children: [
+                      TextSpan(text: "${StaticString.enterOtpSent.tr} "),
+                      TextSpan(
+                        text: controller.email.value,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              )),
+              ),
               const SizedBox(height: 36),
 
               // OTP Input wrapper card
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 28,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF9FAFB),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE5E7EB), width: 1.0),
+                  border: Border.all(
+                    color: const Color(0xFFE5E7EB),
+                    width: 1.0,
+                  ),
                 ),
                 child: MaterialPinField(
                   length: 5,
@@ -138,9 +143,7 @@ class OtpVerificationScreen extends StatelessWidget {
                     animationDuration: const Duration(milliseconds: 200),
                     animateCursor: !Get.testMode,
                   ),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   onChanged: (value) {},
                 ),
               ),
@@ -149,16 +152,15 @@ class OtpVerificationScreen extends StatelessWidget {
               // Resend code timer or clickable action
               Obx(() {
                 if (!controller.canResend.value) {
-                  final secStr = controller.timerSeconds.value.toString().padLeft(2, '0');
+                  final secStr = controller.timerSeconds.value
+                      .toString()
+                      .padLeft(2, '0');
                   return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         "${StaticString.resendCodeIn.tr} ",
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
                       ),
                       Text(
                         "00:$secStr",
@@ -183,42 +185,51 @@ class OtpVerificationScreen extends StatelessWidget {
                     ),
                   );
                 }
-              }),
+              }
+              ),
               const SizedBox(height: 40),
 
               // Submit Button
-              Obx(() => SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: controller.isLoading.value ? null : controller.verifyOtp,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1877F2),
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: const Color(0xFF1877F2).withOpacity(0.6),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+              Obx(
+                () => SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: controller.isLoading.value
+                        ? null
+                        : controller.verifyOtp,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1877F2),
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: const Color(
+                        0xFF1877F2,
+                      ).withOpacity(0.6),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
+                    child: controller.isLoading.value
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
+                            ),
+                          )
+                        : Text(
+                            StaticString.submit.tr,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
-                  child: controller.isLoading.value
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : Text(
-                          StaticString.submit.tr,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
                 ),
-              )),
+              ),
               const SizedBox(height: 20),
             ],
           ),
