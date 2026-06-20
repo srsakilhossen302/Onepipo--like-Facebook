@@ -137,16 +137,23 @@ class LoginController extends GetxController {
         await _sharedPrefHelper.saveLastLoginTime();
 
         // Save full user profile details to local storage
+        bool is2faActive = false;
         if (responseData['data'] is Map) {
           final data = responseData['data'] as Map<String, dynamic>;
-          final bool? is2fa = data['is_2fa_enabled'] as bool?;
+          final is2faVal = data['is_2fa_enabled'];
+          final bool is2fa = is2faVal == true || is2faVal.toString() == '1' || is2faVal.toString() == 'true';
+          is2faActive = is2fa;
           if (data['user'] is Map) {
             await _sharedPrefHelper.saveUserProfile(data['user'] as Map<String, dynamic>, is2faEnabled: is2fa);
           }
         }
         
-        ToastMessage.showToast(message: StaticString.loginSuccess.tr);
-        Get.offAllNamed(AppRoute.homeScreen);
+        if (is2faActive) {
+          Get.toNamed(AppRoute.twoFactorVerification, arguments: email);
+        } else {
+          ToastMessage.showToast(message: StaticString.loginSuccess.tr);
+          Get.offAllNamed(AppRoute.homeScreen);
+        }
       } else {
         ApiCheck.checkApi(response);
       }

@@ -41,6 +41,15 @@ class ApiClient {
     return Uri.parse('${ApiUrl.baseUrl}$uri');
   }
 
+  String? _getRedirectLocation(Map<String, String> headers) {
+    if (headers.containsKey('location')) return headers['location'];
+    if (headers.containsKey('Location')) return headers['Location'];
+    for (var key in headers.keys) {
+      if (key.toLowerCase() == 'location') return headers[key];
+    }
+    return null;
+  }
+
   // GET request
   Future<http.Response> get(
     String uri, {
@@ -50,12 +59,28 @@ class ApiClient {
       final url = _parseUrl(uri);
       print('--> GET $url');
       print('Headers: ${_getHeaders(headers)}');
-      final response = await http.get(
+      var response = await http.get(
         url,
         headers: _getHeaders(headers),
       ).timeout(const Duration(seconds: 30));
       print('<-- ${response.statusCode} $url');
       print('Response Body: ${response.body}');
+
+      int redirectCount = 0;
+      while ((response.statusCode == 301 || response.statusCode == 302 || response.statusCode == 307 || response.statusCode == 308) &&
+          redirectCount < 3) {
+        final redirectUrl = _getRedirectLocation(response.headers);
+        if (redirectUrl == null) break;
+        print('Redirecting GET to: $redirectUrl');
+        response = await http.get(
+          Uri.parse(redirectUrl),
+          headers: _getHeaders(headers),
+        ).timeout(const Duration(seconds: 30));
+        print('<-- REDIRECTED ${response.statusCode} $redirectUrl');
+        print('Response Body: ${response.body}');
+        redirectCount++;
+      }
+
       return response;
     } catch (e) {
       print('GET Error: $e');
@@ -74,13 +99,30 @@ class ApiClient {
       print('--> POST $url');
       print('Headers: ${_getHeaders(headers)}');
       print('Body: ${body is Map ? jsonEncode(body) : body}');
-      final response = await http.post(
+      var response = await http.post(
         url,
         body: body is Map ? jsonEncode(body) : body,
         headers: _getHeaders(headers),
       ).timeout(const Duration(seconds: 30));
       print('<-- ${response.statusCode} $url');
       print('Response Body: ${response.body}');
+
+      int redirectCount = 0;
+      while ((response.statusCode == 301 || response.statusCode == 302 || response.statusCode == 307 || response.statusCode == 308) &&
+          redirectCount < 3) {
+        final redirectUrl = _getRedirectLocation(response.headers);
+        if (redirectUrl == null) break;
+        print('Redirecting POST to: $redirectUrl');
+        response = await http.post(
+          Uri.parse(redirectUrl),
+          body: body is Map ? jsonEncode(body) : body,
+          headers: _getHeaders(headers),
+        ).timeout(const Duration(seconds: 30));
+        print('<-- REDIRECTED ${response.statusCode} $redirectUrl');
+        print('Response Body: ${response.body}');
+        redirectCount++;
+      }
+
       return response;
     } catch (e) {
       print('POST Error: $e');

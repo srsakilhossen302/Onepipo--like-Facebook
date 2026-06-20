@@ -18,6 +18,8 @@ import '../../View/Screen/SettingsScreen/two_factor_setup_screen.dart';
 import '../../View/Screen/NotificationScreen/notification_screen.dart';
 import '../../View/Screen/LoginScreen/login_screen.dart';
 import '../../View/Screen/LoginScreen/Controller/login_controller.dart';
+import '../../View/Screen/LoginScreen/two_factor_verification_screen.dart';
+import '../../View/Screen/LoginScreen/Controller/two_factor_verification_controller.dart';
 import '../../View/Screen/CreateAccountScreen/create_account_screen.dart';
 import '../../View/Screen/CreateAccountScreen/Controller/create_account_controller.dart';
 import '../../View/Screen/OtpVerificationScreen/otp_verification_screen.dart';
@@ -46,6 +48,7 @@ class AppRoute {
   static const String archivedPosts = '/archived_posts';
   static const String twoFactorOnboarding = '/two_factor_onboarding';
   static const String loginHistory = '/login_history';
+  static const String twoFactorVerification = '/two_factor_verification';
 
   static String getSplashScreen() => splashScreen;
   static String getLoginScreen() => loginScreen;
@@ -66,6 +69,7 @@ class AppRoute {
   static String getArchivedPosts() => archivedPosts;
   static String getTwoFactorOnboarding() => twoFactorOnboarding;
   static String getLoginHistory() => loginHistory;
+  static String getTwoFactorVerification() => twoFactorVerification;
 
   static List<GetPage> routes = [
     GetPage(
@@ -118,5 +122,14 @@ class AppRoute {
     GetPage(name: archivedPosts, page: () => const ArchivedPostsScreen()),
     GetPage(name: twoFactorOnboarding, page: () => const TwoFactorSetupScreen()),
     GetPage(name: loginHistory, page: () => const LoginHistoryScreen()),
+    GetPage(
+      name: twoFactorVerification,
+      page: () => const TwoFactorVerificationScreen(),
+      binding: BindingsBuilder(() {
+        Get.put<TwoFactorVerificationController>(
+          TwoFactorVerificationController(),
+        );
+      }),
+    ),
   ];
 }
