@@ -69,14 +69,15 @@ class ApiClient {
       int redirectCount = 0;
       while ((response.statusCode == 301 || response.statusCode == 302 || response.statusCode == 307 || response.statusCode == 308) &&
           redirectCount < 3) {
-        final redirectUrl = _getRedirectLocation(response.headers);
-        if (redirectUrl == null) break;
-        print('Redirecting GET to: $redirectUrl');
+        final redirectUrlStr = _getRedirectLocation(response.headers);
+        if (redirectUrlStr == null) break;
+        final redirectUri = url.resolve(redirectUrlStr);
+        print('Redirecting GET to: $redirectUri');
         response = await http.get(
-          Uri.parse(redirectUrl),
+          redirectUri,
           headers: _getHeaders(headers),
         ).timeout(const Duration(seconds: 30));
-        print('<-- REDIRECTED ${response.statusCode} $redirectUrl');
+        print('<-- REDIRECTED ${response.statusCode} $redirectUri');
         print('Response Body: ${response.body}');
         redirectCount++;
       }
@@ -110,15 +111,16 @@ class ApiClient {
       int redirectCount = 0;
       while ((response.statusCode == 301 || response.statusCode == 302 || response.statusCode == 307 || response.statusCode == 308) &&
           redirectCount < 3) {
-        final redirectUrl = _getRedirectLocation(response.headers);
-        if (redirectUrl == null) break;
-        print('Redirecting POST to: $redirectUrl');
+        final redirectUrlStr = _getRedirectLocation(response.headers);
+        if (redirectUrlStr == null) break;
+        final redirectUri = url.resolve(redirectUrlStr);
+        print('Redirecting POST to: $redirectUri');
         response = await http.post(
-          Uri.parse(redirectUrl),
+          redirectUri,
           body: body is Map ? jsonEncode(body) : body,
           headers: _getHeaders(headers),
         ).timeout(const Duration(seconds: 30));
-        print('<-- REDIRECTED ${response.statusCode} $redirectUrl');
+        print('<-- REDIRECTED ${response.statusCode} $redirectUri');
         print('Response Body: ${response.body}');
         redirectCount++;
       }
