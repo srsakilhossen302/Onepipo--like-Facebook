@@ -5,11 +5,14 @@ import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import 'Controller/create_account_controller.dart';
 
-class CreateAccountScreen extends GetView<CreateAccountController> {
+class CreateAccountScreen extends StatelessWidget {
   const CreateAccountScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final CreateAccountController controller = Get.isRegistered<CreateAccountController>()
+        ? Get.find<CreateAccountController>()
+        : Get.put(CreateAccountController());
     // List of countries for dropdown selection
     final List<String> countries = [
       'Bangladesh',

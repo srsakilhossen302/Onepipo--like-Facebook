@@ -457,7 +457,7 @@ class MockApiClient extends ApiClient {
         '{"status":"success","message":"Profile updated successfully"}',
         200,
       );
-    } else if (uri == '/users/change-password') {
+    } else if (uri == '/account/change-password') {
       return http.Response(
         '{"status":"success","message":"Password updated successfully"}',
         200,

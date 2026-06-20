@@ -6,11 +6,14 @@ import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import 'Controller/otp_verification_controller.dart';
 
-class OtpVerificationScreen extends GetView<OtpVerificationController> {
+class OtpVerificationScreen extends StatelessWidget {
   const OtpVerificationScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final OtpVerificationController controller = Get.isRegistered<OtpVerificationController>()
+        ? Get.find<OtpVerificationController>()
+        : Get.put(OtpVerificationController());
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(

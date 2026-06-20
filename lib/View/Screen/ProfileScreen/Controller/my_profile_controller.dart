@@ -23,6 +23,11 @@ class MyProfileController extends GetxController {
   var currentUserUsername = "".obs;
   var myUserId = "".obs;
   var userEmail = "".obs;
+  var userBio = "".obs;
+  var userCountryId = "".obs;
+  var userCityId = "".obs;
+  var userCountryName = "".obs;
+  var userCityName = "".obs;
 
   var smsNotifications = false.obs;
   var pushNotifications = true.obs;
@@ -149,6 +154,11 @@ class MyProfileController extends GetxController {
             
             if (user.containsKey('username') && user['username'] != null) {
               currentUserUsername.value = user['username'].toString();
+            } else if (user['profile'] is Map) {
+              final userProfile = user['profile'] as Map<String, dynamic>;
+              if (userProfile.containsKey('username') && userProfile['username'] != null) {
+                currentUserUsername.value = userProfile['username'].toString();
+              }
             }
             if (user.containsKey('id')) {
               final idStr = user['id'].toString();
@@ -182,6 +192,22 @@ class MyProfileController extends GetxController {
               if (userProfile.containsKey('email_notifications')) {
                 emailNotifications.value = userProfile['email_notifications'] as bool? ?? false;
               }
+              if (userProfile.containsKey('bio') && userProfile['bio'] != null) {
+                userBio.value = userProfile['bio'].toString();
+              }
+              if (userProfile.containsKey('country_id') && userProfile['country_id'] != null) {
+                userCountryId.value = userProfile['country_id'].toString();
+              }
+              if (userProfile.containsKey('city_id') && userProfile['city_id'] != null) {
+                userCityId.value = userProfile['city_id'].toString();
+              }
+              if (userProfile.containsKey('country') && userProfile['country'] != null) {
+                userCountryName.value = userProfile['country'].toString();
+              }
+              if (userProfile.containsKey('city') && userProfile['city'] != null) {
+                userCityName.value = userProfile['city'].toString();
+              }
+              _resolveCountryAndCityIds();
             }
           }
         }
@@ -213,6 +239,11 @@ class MyProfileController extends GetxController {
     pushNotifications.value = sharedPrefHelper.getPushNotifications();
     emailNotifications.value = sharedPrefHelper.getEmailNotifications();
     is2faEnabled.value = sharedPrefHelper.getIs2faEnabled();
+    userBio.value = sharedPrefHelper.getUserBio();
+    userCountryId.value = sharedPrefHelper.getUserCountryId();
+    userCityId.value = sharedPrefHelper.getUserCityId();
+    userCountryName.value = sharedPrefHelper.getUserCountryName();
+    userCityName.value = sharedPrefHelper.getUserCityName();
     final savedId = sharedPrefHelper.getString('logged_in_user_id');
     if (savedId.isNotEmpty) {
       myUserId.value = savedId;
@@ -220,11 +251,13 @@ class MyProfileController extends GetxController {
     
     // loginInBackground is awaited sequentially to avoid token invalidation race conditions
     loginInBackground().then((_) {
-      _getLoggedInUserId().then((id) {
-        if (id != null) {
-          myUserId.value = id;
-          loadMyPosts();
-        }
+      fetchUserProfile().then((_) {
+        _getLoggedInUserId().then((id) {
+          if (id != null) {
+            myUserId.value = id;
+            loadMyPosts();
+          }
+        });
       });
       fetchCountries();
       if (!Get.testMode) {
@@ -350,6 +383,76 @@ class MyProfileController extends GetxController {
     }
   }
 
+  Future<void> fetchUserProfile() async {
+    try {
+      final response = await Get.find<ApiClient>().get(ApiUrl.profile);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+        if (responseData.containsKey('data') && responseData['data'] is Map) {
+          final user = responseData['data'] as Map<String, dynamic>;
+          final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
+          await sharedPrefHelper.saveUserProfile(user);
+
+          // Update observables
+          if (user.containsKey('username') && user['username'] != null) {
+            currentUserUsername.value = user['username'].toString();
+          } else if (user['profile'] is Map) {
+            final userProfile = user['profile'] as Map<String, dynamic>;
+            if (userProfile.containsKey('username') && userProfile['username'] != null) {
+              currentUserUsername.value = userProfile['username'].toString();
+            }
+          }
+          if (user.containsKey('id')) {
+            myUserId.value = user['id'].toString();
+          }
+          if (user.containsKey('email')) {
+            userEmail.value = user['email'].toString();
+          }
+          if (user.containsKey('name')) {
+            currentUserName.value = user['name'].toString();
+          }
+          if (user.containsKey('photo')) {
+            profilePhotoUrl.value = user['photo'].toString();
+          }
+          if (user.containsKey('cover')) {
+            coverPhotoUrl.value = user['cover'].toString();
+          }
+
+          if (user['profile'] is Map) {
+            final userProfile = user['profile'] as Map<String, dynamic>;
+            if (userProfile.containsKey('sms_notifications')) {
+              smsNotifications.value = userProfile['sms_notifications'] as bool? ?? false;
+            }
+            if (userProfile.containsKey('push_notifications')) {
+              pushNotifications.value = userProfile['push_notifications'] as bool? ?? false;
+            }
+            if (userProfile.containsKey('email_notifications')) {
+              emailNotifications.value = userProfile['email_notifications'] as bool? ?? false;
+            }
+            if (userProfile.containsKey('bio') && userProfile['bio'] != null) {
+              userBio.value = userProfile['bio'].toString();
+            }
+            if (userProfile.containsKey('country_id') && userProfile['country_id'] != null) {
+              userCountryId.value = userProfile['country_id'].toString();
+            }
+            if (userProfile.containsKey('city_id') && userProfile['city_id'] != null) {
+              userCityId.value = userProfile['city_id'].toString();
+            }
+            if (userProfile.containsKey('country') && userProfile['country'] != null) {
+              userCountryName.value = userProfile['country'].toString();
+            }
+            if (userProfile.containsKey('city') && userProfile['city'] != null) {
+              userCityName.value = userProfile['city'].toString();
+            }
+            _resolveCountryAndCityIds();
+          }
+        }
+      }
+    } catch (e) {
+      print('Error fetching user profile: $e');
+    }
+  }
+
   Future<void> fetchCountries() async {
     isLoadingCountries.value = true;
     try {
@@ -360,6 +463,7 @@ class MyProfileController extends GetxController {
           final List<dynamic> data = responseData['data'];
           final List<CountryModel> fetchedCountries = data.map((json) => CountryModel.fromJson(json)).toList();
           countriesList.assignAll(fetchedCountries);
+          _resolveCountryAndCityIds();
         }
       } else {
         ApiCheck.checkApi(response);
@@ -368,6 +472,32 @@ class MyProfileController extends GetxController {
       print('Error loading countries: $e');
     } finally {
       isLoadingCountries.value = false;
+    }
+  }
+
+  void _resolveCountryAndCityIds() {
+    final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
+    
+    // Resolve country ID by name
+    if (userCountryName.value.isNotEmpty) {
+      final matchedCountry = countriesList.firstWhereOrNull(
+        (c) => c.name.toLowerCase() == userCountryName.value.toLowerCase(),
+      );
+      if (matchedCountry != null) {
+        userCountryId.value = matchedCountry.id.toString();
+        sharedPrefHelper.setString('user_country_id', userCountryId.value);
+        
+        // Resolve city ID by name
+        if (userCityName.value.isNotEmpty) {
+          final matchedCity = matchedCountry.cities.firstWhereOrNull(
+            (c) => c.name.toLowerCase() == userCityName.value.toLowerCase(),
+          );
+          if (matchedCity != null) {
+            userCityId.value = matchedCity.id.toString();
+            sharedPrefHelper.setString('user_city_id', userCityId.value);
+          }
+        }
+      }
     }
   }
 
@@ -395,6 +525,31 @@ class MyProfileController extends GetxController {
       isLoadingUpdate.value = false;
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
+        await sharedPrefHelper.setString('user_name', names);
+        await sharedPrefHelper.setString('user_username', username);
+        await sharedPrefHelper.setString('user_bio', bio);
+        await sharedPrefHelper.setString('user_country_id', countryId);
+        await sharedPrefHelper.setString('user_city_id', cityId);
+
+        currentUserName.value = names;
+        currentUserUsername.value = username;
+        userBio.value = bio;
+        userCountryId.value = countryId;
+        userCityId.value = cityId;
+
+        final matchedCountry = countriesList.firstWhereOrNull((c) => c.id.toString() == countryId);
+        if (matchedCountry != null) {
+          await sharedPrefHelper.setString('user_country_name', matchedCountry.name);
+          userCountryName.value = matchedCountry.name;
+          
+          final matchedCity = matchedCountry.cities.firstWhereOrNull((c) => c.id.toString() == cityId);
+          if (matchedCity != null) {
+            await sharedPrefHelper.setString('user_city_name', matchedCity.name);
+            userCityName.value = matchedCity.name;
+          }
+        }
+
         ToastMessage.showToast(message: 'Profile updated successfully');
         return true;
       } else {

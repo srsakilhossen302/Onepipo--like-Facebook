@@ -30,7 +30,7 @@ class ApiUrl {
   static String blockUser(String userId) => '/users/$userId/block';
   static String unblockUser(String userId) => '/users/$userId/unblock';
   static const String blockedUsersList = '/users/blocked';
-  static const String changePassword = '/users/change-password';
+  static const String changePassword = '/account/change-password';
   static const String followers = '/users/followers';
   static const String request2fa = '/auth/2fa/request';
   static const String verify2fa = '/auth/2fa/verify';

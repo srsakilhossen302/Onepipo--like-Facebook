@@ -16,9 +16,9 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final MyProfileController controller = Get.find<MyProfileController>();
 
-  final _fullNameController = TextEditingController(text: 'rifad');
-  final _usernameController = TextEditingController(text: 'rifad22');
-  final _bioController = TextEditingController(text: 'sjdjd djdbd d');
+  late final TextEditingController _fullNameController;
+  late final TextEditingController _usernameController;
+  late final TextEditingController _bioController;
 
   String? _selectedCountry;
   String? _selectedCity;
@@ -26,6 +26,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
+    _fullNameController = TextEditingController(text: controller.userName);
+    _usernameController =
+        TextEditingController(text: controller.currentUserUsername.value);
+    _bioController = TextEditingController(text: controller.userBio.value);
+
+    final savedCountryId = controller.userCountryId.value;
+    final savedCityId = controller.userCityId.value;
+
+    final initialCountry = controller.countriesList.firstWhereOrNull(
+      (c) => c.id.toString() == savedCountryId,
+    );
+    if (initialCountry != null) {
+      _selectedCountry = initialCountry.name;
+      final initialCity = initialCountry.cities.firstWhereOrNull(
+        (c) => c.id.toString() == savedCityId,
+      );
+      if (initialCity != null) {
+        _selectedCity = initialCity.name;
+      }
+    }
   }
 
   @override

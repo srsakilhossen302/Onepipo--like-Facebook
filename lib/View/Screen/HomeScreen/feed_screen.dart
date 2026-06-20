@@ -7,11 +7,14 @@ import '../../Widgegt/PostCard/post_card.dart';
 import '../../Widgegt/ShimmerLoading/shimmer_loading.dart';
 import 'Controller/home_controller.dart';
 
-class FeedScreen extends GetView<HomeController> {
+class FeedScreen extends StatelessWidget {
   const FeedScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final HomeController controller = Get.isRegistered<HomeController>()
+        ? Get.find<HomeController>()
+        : Get.put(HomeController());
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(

@@ -8,11 +8,14 @@ import '../../Widgegt/CustomBottomNavBar/custom_bottom_nav_bar.dart';
 import '../../../Core/AppRoute/app_route.dart';
 import 'Controller/home_controller.dart';
 
-class HomeScreen extends GetView<HomeController> {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final HomeController controller = Get.isRegistered<HomeController>()
+        ? Get.find<HomeController>()
+        : Get.put(HomeController());
     final List<Widget> screens = [
       const FeedScreen(),
       const NotificationScreen(),

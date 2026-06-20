@@ -256,6 +256,16 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
+                    if (controller.userBio.value.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Text(
+                        controller.userBio.value,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          color: Color(0xFF04070D),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     
                     // Stats Row: posts count, followers, following

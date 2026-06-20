@@ -7,11 +7,14 @@ import '../../../Utils/ToastMessage/toast_message.dart';
 import '../../../Core/AppRoute/app_route.dart';
 import 'Controller/login_controller.dart';
 
-class LoginScreen extends GetView<LoginController> {
+class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final LoginController controller = Get.isRegistered<LoginController>()
+        ? Get.find<LoginController>()
+        : Get.put(LoginController());
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(

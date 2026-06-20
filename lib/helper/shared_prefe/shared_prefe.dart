@@ -86,6 +86,11 @@ class SharedPreferenceHelper {
     }
     if (userData.containsKey('username') && userData['username'] != null) {
       await sharedPreferences.setString('user_username', userData['username'].toString());
+    } else if (userData['profile'] is Map) {
+      final profile = userData['profile'] as Map<String, dynamic>;
+      if (profile.containsKey('username') && profile['username'] != null) {
+        await sharedPreferences.setString('user_username', profile['username'].toString());
+      }
     }
     if (userData.containsKey('name') && userData['name'] != null) {
       await sharedPreferences.setString('user_name', userData['name'].toString());
@@ -124,6 +129,21 @@ class SharedPreferenceHelper {
         final val = profile['is_2fa_enabled'];
         await sharedPreferences.setBool('is_2fa_enabled', val == true || val.toString() == '1' || val.toString() == 'true');
       }
+      if (profile.containsKey('bio') && profile['bio'] != null) {
+        await sharedPreferences.setString('user_bio', profile['bio'].toString());
+      }
+      if (profile.containsKey('country_id') && profile['country_id'] != null) {
+        await sharedPreferences.setString('user_country_id', profile['country_id'].toString());
+      }
+      if (profile.containsKey('city_id') && profile['city_id'] != null) {
+        await sharedPreferences.setString('user_city_id', profile['city_id'].toString());
+      }
+      if (profile.containsKey('country') && profile['country'] != null) {
+        await sharedPreferences.setString('user_country_name', profile['country'].toString());
+      }
+      if (profile.containsKey('city') && profile['city'] != null) {
+        await sharedPreferences.setString('user_city_name', profile['city'].toString());
+      }
     }
   }
 
@@ -131,6 +151,11 @@ class SharedPreferenceHelper {
   String getUserUsername() => sharedPreferences.getString('user_username') ?? '';
   String getUserPhoto() => sharedPreferences.getString('user_photo') ?? '';
   String getUserCover() => sharedPreferences.getString('user_cover') ?? '';
+  String getUserBio() => sharedPreferences.getString('user_bio') ?? '';
+  String getUserCountryId() => sharedPreferences.getString('user_country_id') ?? '';
+  String getUserCityId() => sharedPreferences.getString('user_city_id') ?? '';
+  String getUserCountryName() => sharedPreferences.getString('user_country_name') ?? '';
+  String getUserCityName() => sharedPreferences.getString('user_city_name') ?? '';
   bool getSmsNotifications() => sharedPreferences.getBool('sms_notifications') ?? false;
   bool getPushNotifications() => sharedPreferences.getBool('push_notifications') ?? true;
   bool getEmailNotifications() => sharedPreferences.getBool('email_notifications') ?? false;
