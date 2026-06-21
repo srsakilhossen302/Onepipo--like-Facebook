@@ -4,6 +4,7 @@ import '../../HomeScreen/Controller/home_controller.dart';
 import 'my_profile_controller.dart';
 import '../../../../service/api_client.dart';
 import '../../../../service/api_url.dart';
+import '../../../../helper/shared_prefe/shared_prefe.dart';
 
 class FollowListController extends GetxController {
   final HomeController homeController = Get.find<HomeController>();
@@ -15,6 +16,18 @@ class FollowListController extends GetxController {
   var following = <FollowerModel>[].obs;
   var isLoadingFollowing = false.obs;
 
+  bool get isOwnProfile {
+    try {
+      final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
+      final loggedInUserName = sharedPrefHelper.getUserName();
+      final loggedInUserUsername = sharedPrefHelper.getUserUsername();
+      return userName.toLowerCase() == loggedInUserName.toLowerCase() ||
+             userName.toLowerCase() == loggedInUserUsername.toLowerCase();
+    } catch (_) {
+      return false;
+    }
+  }
+
   void initUser(String name) {
     userName = name;
     fetchFollowers();
@@ -23,6 +36,12 @@ class FollowListController extends GetxController {
 
   Future<void> fetchFollowers() async {
     isLoadingFollowers.value = true;
+    if (!isOwnProfile) {
+      followers.clear();
+      isLoadingFollowers.value = false;
+      return;
+    }
+
     try {
       final response = await apiClient.get(ApiUrl.followers);
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -57,6 +76,12 @@ class FollowListController extends GetxController {
 
   Future<void> fetchFollowing() async {
     isLoadingFollowing.value = true;
+    if (!isOwnProfile) {
+      following.clear();
+      isLoadingFollowing.value = false;
+      return;
+    }
+
     try {
       final response = await apiClient.get(ApiUrl.following);
       if (response.statusCode == 200 || response.statusCode == 201) {
