@@ -58,7 +58,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
     }
   }
 
-  Widget _buildUserList(List<FollowerModel> list) {
+  Widget _buildUserList(List<FollowerModel> list, bool isLoading) {
     final sharedPrefHelper = Get.find<SharedPreferenceHelper>();
     final loggedInUserName = sharedPrefHelper.getUserName();
     final loggedInUserUsername = sharedPrefHelper.getUserUsername();
@@ -67,7 +67,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
         userName.toLowerCase() == loggedInUserUsername.toLowerCase() ||
         userName.toLowerCase() == 'shahriar';
 
-    if (controller.isLoadingFollowers.value) {
+    if (isLoading) {
       return const Center(
         child: CircularProgressIndicator(color: Colors.blueAccent),
       );
@@ -81,7 +81,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
             Icon(Icons.group_outlined, size: 72, color: Colors.grey[300]),
             const SizedBox(height: 16),
             Text(
-              StaticString.noFollowersYet.tr,
+              list == controller.followers ? StaticString.noFollowersYet.tr : StaticString.notFollowingYet.tr,
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -228,31 +228,52 @@ class _FollowListScreenState extends State<FollowListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    final args = Get.arguments as Map<String, dynamic>? ?? {};
+    final initialIndex = args['initialIndex'] ?? 0;
+
+    return DefaultTabController(
+      length: 2,
+      initialIndex: initialIndex,
+      child: Scaffold(
         backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.textLight,
-            size: 20,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: AppColors.textLight,
+              size: 20,
+            ),
+            onPressed: () => Get.back(),
           ),
-          onPressed: () => Get.back(),
-        ),
-        title: Text(
-          StaticString.followers.tr,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textLight,
+          title: Text(
+            userName,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textLight,
+            ),
+          ),
+          centerTitle: true,
+          bottom: TabBar(
+            labelColor: Colors.blueAccent,
+            unselectedLabelColor: Colors.grey,
+            indicatorColor: Colors.blueAccent,
+            tabs: [
+              Tab(text: StaticString.followers.tr),
+              Tab(text: StaticString.following.tr),
+            ],
           ),
         ),
-        centerTitle: true,
+        body: TabBarView(
+          children: [
+            Obx(() => _buildUserList(controller.followers, controller.isLoadingFollowers.value)),
+            Obx(() => _buildUserList(controller.following, controller.isLoadingFollowing.value)),
+          ],
+        ),
       ),
-      body: Obx(() => _buildUserList(controller.getFollowers())),
     );
   }
 }

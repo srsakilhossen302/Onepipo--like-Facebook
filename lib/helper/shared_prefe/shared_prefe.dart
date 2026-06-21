@@ -141,8 +141,11 @@ class SharedPreferenceHelper {
       if (profile.containsKey('country') && profile['country'] != null) {
         await sharedPreferences.setString('user_country_name', profile['country'].toString());
       }
-      if (profile.containsKey('city') && profile['city'] != null) {
-        await sharedPreferences.setString('user_city_name', profile['city'].toString());
+      if (profile.containsKey('followers_count') && profile['followers_count'] != null) {
+        await sharedPreferences.setInt('followers_count', int.tryParse(profile['followers_count'].toString()) ?? 0);
+      }
+      if (profile.containsKey('following_count') && profile['following_count'] != null) {
+        await sharedPreferences.setInt('following_count', int.tryParse(profile['following_count'].toString()) ?? 0);
       }
     }
   }
@@ -160,6 +163,8 @@ class SharedPreferenceHelper {
   bool getPushNotifications() => sharedPreferences.getBool('push_notifications') ?? true;
   bool getEmailNotifications() => sharedPreferences.getBool('email_notifications') ?? false;
   bool getIs2faEnabled() => sharedPreferences.getBool('is_2fa_enabled') ?? false;
+  int getFollowersCount() => sharedPreferences.getInt('followers_count') ?? 0;
+  int getFollowingCount() => sharedPreferences.getInt('following_count') ?? 0;
 
   bool isMe({
     String? userId,

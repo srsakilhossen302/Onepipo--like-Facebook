@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../Utils/AppColors/app_colors.dart';
-import '../../../Utils/ToastMessage/toast_message.dart';
 import '../../../helper/network_img/network_img.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../Widgegt/PostCard/post_card.dart';
@@ -25,6 +24,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   @override
   void initState() {
     super.initState();
+    controller.refreshProfileData();
   }
 
   @override
@@ -304,7 +304,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                               Icon(Icons.group_outlined, size: 16, color: Colors.grey[600]),
                               const SizedBox(width: 4),
                               Text(
-                                "${(controller.homeController.userFollowers[userName] ?? []).length} ${StaticString.followers.tr}",
+                                "${controller.followersCount.value} ${StaticString.followers.tr}",
                                 style: TextStyle(
                                   color: Colors.grey[600],
                                   fontSize: 13,
@@ -337,7 +337,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                               Icon(Icons.person_add_alt_1_outlined, size: 16, color: Colors.grey[600]),
                               const SizedBox(width: 4),
                               Text(
-                                "${(controller.homeController.userFollowing[userName] ?? []).length} ${StaticString.following.tr}",
+                                "${controller.followingCount.value} ${StaticString.following.tr}",
                                 style: TextStyle(
                                   color: Colors.grey[600],
                                   fontSize: 13,

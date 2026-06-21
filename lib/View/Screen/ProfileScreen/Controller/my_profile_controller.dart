@@ -33,6 +33,8 @@ class MyProfileController extends GetxController {
   var pushNotifications = true.obs;
   var emailNotifications = false.obs;
   var is2faEnabled = false.obs;
+  var followersCount = 0.obs;
+  var followingCount = 0.obs;
 
   var myPosts = <PostModel>[].obs;
   var coverPhotoPath = ''.obs;
@@ -76,13 +78,6 @@ class MyProfileController extends GetxController {
     final password = sharedPrefHelper.getUserPassword();
 
     if (email.isEmpty || password.isEmpty) {
-      return;
-    }
-
-    // Cooldown of 2 minutes to prevent rapid duplicate background logins
-    final lastLogin = sharedPrefHelper.getLastLoginTime();
-    if (lastLogin != null && DateTime.now().difference(lastLogin) < const Duration(minutes: 2)) {
-      print('Skipping background login: last login/registration was less than 2 minutes ago.');
       return;
     }
 
@@ -207,6 +202,12 @@ class MyProfileController extends GetxController {
               if (userProfile.containsKey('city') && userProfile['city'] != null) {
                 userCityName.value = userProfile['city'].toString();
               }
+              if (userProfile.containsKey('followers_count')) {
+                followersCount.value = int.tryParse(userProfile['followers_count'].toString()) ?? 0;
+              }
+              if (userProfile.containsKey('following_count')) {
+                followingCount.value = int.tryParse(userProfile['following_count'].toString()) ?? 0;
+              }
               _resolveCountryAndCityIds();
             }
           }
@@ -214,6 +215,20 @@ class MyProfileController extends GetxController {
       }
     } catch (e) {
       print('Background login error: $e');
+    }
+  }
+
+  Future<void> refreshProfileData() async {
+    await loginInBackground();
+    await fetchUserProfile();
+    final id = await _getLoggedInUserId();
+    if (id != null) {
+      myUserId.value = id;
+      loadMyPosts();
+    }
+    fetchCountries();
+    if (!Get.testMode) {
+      await fetchMyPosts();
     }
   }
 
@@ -239,6 +254,8 @@ class MyProfileController extends GetxController {
     pushNotifications.value = sharedPrefHelper.getPushNotifications();
     emailNotifications.value = sharedPrefHelper.getEmailNotifications();
     is2faEnabled.value = sharedPrefHelper.getIs2faEnabled();
+    followersCount.value = sharedPrefHelper.getFollowersCount();
+    followingCount.value = sharedPrefHelper.getFollowingCount();
     userBio.value = sharedPrefHelper.getUserBio();
     userCountryId.value = sharedPrefHelper.getUserCountryId();
     userCityId.value = sharedPrefHelper.getUserCityId();
@@ -248,22 +265,7 @@ class MyProfileController extends GetxController {
     if (savedId.isNotEmpty) {
       myUserId.value = savedId;
     }
-    
-    // loginInBackground is awaited sequentially to avoid token invalidation race conditions
-    loginInBackground().then((_) {
-      fetchUserProfile().then((_) {
-        _getLoggedInUserId().then((id) {
-          if (id != null) {
-            myUserId.value = id;
-            loadMyPosts();
-          }
-        });
-      });
-      fetchCountries();
-      if (!Get.testMode) {
-        fetchMyPosts();
-      }
-    });
+    refreshProfileData();
 
     // React to changes in home controller posts to refresh user posts
     ever(homeController.posts, (_) => loadMyPosts());
@@ -443,6 +445,12 @@ class MyProfileController extends GetxController {
             }
             if (userProfile.containsKey('city') && userProfile['city'] != null) {
               userCityName.value = userProfile['city'].toString();
+            }
+            if (userProfile.containsKey('followers_count')) {
+              followersCount.value = int.tryParse(userProfile['followers_count'].toString()) ?? 0;
+            }
+            if (userProfile.containsKey('following_count')) {
+              followingCount.value = int.tryParse(userProfile['following_count'].toString()) ?? 0;
             }
             _resolveCountryAndCityIds();
           }

@@ -32,6 +32,7 @@ class ApiUrl {
   static const String blockedUsersList = '/users/blocked';
   static const String changePassword = '/account/change-password';
   static const String followers = '/users/followers';
+  static const String following = '/users/following';
   static const String request2fa = '/auth/2fa/request';
   static const String verify2fa = '/auth/2fa/verify';
 
