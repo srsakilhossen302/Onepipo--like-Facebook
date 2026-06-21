@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:get/get.dart';
 import '../../HomeScreen/Controller/home_controller.dart';
+import 'my_profile_controller.dart';
 import '../../../../service/api_client.dart';
 import '../../../../service/api_url.dart';
 
@@ -96,8 +97,29 @@ class FollowListController extends GetxController {
     return following;
   }
 
-  void unfollowUser(String targetName) {
-    homeController.toggleFollowUser(targetName);
+  Future<void> unfollowUser(FollowerModel user) async {
+    final success = await homeController.unfollowUser(user.id);
+    if (success) {
+      following.removeWhere((u) => u.id == user.id);
+      try {
+        Get.find<MyProfileController>().decreaseFollowingCount();
+      } catch (_) {}
+      homeController.userFollowing[homeController.loggedInUserName]?.removeWhere((u) => u.id == user.id || u.name.toLowerCase() == user.name.toLowerCase());
+      homeController.userFollowing.refresh();
+    }
+  }
+
+  Future<void> followUser(FollowerModel user) async {
+    final success = await homeController.sendFollowRequest(user.id);
+    if (success) {
+      if (homeController.userFollowing[homeController.loggedInUserName] == null) {
+        homeController.userFollowing[homeController.loggedInUserName] = <FollowerModel>[].obs;
+      }
+      if (!homeController.userFollowing[homeController.loggedInUserName]!.any((u) => u.id == user.id)) {
+        homeController.userFollowing[homeController.loggedInUserName]!.add(user);
+      }
+      homeController.userFollowing.refresh();
+    }
   }
 
   void removeFollower(String followerName) {
@@ -105,7 +127,7 @@ class FollowListController extends GetxController {
   }
 
   bool isFollowing(String name) {
-    return (homeController.userFollowing['Shahriar'] ?? [])
+    return (homeController.userFollowing[homeController.loggedInUserName] ?? [])
         .any((u) => u.name.toLowerCase() == name.toLowerCase());
   }
 }

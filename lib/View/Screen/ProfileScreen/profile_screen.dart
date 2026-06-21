@@ -316,7 +316,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         onPressed: () {
                           if (isFollowingUser) {
                             controller.toggleFollow();
-                          } else if (!isPendingUser) {
+                          } else if (isPendingUser) {
+                            controller.cancelFollowRequest();
+                          } else {
                             controller.followUser();
                           }
                         },

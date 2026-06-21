@@ -47,6 +47,10 @@ class ApiUrl {
       '/users/follow-requests/$userId/decline';
   static String sendFollowRequest(String userId) =>
       '/users/$userId/follow-request';
+  static String cancelFollowRequest(String userId) =>
+      '/users/$userId/cancel-follow-request';
+  static String unfollowUser(String userId) =>
+      '/users/$userId/unfollow-user';
 
   // Saved Posts endpoint
   static const String savedPosts = '/users/load/saved';

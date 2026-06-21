@@ -10,7 +10,9 @@ import '../../Widgegt/ShimmerLoading/shimmer_loading.dart';
 import '../../../service/api_client.dart';
 import '../../../service/api_url.dart';
 import '../HomeScreen/Controller/home_controller.dart';
+import '../ProfileScreen/Controller/my_profile_controller.dart';
 import '../../../Core/AppRoute/app_route.dart';
+import '../../../helper/shared_prefe/shared_prefe.dart';
 
 class SuggestedUser {
   final String id;
@@ -41,9 +43,10 @@ class SuggestedUser {
     final usernameWithAt = rawUsername.startsWith('@') ? rawUsername : '@$rawUsername';
     
     final profile = json['profile'] as Map<String, dynamic>?;
+    final homeController = Get.find<HomeController>();
     final isFollowing = profile != null
         ? (profile['is_following'] ?? json['is_following'] ?? false)
-        : (json['is_following'] ?? (Get.find<HomeController>().userFollowing['Shahriar'] ?? [])
+        : (json['is_following'] ?? (homeController.userFollowing[homeController.loggedInUserName] ?? [])
             .any((u) => u.name.toLowerCase() == name.toLowerCase()));
 
     final isPending = profile != null
@@ -211,12 +214,29 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  void _toggleFollow(SuggestedUser user) {
-    setState(() {
-      user.isFollowing = !user.isFollowing;
-    });
-    // Toggle follow in HomeController to keep global state in sync
-    Get.find<HomeController>().toggleFollowUser(user.name);
+  Future<void> _toggleFollow(SuggestedUser user) async {
+    if (mounted) {
+      setState(() {
+        user.isFollowing = false;
+      });
+    }
+    
+    final success = await Get.find<HomeController>().unfollowUser(user.id);
+    if (!success) {
+      if (mounted) {
+        setState(() {
+          user.isFollowing = true;
+        });
+      }
+    } else {
+      try {
+        Get.find<MyProfileController>().decreaseFollowingCount();
+      } catch (_) {}
+      
+      final homeController = Get.find<HomeController>();
+      homeController.userFollowing[homeController.loggedInUserName]?.removeWhere((u) => u.id == user.id || u.name.toLowerCase() == user.name.toLowerCase());
+      homeController.userFollowing.refresh();
+    }
   }
 
   Future<void> _followUser(SuggestedUser user) async {
@@ -230,6 +250,22 @@ class _SearchScreenState extends State<SearchScreen> {
       if (mounted) {
         setState(() {
           user.isPending = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _cancelFollowRequest(SuggestedUser user) async {
+    if (mounted) {
+      setState(() {
+        user.isPending = false;
+      });
+    }
+    final success = await Get.find<HomeController>().cancelFollowRequest(user.id);
+    if (!success) {
+      if (mounted) {
+        setState(() {
+          user.isPending = true;
         });
       }
     }
@@ -356,7 +392,12 @@ class _SearchScreenState extends State<SearchScreen> {
                               // Avatar
                               GestureDetector(
                                 onTap: () {
-                                  if (user.name.toLowerCase() == 'shahriar') {
+                                  final isMe = Get.find<SharedPreferenceHelper>().isMe(
+                                    userId: user.id,
+                                    userName: user.name,
+                                    authorRaw: user.rawJson,
+                                  );
+                                  if (isMe) {
                                     Get.toNamed(AppRoute.myProfile);
                                   } else {
                                     Get.toNamed(AppRoute.profile, arguments: {
@@ -373,7 +414,12 @@ class _SearchScreenState extends State<SearchScreen> {
                               Expanded(
                                 child: GestureDetector(
                                   onTap: () {
-                                    if (user.name.toLowerCase() == 'shahriar') {
+                                    final isMe = Get.find<SharedPreferenceHelper>().isMe(
+                                      userId: user.id,
+                                      userName: user.name,
+                                      authorRaw: user.rawJson,
+                                    );
+                                    if (isMe) {
                                       Get.toNamed(AppRoute.myProfile);
                                     } else {
                                       Get.toNamed(AppRoute.profile, arguments: {
@@ -418,7 +464,9 @@ class _SearchScreenState extends State<SearchScreen> {
                                   onPressed: () {
                                     if (user.isFollowing) {
                                       _toggleFollow(user);
-                                    } else if (!user.isPending) {
+                                    } else if (user.isPending) {
+                                      _cancelFollowRequest(user);
+                                    } else {
                                       _followUser(user);
                                     }
                                   },

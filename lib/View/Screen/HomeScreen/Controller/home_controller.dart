@@ -53,6 +53,15 @@ class HomeController extends GetxController {
   var isLoadingMoreComments = false.obs;
   var activePostDetailsIndex = (-1).obs;
 
+  String get loggedInUserName {
+    try {
+      final name = Get.find<SharedPreferenceHelper>().getUserName();
+      return name.isEmpty ? 'Shahriar' : name;
+    } catch (_) {
+      return 'Shahriar';
+    }
+  }
+
   void changeIndex(int index) {
     selectedIndex.value = index;
   }
@@ -509,11 +518,15 @@ class HomeController extends GetxController {
             responseData['data'] is Map<String, dynamic>) {
           newComment = CommentModel.fromJson(responseData['data']);
         } else {
+          final sharedPref = Get.find<SharedPreferenceHelper>();
+          final savedName = sharedPref.getUserName();
+          final savedPhoto = sharedPref.getUserPhoto();
           newComment = CommentModel(
             id: DateTime.now().millisecondsSinceEpoch.toString(),
-            userName: 'shahriar',
-            userAvatarUrl:
-                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+            userName: savedName.isNotEmpty ? savedName : 'User',
+            userAvatarUrl: savedPhoto.isNotEmpty
+                ? savedPhoto
+                : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
             timeAgo: 'Just now',
             text: commentText,
             likesCount: 0,
@@ -663,11 +676,15 @@ class HomeController extends GetxController {
             responseData['data'] is Map<String, dynamic>) {
           newReply = CommentModel.fromJson(responseData['data']);
         } else {
+          final sharedPref = Get.find<SharedPreferenceHelper>();
+          final savedName = sharedPref.getUserName();
+          final savedPhoto = sharedPref.getUserPhoto();
           newReply = CommentModel(
             id: DateTime.now().millisecondsSinceEpoch.toString(),
-            userName: 'shahriar',
-            userAvatarUrl:
-                'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
+            userName: savedName.isNotEmpty ? savedName : 'User',
+            userAvatarUrl: savedPhoto.isNotEmpty
+                ? savedPhoto
+                : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
             timeAgo: 'Just now',
             text: replyText,
             likesCount: 0,
@@ -1219,7 +1236,7 @@ class HomeController extends GetxController {
   }
 
   void toggleFollowUser(String targetUserName) {
-    final currentUserName = 'Shahriar';
+    final currentUserName = loggedInUserName;
     if (targetUserName.toLowerCase() == currentUserName.toLowerCase()) return;
 
     final targetUserAvatar = _getUserAvatar(targetUserName);
@@ -1309,6 +1326,46 @@ class HomeController extends GetxController {
     }
   }
 
+  Future<bool> cancelFollowRequest(String userId) async {
+    try {
+      final response = await Get.find<ApiClient>().post(
+        ApiUrl.cancelFollowRequest(userId),
+        body: {},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ToastMessage.showToast(message: "Follow request cancelled");
+        return true;
+      } else {
+        ApiCheck.checkApi(response);
+        return false;
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Connection error: $e');
+      return false;
+    }
+  }
+
+  Future<bool> unfollowUser(String userId) async {
+    try {
+      final response = await Get.find<ApiClient>().post(
+        ApiUrl.unfollowUser(userId),
+        body: {},
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ToastMessage.showToast(message: "Unfollowed successfully");
+        return true;
+      } else {
+        ApiCheck.checkApi(response);
+        return false;
+      }
+    } catch (e) {
+      ToastMessage.showToast(message: 'Connection error: $e');
+      return false;
+    }
+  }
+
   Future<bool> blockUser(String userId, String userName) async {
     try {
       final response = await Get.find<ApiClient>().post(
@@ -1317,7 +1374,7 @@ class HomeController extends GetxController {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Optimistically add to blocked list and remove from followers/following
-        final currentUserName = 'Shahriar';
+        final currentUserName = loggedInUserName;
         final userAvatar = _getUserAvatar(userName);
         final blockedUser = FollowerModel(
           id: userId,
@@ -1482,9 +1539,15 @@ class HomeController extends GetxController {
   }
 
   String _getUserAvatar(String name) {
-    if (name.toLowerCase() == 'shahriar') {
-      return 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150';
-    } else if (name.toLowerCase() == 'elena gonzalez') {
+    try {
+      final sharedPref = Get.find<SharedPreferenceHelper>();
+      if (name.toLowerCase() == loggedInUserName.toLowerCase()) {
+        final photo = sharedPref.getUserPhoto();
+        if (photo.isNotEmpty) return photo;
+      }
+    } catch (_) {}
+
+    if (name.toLowerCase() == 'elena gonzalez') {
       return 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150';
     } else if (name.toLowerCase() == 'africa') {
       return 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=150';

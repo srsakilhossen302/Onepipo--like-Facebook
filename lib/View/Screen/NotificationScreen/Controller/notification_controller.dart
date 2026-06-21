@@ -239,6 +239,7 @@ class NotificationController extends GetxController {
     try {
       final response = await Get.find<ApiClient>().post(
         ApiUrl.acceptFollowRequest(targetId),
+        body: {},
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -273,6 +274,7 @@ class NotificationController extends GetxController {
     try {
       final response = await Get.find<ApiClient>().post(
         ApiUrl.declineFollowRequest(targetId),
+        body: {},
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {

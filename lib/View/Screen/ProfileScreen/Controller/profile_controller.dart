@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../HomeScreen/Controller/home_controller.dart';
+import 'my_profile_controller.dart';
 import '../../HomeScreen/Model/post_model.dart';
 import '../../../../Utils/ToastMessage/toast_message.dart';
 import '../../../../Utils/AppColors/app_colors.dart';
@@ -148,7 +149,7 @@ class ProfileController extends GetxController {
   }
 
   void updateFollowStatus() {
-    final hasLocalFollowing = (homeController.userFollowing['Shahriar'] ?? [])
+    final hasLocalFollowing = (homeController.userFollowing[homeController.loggedInUserName] ?? [])
         .any((u) => u.name.toLowerCase() == userName.toLowerCase());
     if (hasLocalFollowing) {
       isFollowing.value = true;
@@ -255,9 +256,25 @@ class ProfileController extends GetxController {
     }
   }
 
+  Future<void> unfollowUser() async {
+    isFollowing.value = false;
+    final success = await homeController.unfollowUser(userId);
+    if (success) {
+      if (userFollowersCount.value > 0) {
+        userFollowersCount.value--;
+      }
+      try {
+        Get.find<MyProfileController>().decreaseFollowingCount();
+      } catch (_) {}
+      homeController.userFollowing[homeController.loggedInUserName]?.removeWhere((u) => u.id == userId || u.name.toLowerCase() == userName.toLowerCase());
+      homeController.userFollowing.refresh();
+    } else {
+      isFollowing.value = true;
+    }
+  }
+
   void toggleFollow() {
-    homeController.toggleFollowUser(userName);
-    updateFollowStatus();
+    unfollowUser();
   }
 
   Future<void> followUser() async {
@@ -265,6 +282,14 @@ class ProfileController extends GetxController {
     final success = await homeController.sendFollowRequest(userId);
     if (!success) {
       isPending.value = false;
+    }
+  }
+
+  Future<void> cancelFollowRequest() async {
+    isPending.value = false;
+    final success = await homeController.cancelFollowRequest(userId);
+    if (!success) {
+      isPending.value = true;
     }
   }
 

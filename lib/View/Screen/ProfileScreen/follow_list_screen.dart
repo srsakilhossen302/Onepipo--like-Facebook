@@ -24,7 +24,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
   void initState() {
     super.initState();
     final args = Get.arguments as Map<String, dynamic>;
-    userName = args['userName'] ?? 'Shahriar';
+    userName = args['userName'] ?? Get.find<SharedPreferenceHelper>().getUserName();
     controller = FollowListController()..initUser(userName);
   }
 
@@ -39,8 +39,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
           userId: user.id,
           userName: user.name,
           authorRaw: user.rawJson,
-        ) ||
-        user.name.toLowerCase() == 'shahriar';
+        );
 
     if (isMe) {
       Get.toNamed(AppRoute.myProfile);
@@ -64,8 +63,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
     final loggedInUserUsername = sharedPrefHelper.getUserUsername();
     final isOwnProfile =
         userName.toLowerCase() == loggedInUserName.toLowerCase() ||
-        userName.toLowerCase() == loggedInUserUsername.toLowerCase() ||
-        userName.toLowerCase() == 'shahriar';
+        userName.toLowerCase() == loggedInUserUsername.toLowerCase();
 
     if (isLoading) {
       return const Center(
@@ -104,8 +102,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
               userId: user.id,
               userName: user.name,
               authorRaw: user.rawJson,
-            ) ||
-            user.name.toLowerCase() == 'shahriar';
+            );
 
         return Obx(() {
           // Dynamic status checks for lists
@@ -163,7 +160,7 @@ class _FollowListScreenState extends State<FollowListScreen> {
 
               // Action button
               if (!isMe) ...[
-                if (isOwnProfile) ...[
+                if (isOwnProfile && list == controller.followers) ...[
                   // My own profile: "Remove" on Followers
                   ElevatedButton(
                     onPressed: () => controller.removeFollower(user.name),
@@ -188,9 +185,16 @@ class _FollowListScreenState extends State<FollowListScreen> {
                     ),
                   ),
                 ] else ...[
-                  // Someone else's profile: Show "Follow" or "Following" based on our relation
+                  // Either someone else's profile, or our own "Following" list:
+                  // Show "Follow" or "Following" based on our relation
                   ElevatedButton(
-                    onPressed: () => controller.unfollowUser(user.name),
+                    onPressed: () {
+                      if (amIFollowingThisUser) {
+                        controller.unfollowUser(user);
+                      } else {
+                        controller.followUser(user);
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: amIFollowingThisUser
                           ? const Color(0xFFE4E6EB)

@@ -15,6 +15,8 @@ import '../../CreateAccountScreen/Controller/create_account_controller.dart';
 
 import '../../../../helper/shared_prefe/shared_prefe.dart';
 import '../../../../Utils/AppConst/app_const.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class MyProfileController extends GetxController {
   final HomeController homeController = Get.find<HomeController>();
@@ -35,6 +37,13 @@ class MyProfileController extends GetxController {
   var is2faEnabled = false.obs;
   var followersCount = 0.obs;
   var followingCount = 0.obs;
+
+  void decreaseFollowingCount() {
+    if (followingCount.value > 0) {
+      followingCount.value--;
+      Get.find<SharedPreferenceHelper>().setInt('following_count', followingCount.value);
+    }
+  }
 
   var myPosts = <PostModel>[].obs;
   var coverPhotoPath = ''.obs;
@@ -81,14 +90,36 @@ class MyProfileController extends GetxController {
       return;
     }
 
+    String deviceToken = 'mock_device_token_xyz';
+    String deviceName = 'Unknown Device';
+    String appVersion = '1.0.0';
+
+    try {
+      if (!Get.testMode) {
+        final DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+        if (Platform.isAndroid) {
+          final androidInfo = await deviceInfo.androidInfo;
+          deviceToken = androidInfo.id;
+          deviceName = '${androidInfo.manufacturer} ${androidInfo.model}';
+        } else if (Platform.isIOS) {
+          final iosInfo = await deviceInfo.iosInfo;
+          deviceToken = iosInfo.identifierForVendor ?? 'mock_device_token';
+          deviceName = iosInfo.name;
+        }
+        
+        final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+        appVersion = packageInfo.version;
+      }
+    } catch (_) {}
+
     try {
       final body = {
         'credential': email,
         'password': password,
         'type': 'email',
-        'device_token': 'mock_device_token_xyz',
-        'device': 'Unknown Device',
-        'app_version': '1.0.0',
+        'device_token': deviceToken,
+        'device': deviceName,
+        'app_version': appVersion,
       };
 
       final response = await Get.find<ApiClient>().post(
