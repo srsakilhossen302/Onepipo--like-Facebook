@@ -244,21 +244,7 @@ class PostCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
 
-                  // Post Image (if any)
-                  if (post.contentImageUrl != null) ...[
-                    post.contentImageUrl!.startsWith('http')
-                        ? NetworkImg(
-                            imageUrl: post.contentImageUrl!,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          )
-                        : Image.file(
-                            File(post.contentImageUrl!),
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                          ),
-                    const SizedBox(height: 8),
-                  ],
+                  _buildPostImage(post.contentImageUrl),
                 ],
               ),
             ),
@@ -347,6 +333,53 @@ class PostCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPostImage(String? imageUrl) {
+    if (imageUrl == null || imageUrl.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 8.0),
+        child: NetworkImg(
+          imageUrl: imageUrl,
+          width: double.infinity,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+
+    // Check if it's a valid local file path that exists
+    try {
+      final file = File(imageUrl);
+      if (file.existsSync()) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Image.file(
+            file,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+        );
+      }
+    } catch (_) {
+      // Fall back to relative URL
+    }
+
+    // Otherwise, assume it's a remote relative URL path and prepend the domain
+    final cleanPath = imageUrl.startsWith('/') ? imageUrl : '/$imageUrl';
+    final fullUrl = 'https://onepipo.com$cleanPath';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: NetworkImg(
+        imageUrl: fullUrl,
+        width: double.infinity,
+        fit: BoxFit.cover,
       ),
     );
   }

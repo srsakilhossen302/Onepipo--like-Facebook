@@ -17,80 +17,58 @@ class CustomBottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     const barHeight = 62.0;
-    const protrusion = 16.0;
 
-    return SizedBox(
-      height: barHeight + protrusion + bottomPadding,
-      child: Stack(
-        clipBehavior: Clip.none,
+    return Container(
+      height: barHeight + bottomPadding,
+      padding: EdgeInsets.only(bottom: bottomPadding),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(
+          top: BorderSide(
+            color: Color(0xFFEEEEEE),
+            width: 1.0,
+          ),
+        ),
+      ),
+      child: Row(
         children: [
-          // Background navigation bar
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              height: barHeight + bottomPadding,
-              padding: EdgeInsets.only(bottom: bottomPadding),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(
-                  top: BorderSide(
-                    color: Color(0xFFEEEEEE),
-                    width: 1.0,
-                  ),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildNavItem(
-                      index: 0,
-                      iconAsset: 'assets/icons/Feed-Icons.svg',
-                      label: 'Feed',
-                      isActive: currentIndex == 0,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildNavItem(
-                      index: 1,
-                      iconAsset: 'assets/icons/Notification-icons.svg',
-                      label: 'Alerts',
-                      isActive: currentIndex == 1,
-                    ),
-                  ),
-                  const Expanded(
-                    child: SizedBox.shrink(),
-                  ),
-                  Expanded(
-                    child: _buildNavItem(
-                      index: 2,
-                      iconAsset: 'assets/icons/Search-icons.svg',
-                      label: 'Search',
-                      isActive: currentIndex == 2,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildNavItem(
-                      index: 3,
-                      iconData: currentIndex == 3
-                          ? Icons.person_rounded
-                          : Icons.person_outline_rounded,
-                      label: 'Me',
-                      isActive: currentIndex == 3,
-                    ),
-                  ),
-                ],
-              ),
+          Expanded(
+            child: _buildNavItem(
+              index: 0,
+              iconAsset: 'assets/icons/Feed-Icons.svg',
+              label: 'Feed',
+              isActive: currentIndex == 0,
             ),
           ),
-          // Floating Center Button
-          Positioned(
-            top: 12,
-            left: 0,
-            right: 0,
+          Expanded(
+            child: _buildNavItem(
+              index: 1,
+              iconAsset: 'assets/icons/Notification-icons.svg',
+              label: 'Alerts',
+              isActive: currentIndex == 1,
+            ),
+          ),
+          Expanded(
             child: Center(
               child: _buildCenterAddButton(context),
+            ),
+          ),
+          Expanded(
+            child: _buildNavItem(
+              index: 2,
+              iconAsset: 'assets/icons/Search-icons.svg',
+              label: 'Search',
+              isActive: currentIndex == 2,
+            ),
+          ),
+          Expanded(
+            child: _buildNavItem(
+              index: 3,
+              iconData: currentIndex == 3
+                  ? Icons.person_rounded
+                  : Icons.person_outline_rounded,
+              label: 'Me',
+              isActive: currentIndex == 3,
             ),
           ),
         ],
@@ -166,12 +144,12 @@ class CustomBottomNavBar extends StatelessWidget {
           onTap: onAddTap,
           customBorder: const CircleBorder(),
           child: const SizedBox(
-            width: 54,
-            height: 54,
+            width: 48,
+            height: 48,
             child: Icon(
               Icons.add,
               color: Colors.white,
-              size: 28,
+              size: 26,
             ),
           ),
         ),
