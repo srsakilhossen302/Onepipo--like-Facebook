@@ -24,6 +24,7 @@ class HomeScreen extends StatelessWidget {
     ];
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Obx(() => screens[controller.selectedIndex.value]),
       bottomNavigationBar: Obx(() => CustomBottomNavBar(
         currentIndex: controller.selectedIndex.value,
