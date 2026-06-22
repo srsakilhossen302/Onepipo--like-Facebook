@@ -22,32 +22,73 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
   final FocusNode _commentFocusNode = FocusNode();
   final Rxn<CommentModel> selectedReplyComment = Rxn<CommentModel>();
   final RxSet<String> expandedCommentIds = <String>{}.obs;
-  late final int postIndex;
+  int postIndex = -1;
   List<PostModel>? postList;
+  bool isSearchingFromDeepLink = false;
+  Worker? _deepLinkWorker;
 
   List<PostModel> get posts => postList ?? controller.posts;
 
   @override
   void initState() {
     super.initState();
-    final args = Get.arguments;
-    if (args is Map) {
-      postIndex = args['index'] as int;
-      postList = args['list'] as List<PostModel>?;
+    final String? postId = Get.parameters['id'];
+    if (postId != null) {
+      isSearchingFromDeepLink = true;
+      _findAndSetPostFromId(postId);
     } else {
-      postIndex = args as int;
-      postList = null;
-    }
-    controller.activePostDetailsIndex.value = postIndex;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (postIndex >= 0 && postIndex < posts.length) {
-        controller.fetchCommentsForPost(postIndex, list: postList);
+      final args = Get.arguments;
+      if (args is Map) {
+        postIndex = args['index'] as int;
+        postList = args['list'] as List<PostModel>?;
+      } else if (args is int) {
+        postIndex = args;
+        postList = null;
+      } else {
+        postIndex = -1;
       }
-    });
+      controller.activePostDetailsIndex.value = postIndex;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (postIndex >= 0 && postIndex < posts.length) {
+          controller.fetchCommentsForPost(postIndex, list: postList);
+        }
+      });
+    }
+  }
+
+  void _findAndSetPostFromId(String postId) {
+    final index = controller.posts.indexWhere((p) => p.id == postId);
+    if (index != -1) {
+      setState(() {
+        postIndex = index;
+        isSearchingFromDeepLink = false;
+      });
+      controller.activePostDetailsIndex.value = postIndex;
+      controller.fetchCommentsForPost(postIndex);
+    } else {
+      _deepLinkWorker = ever(controller.posts, (List<PostModel> postsList) {
+        final newIndex = postsList.indexWhere((p) => p.id == postId);
+        if (newIndex != -1) {
+          setState(() {
+            postIndex = newIndex;
+            isSearchingFromDeepLink = false;
+          });
+          controller.activePostDetailsIndex.value = postIndex;
+          controller.fetchCommentsForPost(newIndex);
+          _deepLinkWorker?.dispose();
+        } else if (!controller.isLoading.value) {
+          setState(() {
+            isSearchingFromDeepLink = false;
+          });
+          _deepLinkWorker?.dispose();
+        }
+      });
+    }
   }
 
   @override
   void dispose() {
+    _deepLinkWorker?.dispose();
     controller.activePostDetailsIndex.value = -1;
     _textController.dispose();
     _commentFocusNode.dispose();
@@ -132,6 +173,13 @@ class _PostDetailsScreenState extends State<PostDetailsScreen> {
           children: [
             Expanded(
               child: Obx(() {
+                if (isSearchingFromDeepLink && postIndex == -1) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.blueAccent,
+                    ),
+                  );
+                }
                 if (postIndex < 0 || postIndex >= posts.length) {
                   return Center(child: Text(StaticString.postNotFound.tr));
                 }

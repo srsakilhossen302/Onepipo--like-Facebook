@@ -150,6 +150,7 @@ class SharedPreferenceHelper {
     }
   }
 
+  String getUserId() => sharedPreferences.getString('logged_in_user_id') ?? '';
   String getUserName() => sharedPreferences.getString('user_name') ?? '';
   String getUserUsername() => sharedPreferences.getString('user_username') ?? '';
   String getUserPhoto() => sharedPreferences.getString('user_photo') ?? '';
