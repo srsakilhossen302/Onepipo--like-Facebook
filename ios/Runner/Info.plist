@@ -72,5 +72,20 @@
 	<string>We need access to your camera to take new profile pictures and cover photos.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>We need access to your microphone to record video for posts.</string>
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>onepipo.com</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>onepipo</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
