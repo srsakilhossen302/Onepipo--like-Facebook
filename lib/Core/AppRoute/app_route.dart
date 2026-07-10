@@ -24,6 +24,8 @@ import '../../View/Screen/CreateAccountScreen/create_account_screen.dart';
 import '../../View/Screen/CreateAccountScreen/Controller/create_account_controller.dart';
 import '../../View/Screen/OtpVerificationScreen/otp_verification_screen.dart';
 import '../../View/Screen/OtpVerificationScreen/Controller/otp_verification_controller.dart';
+import '../../View/Screen/ForgotPasswordScreen/forgot_password_screen.dart';
+import '../../View/Screen/ForgotPasswordScreen/Controller/forgot_password_controller.dart';
 
 import '../../View/Screen/ProfileScreen/Controller/my_profile_controller.dart';
 import '../../View/Screen/SettingsScreen/login_history_screen.dart';
@@ -49,6 +51,7 @@ class AppRoute {
   static const String twoFactorOnboarding = '/two_factor_onboarding';
   static const String loginHistory = '/login_history';
   static const String twoFactorVerification = '/two_factor_verification';
+  static const String forgotPassword = '/forgot_password';
 
   static String getSplashScreen() => splashScreen;
   static String getLoginScreen() => loginScreen;
@@ -70,6 +73,7 @@ class AppRoute {
   static String getTwoFactorOnboarding() => twoFactorOnboarding;
   static String getLoginHistory() => loginHistory;
   static String getTwoFactorVerification() => twoFactorVerification;
+  static String getForgotPassword() => forgotPassword;
 
   static List<GetPage> routes = [
     GetPage(
@@ -129,6 +133,13 @@ class AppRoute {
         Get.put<TwoFactorVerificationController>(
           TwoFactorVerificationController(),
         );
+      }),
+    ),
+    GetPage(
+      name: forgotPassword,
+      page: () => const ForgotPasswordScreen(),
+      binding: BindingsBuilder(() {
+        Get.put<ForgotPasswordController>(ForgotPasswordController());
       }),
     ),
   ];

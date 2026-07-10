@@ -183,7 +183,7 @@ class LoginScreen extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: InkWell(
                   onTap: () {
-                    ToastMessage.showToast(message: StaticString.forgetPassword.tr);
+                    Get.toNamed(AppRoute.forgotPassword);
                   },
                   child: const Padding(
                     padding: EdgeInsets.symmetric(vertical: 4.0),

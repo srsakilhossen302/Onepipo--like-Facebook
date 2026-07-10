@@ -35,6 +35,11 @@ class ApiUrl {
   static const String following = '/users/following';
   static const String request2fa = '/auth/2fa/request';
   static const String verify2fa = '/auth/2fa/verify';
+  
+  // Password Reset endpoints
+  static const String requestPasswordReset = '/auth/request-password-reset-otp';
+  static const String verifyPasswordReset = '/auth/verify-password-reset-otp';
+  static const String passwordUpdate = '/auth/password-update';
 
   // Notifications endpoints
   static const String notifications = '/notifications';
