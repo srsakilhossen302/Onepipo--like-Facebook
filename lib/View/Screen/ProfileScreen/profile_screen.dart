@@ -226,85 +226,89 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 14),
                     
                     // Stats Row: posts count, followers, following
-                    Row(
-                      children: [
-                        Icon(Icons.rss_feed_rounded, size: 16, color: Colors.grey[600]),
-                        const SizedBox(width: 4),
-                        Text(
-                          "${controller.userPostsCount.value > 0 ? controller.userPostsCount.value : userPosts.length} ${StaticString.posts.tr}",
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        children: [
+                          Icon(Icons.rss_feed_rounded, size: 16, color: Colors.grey[600]),
+                          const SizedBox(width: 4),
+                          Text(
+                            "${controller.userPostsCount.value > 0 ? controller.userPostsCount.value : userPosts.length} ${StaticString.posts.tr}",
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 4,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.grey[400],
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 4,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.grey[400],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () {
-                            Get.toNamed('/follow_list', arguments: {
-                              'userName': userName,
-                              'initialIndex': 0,
-                            });
-                          },
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.group_outlined, size: 16, color: Colors.grey[600]),
-                              const SizedBox(width: 4),
-                              Text(
-                                "${controller.userFollowersCount.value > 0 ? controller.userFollowersCount.value : (controller.homeController.userFollowers[userName] ?? []).length} ${StaticString.followers.tr}",
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () {
+                              Get.toNamed('/follow_list', arguments: {
+                                'userName': userName,
+                                'initialIndex': 0,
+                              });
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.group_outlined, size: 16, color: Colors.grey[600]),
+                                const SizedBox(width: 4),
+                                Text(
+                                  "${controller.userFollowersCount.value > 0 ? controller.userFollowersCount.value : (controller.homeController.userFollowers[userName] ?? []).length} ${StaticString.followers.tr}",
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          width: 4,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.grey[400],
+                          const SizedBox(width: 8),
+                          Container(
+                            width: 4,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.grey[400],
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () {
-                            Get.toNamed('/follow_list', arguments: {
-                              'userName': userName,
-                              'initialIndex': 1,
-                            });
-                          },
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.person_add_alt_1_outlined, size: 16, color: Colors.grey[600]),
-                              const SizedBox(width: 4),
-                              Text(
-                                "${controller.userFollowingCount.value > 0 ? controller.userFollowingCount.value : (controller.homeController.userFollowing[userName] ?? []).length} ${StaticString.following.tr}",
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () {
+                              Get.toNamed('/follow_list', arguments: {
+                                'userName': userName,
+                                'initialIndex': 1,
+                              });
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.person_add_alt_1_outlined, size: 16, color: Colors.grey[600]),
+                                const SizedBox(width: 4),
+                                Text(
+                                  "${controller.userFollowingCount.value > 0 ? controller.userFollowingCount.value : (controller.homeController.userFollowing[userName] ?? []).length} ${StaticString.following.tr}",
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 16),
                     

@@ -155,6 +155,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 // Country Dropdown
                 DropdownButtonFormField<String>(
                   value: selectedCountryVal,
+                  isExpanded: true,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: const Color(0xFFF2F3F5),
@@ -168,7 +169,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   items: controller.countriesList.map((country) {
                     return DropdownMenuItem<String>(
                       value: country.name,
-                      child: Text(country.name),
+                      child: Text(
+                        country.name,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     );
                   }).toList(),
                   onChanged: (val) {
@@ -194,6 +198,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 // City Dropdown
                 DropdownButtonFormField<String>(
                   value: selectedCityVal,
+                  isExpanded: true,
                   decoration: InputDecoration(
                     filled: true,
                     fillColor: const Color(0xFFF2F3F5),
@@ -207,7 +212,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   items: currentCities.map((city) {
                     return DropdownMenuItem<String>(
                       value: city.name,
-                      child: Text(city.name),
+                      child: Text(
+                        city.name,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     );
                   }).toList(),
                   onChanged: (val) {
