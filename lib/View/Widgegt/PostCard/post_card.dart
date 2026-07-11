@@ -74,7 +74,7 @@ class PostCard extends StatelessWidget {
                               Get.toNamed(
                                 AppRoute.profile,
                                 arguments: {
-                                  'userId': post.postUserId,
+                                  'userId': post.userId.isNotEmpty ? post.userId : post.postUserId,
                                   'userName': post.userName,
                                   'author': post.authorRaw,
                                 },
@@ -108,7 +108,7 @@ class PostCard extends StatelessWidget {
                                     Get.toNamed(
                                       AppRoute.profile,
                                       arguments: {
-                                        'userId': post.postUserId,
+                                        'userId': post.userId.isNotEmpty ? post.userId : post.postUserId,
                                         'userName': post.userName,
                                         'author': post.authorRaw,
                                       },

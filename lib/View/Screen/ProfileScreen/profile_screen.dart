@@ -390,10 +390,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: userPosts.length,
                   itemBuilder: (context, index) {
-                    final post = userPosts[index];
-                    // Find actual index of the post in controller's posts list
-                    final actualIndex = controller.homeController.posts.indexOf(post);
-                    return PostCard(postIndex: actualIndex);
+                    return PostCard(
+                      postIndex: index,
+                      postList: userPosts,
+                    );
                   },
                 ),
               if (controller.isLoadingMore.value)

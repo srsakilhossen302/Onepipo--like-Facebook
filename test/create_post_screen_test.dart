@@ -653,6 +653,9 @@ void main() {
 
     // Clear posts
     homeController.posts.clear();
+    homeController.followers.assignAll([
+      FollowerModel(id: '2', name: 'Elena Gonzalez', avatarUrl: ''),
+    ]);
 
     // Init user triggers fetchUserPosts
     await profileController.initUser('Elena Gonzalez');
@@ -690,6 +693,9 @@ void main() {
     final homeController = Get.find<HomeController>();
 
     homeController.posts.clear();
+    homeController.followers.assignAll([
+      FollowerModel(id: '2', name: 'Elena Gonzalez', avatarUrl: ''),
+    ]);
 
     // Load page 1 via initUser
     await profileController.initUser('Elena Gonzalez');

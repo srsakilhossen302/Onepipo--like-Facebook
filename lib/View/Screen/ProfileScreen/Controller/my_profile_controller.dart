@@ -318,9 +318,7 @@ class MyProfileController extends GetxController {
 
   void loadMyPosts() {
     myPosts.assignAll(homeController.posts.where((p) {
-      final matchesName = p.userName.toLowerCase() == currentUserName.value.toLowerCase();
-      final matchesId = myUserId.value.isNotEmpty && (p.postUserId == myUserId.value || p.userId == myUserId.value);
-      return matchesName || matchesId;
+      return p.userName.toLowerCase() == currentUserName.value.toLowerCase();
     }).toList());
   }
 

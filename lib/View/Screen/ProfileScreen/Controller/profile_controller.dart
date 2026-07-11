@@ -159,22 +159,30 @@ class ProfileController extends GetxController {
 
   void loadUserPosts() {
     userPosts.assignAll(homeController.posts.where((p) {
-      final matchesName = p.userName.toLowerCase() == userName.toLowerCase();
-      final matchesId = p.postUserId == userId || p.userId == userId;
-      return matchesName || matchesId;
+      return p.userName.toLowerCase() == userName.toLowerCase();
     }).toList());
   }
 
   String getUserIdByUsername(String name) {
-    if (name.toLowerCase() == 'shahriar') return '5';
-    if (name.toLowerCase() == 'elena gonzalez') return '2';
-    if (name.toLowerCase() == 'africa') return '3';
-    if (name.toLowerCase() == 'ahmed wahid') return '4';
-    if (name.toLowerCase() == 'owolabi ridwan') return '1';
-    
-    final follower = homeController.followers.firstWhereOrNull((f) => f.name.toLowerCase() == name.toLowerCase());
+    // 1. Try to find user ID dynamically from the home feed posts
+    final post = homeController.posts.firstWhereOrNull(
+      (p) => p.userName.toLowerCase() == name.toLowerCase() && 
+             p.postUserId.isNotEmpty
+    );
+    if (post != null) return post.postUserId;
+
+    // 2. Try to find user ID from the followers list
+    final follower = homeController.followers.firstWhereOrNull(
+      (f) => f.name.toLowerCase() == name.toLowerCase()
+    );
     if (follower != null) return follower.id;
-    return '5';
+
+    // 3. Try to find user ID from the following list
+    for (var list in homeController.userFollowing.values) {
+      final user = list.firstWhereOrNull((u) => u.name.toLowerCase() == name.toLowerCase());
+      if (user != null) return user.id;
+    }
+    return '';
   }
 
   Future<void> fetchUserPosts() async {
