@@ -536,7 +536,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSettingsTile(
               icon: Icons.info_outline_rounded,
               title: StaticString.aboutAccount.tr,
-              onTap: () => _launchURL('https://onepipo.com/about'),
+              onTap: () => Get.toNamed(AppRoute.aboutAccount),
             ),
             _buildSettingsTile(
               icon: Icons.bookmark_outline_rounded,

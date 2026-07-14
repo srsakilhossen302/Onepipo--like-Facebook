@@ -29,6 +29,7 @@ import '../../View/Screen/ForgotPasswordScreen/Controller/forgot_password_contro
 
 import '../../View/Screen/ProfileScreen/Controller/my_profile_controller.dart';
 import '../../View/Screen/SettingsScreen/login_history_screen.dart';
+import '../../View/Screen/SettingsScreen/about_account_screen.dart';
 
 class AppRoute {
   static const String splashScreen = '/splash_screen';
@@ -52,6 +53,7 @@ class AppRoute {
   static const String loginHistory = '/login_history';
   static const String twoFactorVerification = '/two_factor_verification';
   static const String forgotPassword = '/forgot_password';
+  static const String aboutAccount = '/about_account';
 
   static String getSplashScreen() => splashScreen;
   static String getLoginScreen() => loginScreen;
@@ -74,6 +76,7 @@ class AppRoute {
   static String getLoginHistory() => loginHistory;
   static String getTwoFactorVerification() => twoFactorVerification;
   static String getForgotPassword() => forgotPassword;
+  static String getAboutAccount() => aboutAccount;
 
   static List<GetPage> routes = [
     GetPage(
@@ -126,6 +129,7 @@ class AppRoute {
     GetPage(name: archivedPosts, page: () => const ArchivedPostsScreen()),
     GetPage(name: twoFactorOnboarding, page: () => const TwoFactorSetupScreen()),
     GetPage(name: loginHistory, page: () => const LoginHistoryScreen()),
+    GetPage(name: aboutAccount, page: () => const AboutAccountScreen()),
     GetPage(
       name: twoFactorVerification,
       page: () => const TwoFactorVerificationScreen(),

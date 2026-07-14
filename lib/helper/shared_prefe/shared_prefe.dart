@@ -111,6 +111,15 @@ class SharedPreferenceHelper {
       await sharedPreferences.setBool('is_2fa_enabled', val == true || val.toString() == '1' || val.toString() == 'true');
     }
 
+    if (userData.containsKey('created_at') && userData['created_at'] != null) {
+      await sharedPreferences.setString('user_created_at', userData['created_at'].toString());
+    } else if (userData['profile'] is Map && (userData['profile'] as Map).containsKey('created_at')) {
+      final profile = userData['profile'] as Map<String, dynamic>;
+      if (profile['created_at'] != null) {
+        await sharedPreferences.setString('user_created_at', profile['created_at'].toString());
+      }
+    }
+
     if (userData['profile'] is Map) {
       final profile = userData['profile'] as Map<String, dynamic>;
       if (profile.containsKey('sms_notifications') && profile['sms_notifications'] != null) {
@@ -147,6 +156,9 @@ class SharedPreferenceHelper {
       if (profile.containsKey('following_count') && profile['following_count'] != null) {
         await sharedPreferences.setInt('following_count', int.tryParse(profile['following_count'].toString()) ?? 0);
       }
+      if (profile.containsKey('created_at') && profile['created_at'] != null) {
+        await sharedPreferences.setString('user_created_at', profile['created_at'].toString());
+      }
     }
   }
 
@@ -160,6 +172,7 @@ class SharedPreferenceHelper {
   String getUserCityId() => sharedPreferences.getString('user_city_id') ?? '';
   String getUserCountryName() => sharedPreferences.getString('user_country_name') ?? '';
   String getUserCityName() => sharedPreferences.getString('user_city_name') ?? '';
+  String getUserCreatedAt() => sharedPreferences.getString('user_created_at') ?? '';
   bool getSmsNotifications() => sharedPreferences.getBool('sms_notifications') ?? false;
   bool getPushNotifications() => sharedPreferences.getBool('push_notifications') ?? true;
   bool getEmailNotifications() => sharedPreferences.getBool('email_notifications') ?? false;
