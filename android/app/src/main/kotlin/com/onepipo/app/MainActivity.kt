@@ -1,4 +1,4 @@
-package com.example.onepipo
+package com.onepipo.app
 
 import io.flutter.embedding.android.FlutterActivity
 
