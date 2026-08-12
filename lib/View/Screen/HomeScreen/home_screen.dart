@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:upgrader/upgrader.dart';
 import 'feed_screen.dart';
 import '../NotificationScreen/notification_screen.dart';
 import '../SearchScreen/search_screen.dart';
@@ -23,24 +24,29 @@ class HomeScreen extends StatelessWidget {
       const MyProfileScreen(),
     ];
 
-    return Obx(
-      () => PopScope(
-        canPop: controller.selectedIndex.value == 0,
-        onPopInvokedWithResult: (didPop, result) {
-          if (didPop) return;
-          if (controller.selectedIndex.value != 0) {
-            controller.changeIndex(0);
-          }
-        },
-        child: Scaffold(
-          backgroundColor: Colors.white,
-          body: screens[controller.selectedIndex.value],
-          bottomNavigationBar: CustomBottomNavBar(
-            currentIndex: controller.selectedIndex.value,
-            onTap: (index) => controller.changeIndex(index),
-            onAddTap: () {
-              Get.toNamed(AppRoute.createPost);
-            },
+    return UpgradeAlert(
+      upgrader: Upgrader(
+        durationUntilAlertAgain: const Duration(days: 1),
+      ),
+      child: Obx(
+        () => PopScope(
+          canPop: controller.selectedIndex.value == 0,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
+            if (controller.selectedIndex.value != 0) {
+              controller.changeIndex(0);
+            }
+          },
+          child: Scaffold(
+            backgroundColor: Colors.white,
+            body: screens[controller.selectedIndex.value],
+            bottomNavigationBar: CustomBottomNavBar(
+              currentIndex: controller.selectedIndex.value,
+              onTap: (index) => controller.changeIndex(index),
+              onAddTap: () {
+                Get.toNamed(AppRoute.createPost);
+              },
+            ),
           ),
         ),
       ),

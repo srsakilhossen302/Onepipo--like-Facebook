@@ -49,6 +49,7 @@ dependencies:
   url_launcher: ^6.3.2
   pin_code_fields: ^9.4.0
   share_plus: ^13.1.0
+  upgrader: ^13.6.0
 
 dev_dependencies:
   flutter_test:
