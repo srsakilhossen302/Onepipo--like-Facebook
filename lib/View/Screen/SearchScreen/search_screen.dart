@@ -285,7 +285,14 @@ class _SearchScreenState extends State<SearchScreen> {
             color: AppColors.textLight,
             size: 20,
           ),
-          onPressed: () => Get.back(),
+          onPressed: () {
+            if (Get.isRegistered<HomeController>() &&
+                Get.find<HomeController>().selectedIndex.value != 0) {
+              Get.find<HomeController>().changeIndex(0);
+            } else {
+              Get.back();
+            }
+          },
         ),
         centerTitle: true,
         title: Text(

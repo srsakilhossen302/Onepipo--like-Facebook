@@ -23,16 +23,27 @@ class HomeScreen extends StatelessWidget {
       const MyProfileScreen(),
     ];
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Obx(() => screens[controller.selectedIndex.value]),
-      bottomNavigationBar: Obx(() => CustomBottomNavBar(
-        currentIndex: controller.selectedIndex.value,
-        onTap: (index) => controller.changeIndex(index),
-        onAddTap: () {
-          Get.toNamed(AppRoute.createPost);
+    return Obx(
+      () => PopScope(
+        canPop: controller.selectedIndex.value == 0,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          if (controller.selectedIndex.value != 0) {
+            controller.changeIndex(0);
+          }
         },
-      )),
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          body: screens[controller.selectedIndex.value],
+          bottomNavigationBar: CustomBottomNavBar(
+            currentIndex: controller.selectedIndex.value,
+            onTap: (index) => controller.changeIndex(index),
+            onAddTap: () {
+              Get.toNamed(AppRoute.createPost);
+            },
+          ),
+        ),
+      ),
     );
   }
 }

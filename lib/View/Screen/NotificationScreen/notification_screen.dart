@@ -4,7 +4,9 @@ import '../../../Utils/AppColors/app_colors.dart';
 import '../../../Utils/StaticString/static_string.dart';
 import '../../../helper/network_img/network_img.dart';
 import '../../Widgegt/ShimmerLoading/shimmer_loading.dart';
+import '../HomeScreen/Controller/home_controller.dart';
 import 'Controller/notification_controller.dart';
+
 
 class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
@@ -38,7 +40,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
               color: AppColors.textLight,
               size: 20,
             ),
-            onPressed: () => Get.back(),
+            onPressed: () {
+              if (Get.isRegistered<HomeController>() &&
+                  Get.find<HomeController>().selectedIndex.value != 0) {
+                Get.find<HomeController>().changeIndex(0);
+              } else {
+                Get.back();
+              }
+            },
           ),
           centerTitle: true,
           title: Text(
